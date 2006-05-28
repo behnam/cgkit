@@ -1,0 +1,66 @@
+% BoxGeom
+
+\section{\class{BoxGeom} ---
+         Box geometry}
+
+\begin{classdesc}{BoxGeom}{lx=1.0, ly=1.0, lz=1.0, segmentsx=1, segmentsy=1, segmentsz=1}
+
+\var{lx}, \var{ly} and \var{lz} specify the dimensions of the box in
+the respective direction.
+
+\var{segmentsx}, \var{segmentsy} and \var{segmentsz} are the number of
+segments in each direction.
+\end{classdesc}
+
+A \class{BoxGeom} has the following slots:
+
+\begin{tableiv}{l|l|c|l}{code}{Slot}{Type}{Access}{Description}
+\lineiv{cog_slot}{vec3}{r}{The local center of gravity}
+\lineiv{inertiatensor_slot}{mat3}{r}{The local inertia tensor}
+\lineiv{lx_slot}{float}{rw}{The length in x direction}
+\lineiv{ly_slot}{float}{rw}{The length in y direction}
+\lineiv{lz_slot}{float}{rw}{The length in z direction}
+\lineiv{segmentsx_slot}{int}{rw}{The number of segments in x direction}
+\lineiv{segmentsy_slot}{int}{rw}{The number of segments in y direction}
+\lineiv{segmentsz_slot}{int}{rw}{The number of segments in z direction}
+\end{tableiv}
+
+% Attributes
+\begin{memberdesc}{cog}
+Center of gravity with respect to the local coordinate system.
+\end{memberdesc}
+
+\begin{memberdesc}{inertiatensor}
+Inertia tensor with respect to the local coordinate system.
+\end{memberdesc}
+
+\begin{memberdesc}{lx}
+The length in x direction.
+\end{memberdesc}
+
+\begin{memberdesc}{ly}
+The length in y direction.
+\end{memberdesc}
+
+\begin{memberdesc}{lz}
+The length in z direction.
+\end{memberdesc}
+
+\begin{memberdesc}{segmentsx}
+The number of segments in x direction.
+\end{memberdesc}
+
+\begin{memberdesc}{segmentsy}
+The number of segments in y direction.
+\end{memberdesc}
+
+\begin{memberdesc}{segmentsz}
+The number of segments in z direction.
+\end{memberdesc}
+
+
+
+
+
+
+

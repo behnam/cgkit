@@ -1,0 +1,219 @@
+\section{\module{pluginmanager} ---
+         Managing plugins}
+
+\declaremodule{extension}{cgkit.pluginmanager}
+\modulesynopsis{Managing plugins}
+
+A {\em plugin} is a file that gets imported just like a regular Python
+module. Each plugin can be uniquely identified either by its absolute
+filename or its module name. The module name is only available once
+the plugin is loaded. Any objects (usually classes) that are specially
+marked will be made available by the plugin manager for later
+retrieval.
+
+A class gets imported if it has an attribute \code{_protocols} which is a
+list of supported protocols (a protocol is identified by an arbitrary
+hashable object). Each class can be uniquely identified by its module
+name and class name.
+
+Plugins are loaded by calling \function{importPlugin()} or 
+\function{importPlugins()}. 
+You can also register any class as plugin class any time by calling the
+\function{register()} function. When a plugin is loaded or an object is
+registered the plugin/object is represented by a descriptor class
+(\class{PluginDescriptor} resp. \class{PluginObjectDescriptor}). 
+These descriptor objects contain information about the plugin/object. The 
+object descriptor also holds a reference to the actual plugin object.
+
+You can iterate over all currently available protocols via the
+\function{iterProtocols()} function. The \function{iterProtoObjects()} 
+function can be used to iterate over all objects that support a
+particular protocol and \function{iterObjects()} can be used to
+iterate over all objects. The default iterator iterates over all
+plugin descriptors.
+
+Example plugin class:
+
+\begin{verbatim}
+# file: plugin.py
+    
+class PluginClass:
+
+    _protocols = ["MyProtocol"]
+
+    def __init__(self):
+        ...
+    ...
+\end{verbatim}
+
+And here's how to use it:
+
+\begin{verbatim}
+# Load the plugin
+pdesc = importPlugin("plugin.py")
+if pdesc.status!=STATUS_OK:
+    # there was an error...
+
+# Search a plugin class
+objdesc = findObject("plugin.PluginClass")
+# Create an instance of the plugin class...
+PluginClass = objdesc.object
+instance = PluginClass()
+\end{verbatim}
+
+The actual functionality is implemented in the \class{PluginManager}
+class. However, the module creates a global instance of this class
+which can be accessed by the module functions. These functions just
+call the corresponding methods of the global plugin manager object.
+If you want to load plugins that should be stored separately from
+the plugins in your surrounding application then you can also create
+your own instance of the \class{PluginManager} class.
+
+% importPlugin
+\begin{funcdesc}{importPlugin}{filename, overwrite=False}
+Loads a plugin file. The given file is executed, i.e. it is imported
+like a module. Any object (usually class or function) that has an
+attribute \code{_protocols} is stored in the plugin manager. This
+attribute is a list of protocol specifiers (which are just arbitrary
+hashable objects).
+
+The file must have a suffix that is recognized as a module by the
+Python interpreter (one of the suffixes returned by
+\function{imp.get_suffixes()}), otherwise an \exception{UnknownFileType}
+exception is thrown.
+
+It is possible to load a plugin several times if \var{overwrite} is set to
+\code{True}. The new definitions override the previous ones. However, if
+references or instances to old objects are kept somewhere they still
+refer to the old definition. When writing a plugin you should always
+bear in mind that the file could be executed several times and write
+your initialization code accordingly.
+
+The function returns a \class{PluginDescriptor} object which contains
+information about the imported plugin.
+\end{funcdesc}
+
+% importPlugins
+\begin{funcdesc}{importPlugins}{plugins, out=sys.stderr}
+Import several plugins at once. \var{plugins} can be a single
+file/directory name or a sequence of file/directory names. Directories
+are recursively descended.
+\var{out} is a stream which is used to output status messages.
+\end{funcdesc}
+
+\begin{funcdesc}{register}{obj, name=None, pdesc=None, overwrite=False}
+\end{funcdesc}
+
+\begin{funcdesc}{remove}{objdesc}
+\end{funcdesc}
+
+\begin{funcdesc}{removePlugin}{pdesc}
+\end{funcdesc}
+
+\begin{funcdesc}{removeAll}{}
+\end{funcdesc}
+
+\begin{funcdesc}{findPlugin}{filename}
+\end{funcdesc}
+
+\begin{funcdesc}{findObject}{name, modname=None}
+\end{funcdesc}
+
+\begin{funcdesc}{iterPlugins}{}
+\end{funcdesc}
+
+\begin{funcdesc}{iterProtocols}{}
+\end{funcdesc}
+
+\begin{funcdesc}{iterProtoObjects}{proto}
+\end{funcdesc}
+
+\begin{funcdesc}{iterObjects}{}
+\end{funcdesc}
+
+%---------------------------------------------------
+\subsection{PluginManager class}
+
+%---------------------------------------------------
+\subsection{PluginDescriptor}
+
+A \class{PluginDescriptor} object keeps the status information
+of a plugin file. It has the following attributes:
+
+\begin{datadesc}{filename}
+The absolute file name of the plugin.
+\end{datadesc}
+
+\begin{datadesc}{filedesc}
+A file descriptor tuple (\var{suffix}, \var{mode}, \var{type}) as
+returned by the \function{get_suffixes()} function in the \module{imp}
+module (\var{type} is one of \code{imp.PY_SOURCE}, \code{imp.PY_COMPILED} 
+or \code{imp.C_EXTENSION}).
+\end{datadesc}
+
+\begin{datadesc}{objcount}
+Number of imported objects (usually this should be number of classes + 
+number of functions).
+\end{datadesc}
+
+\begin{datadesc}{classcount}
+Number of imported classes.
+\end{datadesc}
+
+\begin{datadesc}{funccount}
+Number of imported functions.
+\end{datadesc}
+
+\begin{datadesc}{status}
+Status flags. If everything is ok the status is \code{STATUS_OK}, otherwise
+its a combination of \code{STATUS_EXCEPTION} and \code{STATUS_DUPLICATE}.
+\end{datadesc}
+
+\begin{datadesc}{traceback}
+A string containing the traceback message (if the \code{STATUS_EXCEPTION}
+flag is set).
+\end{datadesc}
+
+\begin{datadesc}{objdescs}
+A list of object descriptors of all imported objects.
+\end{datadesc}
+
+\begin{datadesc}{module}
+The module object of the imported plugin.
+\end{datadesc}
+
+\begin{datadesc}{modulename}
+The name of the plugin module.
+\end{datadesc}
+
+%---------------------------------------------------
+\subsection{PluginObjectDescriptor}
+
+A \class{PluginObjectDescriptor} object keeps the status information
+of a plugin object. It has the following attributes and methods:
+
+\begin{datadesc}{object}
+The actual plugin object.
+\end{datadesc}
+
+\begin{datadesc}{name}
+The name of the object.
+\end{datadesc}
+
+\begin{datadesc}{plugindesc}
+The \class{PluginDescriptor} of the associated plugin.
+\end{datadesc}
+
+\begin{datadesc}{status}
+Status flags. If everything is ok the status is \code{STATUS_OK}, otherwise
+its \code{STATUS_DUPLICATE}.
+\end{datadesc}
+
+\begin{methoddesc}{moduleName}{}
+Return the module name where the plugin object belongs to (or None).
+\end{methoddesc}
+
+\begin{methoddesc}{objectIdentifier}{}
+Return the name under which the object is identified. This name is composed
+of the module name and the object name, separated by a dot.
+\end{methoddesc}

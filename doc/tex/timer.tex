@@ -1,0 +1,71 @@
+% Timer component
+
+\section{\class{Timer} ---
+         Manages the virtual time}
+\label{timer}
+
+The \class{Timer} class manages the virtual time and drives the entire
+animation/simulation. Everything that is animated either directly or
+indirectly connects to the time slot of the global \class{Timer} instance.
+This global timer is automatically created by the scene and can be
+obtained by calling the \method{timer()} method of the \class{Scene} class.
+
+
+\begin{classdesc}{Timer}{name = ''Timer'',\\ 
+                         auto_insert = True}
+
+
+\var{name} is the component name.
+\end{classdesc}
+
+% Attributes:
+
+The \class{Timer} class has the following attributes:
+
+\begin{datadesc}{time / time_slot}
+Current virtual time in seconds (\code{DoubleSlot}).
+This value is increased by \member{timestep} whenever the \method{step()} 
+method is called.
+\end{datadesc}
+
+\begin{datadesc}{timestep}
+The delta time step in seconds that represents one frame.
+\end{datadesc}
+
+\begin{datadesc}{duration}
+The total duration in seconds of the animation/simulation.
+\end{datadesc}
+
+\begin{datadesc}{frame}
+Current (fractional) frame number (as float).
+\end{datadesc}
+
+\begin{datadesc}{fps}
+Current frame rate (as float).
+\end{datadesc}
+
+\begin{datadesc}{framecount}
+Total number of frames of the animation/simulation (as float).
+\end{datadesc}
+
+\begin{datadesc}{clock}
+This value contains the value in seconds of the real clock.
+\end{datadesc}
+
+% Methods:
+
+The \class{Timer} class has the following methods:
+
+\begin{methoddesc}{startClock}{}
+Start the real clock.
+\end{methoddesc}
+
+\begin{methoddesc}{stopClock}{}
+Stop the real clock.
+\end{methoddesc}
+
+\begin{methoddesc}{step}{}
+Step to the next frame. This call increases the current virtual time by
+\member{timestep} and emits a \code{STEP_FRAME} event.
+\end{methoddesc}
+

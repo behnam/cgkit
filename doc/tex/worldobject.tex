@@ -1,0 +1,242 @@
+% WorldObject
+
+\section{\class{WorldObject} ---
+         World object base class}
+
+\begin{classdesc}{WorldObject}{name = "object", \\
+                 transform = None,\\
+                 pos = None, \\
+	         rot = None,\\
+                 scale = None,\\
+                 pivot = None,\\
+                 offsetTransform = None,\\
+                 parent = None,\\
+                 mass = None,\\
+                 material = None,\\
+                 visible = True,\\
+                 auto_insert = True}
+
+\var{name} is the name of the object which can be used to identify the
+object.
+
+\var{transform} is the initial transformation that should be applied to
+the object. Alternatively, you can specify the individual components
+\var{pos}, \var{rot} and \var{scale}.
+
+\var{pivot} is the pivot point of the object. This is the 4th column of
+the offset transformation. You can also specify the entire offset 
+transformation using the \var{offsetTransform} argument.
+
+\var{parent} is the parent world object and determines at which position
+in the scene graph the new object is added. If \var{parent} is \code{None}
+the object will become a child of the world root. The \var{parent} argument
+is only used if \var{auto_insert} is \code{True}.
+
+\var{mass} is the mass of this object (this does {\em not} include
+the children objects).
+
+\var{material} describes the appearance of the object. It can be either 
+a single \class{Material} object or a sequence of \class{Material} objects.
+
+\var{visible} is a flag that determines whether the object is visible
+or not. This only affects the geometry of this WorldObject, it is not
+inherited by children objects.
+
+The object will be inserted into the scene automatically if 
+\var{auto_insert} is set to \code{True}.
+\end{classdesc}
+
+A \class{WorldObject} always has the following slots:
+
+\begin{tableiv}{l|l|c|l}{code}{Slot}{Type}{Access}{Description}
+\lineiv{angularvel_slot}{vec3}{rw}{Angular velocity}
+\lineiv{cog_slot}{vec3}{r}{Center of gravity}
+\lineiv{inertiatensor_slot}{mat3}{r}{Inertia tensor}
+\lineiv{linearvel_slot}{vec3}{rw}{Linear velocity}
+\lineiv{mass_slot}{float}{rw}{Mass of the local geometry}
+\lineiv{pos_slot}{vec3}{rw}{Position}
+\lineiv{rot_slot}{mat3}{rw}{Orientation}
+\lineiv{scale_slot}{vec3}{rw}{Scaling}
+\lineiv{totalmass_slot}{float}{r}{Total mass (including the children)}
+\lineiv{transform_slot}{mat4}{rw}{Object transformation}
+\lineiv{visible_slot}{bool}{rw}{Visibility flag}
+\lineiv{worldtransform_slot}{mat4}{rw}{World transformation}
+\end{tableiv}
+
+\begin{memberdesc}{geom}
+This attribute holds the visible geometry which must be derived from 
+\class{GeomObject}. The value can also be \code{None} if there is no
+visible geometry. Geometry objects can be shared between different 
+world objects. This value can be read and written.
+\end{memberdesc}
+
+\begin{memberdesc}{parent}
+This attribute contains the parent world object or \code{None}. You can 
+only read this attribute.
+\end{memberdesc}
+
+\begin{memberdesc}{transform}
+This is the value of the mat4 slot \var{transform_slot} which contains
+the object transformation T. You can read and write this attribute.
+\end{memberdesc}
+
+\begin{memberdesc}{worldtransform}
+This is the value of the mat4 slot \var{worldtransform_slot} which
+contains the world transformation (which is a concatenation of all local
+transformations L). You can only read this attribute.
+
+\note{Note that in contrast to the \var{transform} slot,
+the \var{worldtransform} is not influenced by the offset transformation.}
+\end{memberdesc}
+
+\begin{memberdesc}{pos}
+This is the value of the vec3 slot \var{pos_slot} which contains the 
+position of the object. You can read and write this attribute.
+\end{memberdesc}
+
+\begin{memberdesc}{rot}
+This is the value of the mat3 slot \var{rot_slot} which contains the 
+orientation of the object. You can read and write this attribute.
+\end{memberdesc}
+
+\begin{memberdesc}{scale}
+This is the value of the vec3 slot \var{scale_slot} which contains the 
+scaling of the object. You can read and write this attribute.
+\end{memberdesc}
+
+\begin{memberdesc}{pivot}
+This is the pivot point (vec3) of the object. You can read and write this
+attribute. Reading or writing this attribute is equivalent to calling
+\method{getOffsetTransform()} or \method{setOffsetTransform()} with
+a matrix that only modifies the 4th column.
+\end{memberdesc}
+
+\begin{memberdesc}{cog}
+This is the value of the vec3 slot \var{cog_slot} which contains the
+physical center of gravity. This value is derived from the center of 
+gravity provided by the geometry object and the cogs and masses of the
+children objects. This means it represents the center of gravity of the 
+entire hierarchy. The value is given with respect to the pivot coordinate
+system P. You can only read this value.
+\end{memberdesc}
+
+\begin{memberdesc}{inertiatensor}
+This is the value of the mat3 slot \var{inertiatensor_slot} which contains
+the inertia tensor of the entire hierarchy (just like \var{cog}). You can
+only read this value.
+\end{memberdesc}
+
+\begin{memberdesc}{mass}
+This is the value of the double slot \var{mass_slot} which contains the
+{\em local} mass of this object (not including the children). Or in other
+words, this is the mass of the geometry directly set in this object.
+You can read and write this value.
+\end{memberdesc}
+
+\begin{memberdesc}{totalmass}
+This is the value of the double slot \var{totalmass_slot} which contains
+the total mass of this object and its children. You can only read this value.
+\end{memberdesc}
+
+\begin{memberdesc}{angularvel}
+This is the value of the vec3 slot \var{angular_slot} which contains the 
+angular velocity of the object. The value is not computed but has to be
+set by anyone who knows the angular velocity (such as a dynamics component).
+You can read and write this attribute.
+\end{memberdesc}
+
+\begin{memberdesc}{linearvel}
+This is the value of the vec3 slot \var{linearvel_slot} which contains the 
+linear velocity of the object. The value is not computed but has to be
+set by anyone who knows the linear velocity (such as a dynamics component).
+You can read and write this attribute.
+\end{memberdesc}
+
+
+% Methods
+\begin{methoddesc}{boundingBox}{}
+Return the local axis aligned bounding box. The bounding box is
+given with respect to the local transformation L (which is not
+what you get from the transform slot of the world object).
+\end{methoddesc}
+
+\begin{methoddesc}{localTransform}{}
+Returns the local transformation that has to be used for rendering.
+The returned transformation L is calculated as follows: $L = T\cdot P^{-1}$,
+where T is the current transform (taken from the transform slot)
+and P is the offset transform.
+\end{methoddesc}
+
+\begin{methoddesc}{getOffsetTransform}{}
+Return the current offset transformation as a \class{mat4}. This
+transformation is given relative to the local object transformation.
+\end{methoddesc}
+
+\begin{methoddesc}{setOffsetTransform}{P}
+Set the offset transformation. The transformation has to be given
+relative to the local object transformation. After setting the offset
+transformation, the transform slot will be updated so that 
+\method{localTransform()} returns the same matrix as before, i.e. the
+world position/orientation of the object does not change.
+\end{methoddesc}
+
+\begin{methoddesc}{getNumMaterials}{}
+Return the current size of the material array.
+\end{methoddesc}
+
+\begin{methoddesc}{setNumMaterials}{num}
+Set a new size for the material array.
+\end{methoddesc}
+
+\begin{methoddesc}{getMaterial}{idx=0}
+Get a stored material. The method returns \code{None} if the given index
+is out of range or there is no material stored at that position.
+\end{methoddesc}
+
+\begin{methoddesc}{setMaterial}{mat, idx=0}
+Set a new material. An \exception{IndexError} exception is thrown if
+the index is out of range.
+\end{methoddesc}
+
+\begin{methoddesc}{lenChilds}{}
+Return the number of children objects.
+\end{methoddesc}
+
+\begin{methoddesc}{iterChilds}{}
+Return an iterator that iterates over all children objects.
+\end{methoddesc}
+
+\begin{methoddesc}{hasChild}{name}
+Check if a children with a particular name does exist.
+\end{methoddesc}
+
+\begin{methoddesc}{child}{name}
+Return the children with a particluar name. A \exception{KeyError}
+exception is thrown if there is no children with the specified name.
+\end{methoddesc}
+
+\begin{methoddesc}{addChild}{child}
+Add a new children world object to this object. A
+\exception{ValueError} exception is thrown if child was already added
+to another object.  In this case you have to remove the object from
+its previous parent yourself. You also have to make sure that the name
+of \var{child} is unique among the children of this object, otherwise
+a \exception{KeyError} exception is thrown.
+\end{methoddesc}
+
+\begin{methoddesc}{removeChild}{child}
+Remove a children world object from this object. \var{child} can either
+be the name of the children or the object itself. A \exception{KeyError}
+exception is thrown if child is not a children of this object.
+\end{methoddesc}
+
+\begin{methoddesc}{makeChildNameUnique}{name}
+Modify \var{name} so that it is unique among the children names. If
+\var{name} is already the name of a children object, then it is modified
+by adding/increasing a trailing number, otherwise it is returned
+unchanged.
+\end{methoddesc}
+
+
+
+

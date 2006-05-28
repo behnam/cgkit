@@ -1,0 +1,17 @@
+% OFF export
+
+\subsection{Geomview Object File Format (OFF) export}
+
+The OFF export plugin writes \ulink{Geomview}{http://www.geomview.org/} 
+Object File Format (OFF) files. Currently, only ASCII files can be 
+exported.
+
+The plugin will export normals, colors and texture coordinates if they
+are of storage class {\em varying} (colors may also be {\em uniform}).
+
+The plugin supports the following options that can be passed to
+the \function{save()} command:
+
+\begin{tableiii}{l|l|l}{code}{Option}{Default}{Description}
+\lineiii{root}{\code{None}}{Export only a subtree of the scene.}
+\end{tableiii}

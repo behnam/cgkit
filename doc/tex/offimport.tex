@@ -1,0 +1,21 @@
+% OFF import
+
+\subsection{Geomview Object File Format (OFF) import}
+
+The OFF import plugin reads \ulink{Geomview}{http://www.geomview.org/} 
+Object File Format (OFF) files. Currently, only ASCII files can be read
+whereas binary files will not be recognized.
+
+If present the imported model will have normals, colors and texture
+coordinates which will all be of storage class {\var varying}. An exception
+is the color which may also be stored as {\var uniform}. The color is ignored
+if it is specified via a colormap index. An optional alpha value will
+also be ignored.
+
+The plugin supports the following options that can be passed to
+the \function{load()} command:
+
+\begin{tableiii}{l|l|l}{code}{Option}{Default}{Description}
+\lineiii{invertfaces}{\code{False}}{Invert the face orientation.}
+\end{tableiii}
+

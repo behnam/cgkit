@@ -1,0 +1,115 @@
+\subsection{vec4 - 4d vector}
+\label{vec4}
+
+A \class{vec4} represents a 4D vector type. You can construct a \class{vec4}
+by several ways:
+
+\begin{verbatim}
+# all components are set to zero
+v = vec4()
+
+-> (0.0000, 0.0000, 0.0000, 0.0000)
+
+# set all components to one value
+v = vec4(2.5)
+
+-> (2.5000, 2.5000, 2.5000, 2.5000)
+
+# set a 2d vector, the ramaining components will be zero
+v = vec4(1.5, 0.8)
+
+-> (1.5000, 0.8000, 0.0000, 0.0000)
+
+# set a 3d vector, the ramaining component will be zero
+v = vec4(1.5, 0.8, -0.5)
+
+-> (1.5000, 0.8000, -0.5000, 0.0000)
+
+# set all components
+v = vec4(1.5, 0.8, -0.5, 0.2)
+
+-> (1.5000, 0.8000, -0.5000, 0.2000)
+\end{verbatim}
+
+Additionally you can use all of the above, but store the values inside
+a tuple, a list or a string:
+
+\begin{verbatim}
+v = vec4([1.5, 0.8, -0.5])
+w = vec4("1.5, 0.8")
+\end{verbatim}
+
+Finally, you can initialize a vector with a copy of another vector:
+
+\begin{verbatim}
+v = vec4(w)
+\end{verbatim}
+
+A \class{vec4} can be used just like a list with 4 elements, so you
+can read and write components using the index operator or by accessing
+the components by name:
+
+\begin{verbatim}
+>>> v=vec4(1,2,3,1)
+>>> print v[0]
+1.0
+>>> print v.y
+2.0
+>>> print v.w
+1.0
+>>> print v.t   # this is the same as v.w
+1.0
+\end{verbatim}
+
+The 4th component can be accessed either by the name \code{w} or
+\code{t}. You might prefer the former name when using the vector as a
+homogenous coordinate while the latter might be preferable when the
+4th component shall represent a time value.
+
+%----------------------------------------
+{\bf Mathematical operations}
+
+The mathematical operators are supported with the following
+combination of types:
+
+\begin{verbatim}
+vec4  =  vec4 + vec4
+vec4  =  vec4 - vec4
+float =  vec4 * vec4      # dot product
+vec4  = float * vec4
+vec4  =  vec4 * float
+vec4  =  vec4 / float
+vec4  =  vec4 % float     # each component
+vec4  =  vec4 % vec4      # component wise
+vec4  = -vec4
+float =  vec4[i]          # get or set element
+\end{verbatim}
+
+Additionally, you can compare vectors with \code{==}, \code{!=}, \code{<}, 
+\code{<=}, \code{>}, \code{>=}. Each
+comparison (except \code{<} and \code{>}) takes an epsilon environment
+into account, this means two values are considered to be equal if
+their absolute difference is less than or equal to a threshold value
+epsilon. You can read and write this threshold value using the
+functions \function{getEpsilon()} and \function{setEpsilon()}.
+
+Taking the absolute value of a vector will return the length of the vector: 
+
+\begin{verbatim}
+float = abs(v)            # this is equivalent to v.length()
+\end{verbatim}
+
+%----------------------------------------
+{\bf Methods}
+
+\begin{methoddesc}{length}{}
+Returns the length of the vector ($\sqrt{x^2+y^2+z^2}$). This is
+equivalent to calling \code{abs(self)}.
+\end{methoddesc}
+
+\begin{methoddesc}{normalize}{}
+Returns normalized vector. If the method is called on the null vector
+(where each component is zero) a \exception{ZeroDivisionError} is raised.
+\end{methoddesc}
+
+

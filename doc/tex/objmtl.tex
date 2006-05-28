@@ -1,0 +1,206 @@
+\section{\module{objmtl} ---
+        Reading Wavefront OBJ/MTL files}
+
+\declaremodule{extension}{cgkit.objmtl}
+\modulesynopsis{Reading Wavefront OBJ/MTL files}
+
+This module contains the \class{OBJReader} and \class{MTLReader} classes
+which can be used as a base class for reading Wavefront OBJ and MTL files.
+The classes read the files and invoke callback methods with the
+corresponding data in the file. Derived classes have to implement
+those callback methods and process the data as appropriate.
+
+%----------------------------------------------------------------
+\subsection{OBJReader class}
+
+The \class{OBJReader} class reads Wavefront OBJ files and calls
+appropriate methods which have to be implemented in a derived class.
+
+\begin{classdesc}{OBJReader}{}
+  Creates an instance of the reader.
+\end{classdesc}
+
+\begin{methoddesc}{read}{f}
+Read the content of a file. \var{f} must be a file like object that
+can be used to read the content of the file.
+\end{methoddesc}
+
+\begin{methoddesc}{begin}{}
+Callback method that is called before the file is read.
+\end{methoddesc}
+
+\begin{methoddesc}{end}{}
+Callback method that is called after the file was read.
+\end{methoddesc}
+
+\begin{methoddesc}{handleUnknown}{cmd, arglist}
+This method is called when a keyword is encountered that has no 
+corresponding handler method.
+\end{methoddesc}
+
+The following are the predefined handler methods:
+
+\begin{methoddesc}{call}{filename, *args}
+\end{methoddesc}
+
+\begin{methoddesc}{csh}{cmd}
+\end{methoddesc}
+
+\begin{methoddesc}{mtllib}{*files}
+\end{methoddesc}
+
+\begin{methoddesc}{usemtl}{name}
+\end{methoddesc}
+
+\begin{methoddesc}{g}{*groups}
+\end{methoddesc}
+
+\begin{methoddesc}{s}{groupnumber}
+\end{methoddesc}
+
+\begin{methoddesc}{v}{vert}
+\end{methoddesc}
+
+\begin{methoddesc}{vp}{vert}
+\end{methoddesc}
+
+\begin{methoddesc}{vn}{normal}
+\end{methoddesc}
+
+\begin{methoddesc}{vt}{tvert}
+\end{methoddesc}
+
+\begin{methoddesc}{f}{*verts}
+\end{methoddesc}
+
+\begin{methoddesc}{o}{name}
+\end{methoddesc}
+
+\begin{methoddesc}{bevel}{onoff}
+\end{methoddesc}
+
+\begin{methoddesc}{c_interp}{onoff}
+\end{methoddesc}
+
+\begin{methoddesc}{d_interp}{onoff}
+\end{methoddesc}
+
+\begin{methoddesc}{lod}{level}
+\end{methoddesc}
+
+\begin{methoddesc}{shadow_obj}{filename}
+\end{methoddesc}
+
+\begin{methoddesc}{trace_obj}{filename}
+\end{methoddesc}
+
+
+%----------------------------------------------------------------
+\subsection{MTLReader class}
+
+\begin{methoddesc}{read}{f}
+Read the content of a file. \var{f} must be a file like object that
+can be used to read the content of the file.
+\end{methoddesc}
+
+\begin{methoddesc}{begin}{}
+Callback method that is called before the file is read.
+\end{methoddesc}
+
+\begin{methoddesc}{end}{}
+Callback method that is called after the file was read.
+\end{methoddesc}
+
+\begin{methoddesc}{handleUnknown}{cmd, arglist}
+This method is called when a keyword is encountered that has no 
+corresponding handler method.
+\end{methoddesc}
+
+The following are the predefined handler methods:
+
+\begin{methoddesc}{newmtl}{name}
+Start of a new material definition.
+\end{methoddesc}
+
+\begin{methoddesc}{illum}{model}
+Illumination model.
+\end{methoddesc}
+
+\begin{methoddesc}{Ka}{col}
+Ambient color.
+\end{methoddesc}
+
+\begin{methoddesc}{Kd}{col}
+Diffuse color.
+\end{methoddesc}
+
+\begin{methoddesc}{Ks}{col}
+Specular color.
+\end{methoddesc}
+
+\begin{methoddesc}{Ke}{col}
+Emissive color.
+\end{methoddesc}
+
+\begin{methoddesc}{Ns}{shininess}
+\end{methoddesc}
+
+\begin{methoddesc}{Ni}{ref}
+Refraction index.
+\end{methoddesc}
+
+\begin{methoddesc}{Tr}{alpha}
+Transparency.
+\end{methoddesc}
+
+\begin{methoddesc}{d}{alpha}
+Transparency.
+\end{methoddesc}
+
+\begin{methoddesc}{Tf}{col}
+Transparency.
+\end{methoddesc}
+
+\begin{methoddesc}{sharpness}{v}
+\end{methoddesc}
+
+\begin{methoddesc}{map_Ka}{mapname, options}
+\end{methoddesc}
+
+\begin{methoddesc}{map_Kd}{mapname, options}
+\end{methoddesc}
+
+\begin{methoddesc}{map_Ks}{mapname, options}
+\end{methoddesc}
+
+\begin{methoddesc}{map_Ke}{mapname, options}
+\end{methoddesc}
+
+\begin{methoddesc}{map_Ns}{mapname, options}
+\end{methoddesc}
+
+\begin{methoddesc}{map_d}{mapname, options}
+\end{methoddesc}
+
+\begin{methoddesc}{map_Bump}{mapname, options}
+\end{methoddesc}
+
+\begin{methoddesc}{refl}{mapname, options}
+\end{methoddesc}
+
+
+%----------------------------------------------------------------
+\subsection{Handling new keywords}
+
+The \class{OBJReader} and \class{MTLReader} classes can also handle
+keywords that are not known to the classes. For each keyword, the
+classes look for a method called
+\method{handle_<keyword>()} which is invoked with the arguments as
+parameters. If such a handler is not found, the \method{handleUnknown()}
+method is called.
+
+For the standard keywords such \method{handle_<keyword>()} handlers
+are already available. Their task is to preprocess the arguments
+and call the final handler method (which is just named after the
+keyword).
+

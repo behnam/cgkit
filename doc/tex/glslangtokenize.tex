@@ -1,0 +1,41 @@
+\section{\module{glslangtokenize} ---
+          Tokenizer for the OpenGL 2 shading language}
+
+\declaremodule{extension}{cgkit.glslangtokenize}
+\modulesynopsis{Tokenizer for the OpenGL 2 shading language}
+
+This module provides a lexical scanner for the OpenGL 2 shading language.
+You use it in the same way as the Python tokenize module is used.
+
+\begin{funcdesc}{tokenize}{readline, tokeneater}
+Reads an input stream and creates tokens. The first parameter,
+\var{readline}, must be a callable object which provides the same interface
+as the \method{readline()} method of built-in file objects. Each call to the
+function should return one line of input as a string.
+
+The second parameter, \var{tokeneater}, must also be a callable
+object. It is called with six parameters: the token type, the token
+string, a tuple (srow, scol) specifying the row and column where the
+token begins in the source, a tuple (erow, ecol) giving the ending
+position of the token, the line on which the token was found and the
+filename of the current file.
+
+The token type can be one of 
+
+\begin{itemize}
+\item \code{WHITESPACE}: This is a series of blanks and/or tabs. 
+\item \code{NAME}: A valid identifier name or keyword. 
+\item \code{NUMBER}: An integer or float. 
+\item \code{STRING}: A string enclosed in '"'. 
+\item \code{NEWLINE}: A newline character. 
+\item \code{OPERATOR}: An operator such as '+', '-', '!', '==', '!=', etc. 
+\item \code{CHARACTER}: A single character that doesn't fit anything else. 
+\item \code{TYPE}: A language type (void, bool, float, int, vec2, vec3, vec4, etc.)
+\item \code{QUALIFIER}: A type qualifier (const, attribute, uniform, varying, in, out, inout)
+\end{itemize}
+
+By default, the filename argument is an empty string. It will only be
+the actual filename if you provide a preprocessed file stream as input
+(so you should first run \code{cpp} on any shader). The tokenizer
+actually expects preprocessed data as it does not handle comments.
+\end{funcdesc}

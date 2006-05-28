@@ -1,0 +1,60 @@
+% Component
+
+\section{\class{Component} ---
+         Component base class}
+
+A component is just something that has a name to identify it and that
+stores slot objects. Usually, the slots are used for providing inputs
+to the component which are used to generate outputs that can also be
+accessed via slots. The component is then the 'black box' that computes
+the output from the input.
+
+\begin{classdesc}{Component}{name = "", \\
+		             auto_insert = True}
+
+\var{name} is the name of the component which can be used to identify it.
+
+The component will be inserted into the scene automatically if 
+\var{auto_insert} is set to \code{True}.
+\end{classdesc}
+
+\begin{memberdesc}{name}
+The component's name. You can read and write this attribute.
+\end{memberdesc}
+
+
+% Methods
+\begin{methoddesc}{addSlot}{name, slot}
+Add a new slot to the component. \var{name} specifies the slot name and
+\var{slot} is the slot object. A \exception{KeyError} exception is
+thrown if there is already a slot with the specified name.
+\end{methoddesc}
+
+\begin{methoddesc}{hasSlot}{name}
+Check if a slot with a particular name does exist.
+\end{methoddesc}
+
+\begin{methoddesc}{iterSlots}{}
+Return an iterator that iterates over all slot names.
+\end{methoddesc}
+
+\begin{methoddesc}{numSlots}{}
+Return the number of slots in this component.
+\end{methoddesc}
+
+\begin{methoddesc}{removeSlot}{name}
+Remove the slot with the given name. A \exception{KeyError} exception
+is thrown if there is no slot with the specified name.
+\end{methoddesc}
+
+\begin{methoddesc}{slot}{name}
+Return the slot with the given name. A \exception{KeyError} exception
+is thrown if there is no slot with the specified name.
+\end{methoddesc}
+
+
+
+
+
+
+

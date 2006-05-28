@@ -1,0 +1,27 @@
+include viewer.py
+include render.py
+include viewerOgre.py
+include viewerOsg.py
+include config_template.cfg
+include readme.txt
+include license.txt
+include changelog.txt
+include cgkit/cgkitinfo_template.txt
+exclude cgkit/cgkitinfo.py
+recursive-include wrappers *.h
+recursive-include wrappers *.cpp
+recursive-include wrappers/rply/rply *.*
+include wrappers/rply/rply/LICENSE
+include supportlib/SConstruct
+include supportlib/Doxyfile
+include supportlib/cpp_config_template.cfg
+recursive-include supportlib/lib *.dummy
+recursive-include supportlib/include *.h
+recursive-include supportlib/src *.cpp
+recursive-include supportlib/pics *.png
+recursive-include supportlib/dox *.dox
+recursive-include pics *.png
+recursive-include unittests *.py
+recursive-include utilities *.py
+recursive-include utilities/3dsmax *.ms
+recursive-include utilities/maya *.mel

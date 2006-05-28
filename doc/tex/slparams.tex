@@ -1,0 +1,113 @@
+\section{\module{slparams} ---
+          Extracting RenderMan Shader parameters}
+\label{slparams}
+
+\declaremodule{extension}{cgkit.slparams}
+\modulesynopsis{Extracting RenderMan Shader parameters}
+
+New in version 1.1. This module can be used to extract the parameters
+of a RenderMan shader from the shader source file.
+
+\begin{funcdesc}{slparams}{slname, cpp=None, cpperrstream=sys.stderr}
+Extracts the shader parameters from a Shading Language source file. 
+
+The argument \var{slname} is the name of the shader source file
+(*.sl). 
+
+\var{cpp} determines how the shader source is preprocessed. It can be
+either a string containing the name of an external preprocessor tool
+(such as \code{cpp}) that must take the file name as parameter and
+dump the preprocessed output to stdout. If the preprocessor does not
+produce any data a \exception{PreprocessorNotFound} exception is
+thrown. The error stream of the preprocessor is written to the object
+that is specified by \var{cpperrstream} which must have a
+\method{write()} method. If \var{cpperrstream} is \code{None}, the error 
+stream is ignored. \var{cpp} can also be a callable object that takes a
+filename as input and returns the filtered contents as a string. If
+\var{cpp} is \code{None} a simple internal preprocessor based on the 
+\module{simplecpp} module is used.
+
+The function returns a list of 3-tuples, one for each shader found in
+the file. The tuple contains the type, the name and the parameters of
+the shader. The parameters are given as a list of 7-tuples describing
+each parameter. The tuple contains the following information (in the
+given order):
+
+\begin{enumerate}
+\item The output specifier (either \code{"output"} or an empty string) 
+\item The storage class (\code{"uniform"} or \code{"varying"}) 
+\item The parameter type 
+\item The array length or \code{None} if the parameter is not an array 
+\item The name of the parameter 
+\item The space in which a point-like type or a color was defined. If the parameter is an array then this is also an array of space names. 
+\item The default value (always given as a string)
+\end{enumerate}
+
+Example (output slightly reformatted for better readability):
+ 
+\begin{verbatim}
+>>> import slparams
+>>> slparams.slparams("plastic.sl")
+[('surface', 'plastic', 
+  [('', 'uniform', 'float', None, 'Ka', None, '1'),
+   ('', 'uniform', 'float', None, 'Kd', None, '0.5'),
+   ('', 'uniform', 'float', None, 'Ks', None, '0.5'),
+   ('', 'uniform', 'float', None, 'roughness', None, '0.1'),
+   ('', 'uniform', 'color', None, 'specularcolor', 'rgb', '1')])]
+\end{verbatim}
+
+The parser used inside this function was generated using the parser
+generator \ulink{Yapps}{http://theory.stanford.edu/\~{}amitp/Yapps/} 
+by Amit Patel.
+\end{funcdesc}
+
+\begin{funcdesc}{convertdefault}{paramtuple}
+Converts the default value of a shader parameter into a Python
+type. The argument \var{paramtuple} must be a 7-tuple as returned by
+\function{slparams()}. The function returns a Python object that corresponds to
+the default value of the parameter. If the default value can't be
+converted then \code{None} is returned. Only the functions that are
+present in the \module{sl} module are evaluated. If a default value
+calls a user defined function then \code{None} is returned. The SL
+types will be converted into the following Python types:
+
+\begin{tableii}{c|c}{code}{SL type }{ Python type}
+\lineii{float}{\code{float}}
+\lineii{string}{\code{string}}
+\lineii{color}{\code{vec3}}
+\lineii{point}{\code{vec3}}
+\lineii{vector}{\code{vec3}}
+\lineii{normal}{\code{vec3}}
+\lineii{matrix}{\code{mat4}}
+\end{tableii}
+
+Arrays will be converted into lists of the corresponding type.
+\end{funcdesc}
+
+The module defines the following exception classes:
+
+\begin{excdesc}{SLParamsError}
+Base class for the exceptions in this module. This class is derived
+from the Exception class.
+\end{excdesc}
+
+\begin{excdesc}{PreprocessorNotFound}
+This exception is thrown when calling the preprocessor didn't produce
+any data.
+\end{excdesc}
+
+\begin{excdesc}{SyntaxError}
+This exception is thrown when a syntax error is found in any function
+or shader definition. The exception has the following attributes:
+
+\begin{itemize}
+\item \var{filename}: The filename where the error was found 
+\item \var{lineno}: The line number where the error was found 
+\item \var{line}: The entire line that contains the error 
+\item \var{errpos}: The character position where the error token starts
+\end{itemize}
+\end{excdesc}
+
+\begin{excdesc}{NoMoreTokens}
+This exception is thrown when the parser runs out of tokens.
+\end{excdesc}

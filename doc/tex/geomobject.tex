@@ -1,0 +1,143 @@
+% GeomObject
+
+\section{\class{GeomObject} ---
+         Geometry base class}
+
+The \class{GeomObject} class is the base class for all geometries.
+Instances of this class are stored in the \member{geom} attribute
+of the world objects and can be shared among them.
+
+\begin{classdesc}{GeomObject}{}
+...params?...
+\end{classdesc}
+
+% Methods
+\begin{methoddesc}{boundingBox}{}
+Return the local axis aligned bounding box. The bounding box is
+given with respect to the local transformation L (which is not
+what you get from the transform slot of the world object).
+\end{methoddesc}
+
+\begin{methoddesc}{drawGL}{}
+Draw the geometry using OpenGL commands.
+\end{methoddesc}
+
+\begin{methoddesc}{uniformCount}{}
+Return the multiplicity of \keyword{UNIFORM} variables.
+\end{methoddesc}
+
+\begin{methoddesc}{varyingCount}{}
+Return the multiplicity of \keyword{VARYING} variables.
+\end{methoddesc}
+
+\begin{methoddesc}{vertexCount}{}
+Return the multiplicity of \keyword{VERTEX} variables.
+\end{methoddesc}
+
+\begin{methoddesc}{faceVaryingCount}{}
+Return the multiplicity of \keyword{FACEVARYING} variables.
+\end{methoddesc}
+
+\begin{methoddesc}{faceVertexCount}{}
+Return the multiplicity of \keyword{FACEVERTEX} variables.
+\end{methoddesc}
+
+\begin{methoddesc}{slotSizeConstraint}{storage}
+Return a constraint object for primitive variable slots or None if the size
+of the slot should be unconstrained.
+This method is called when a new primitive variable is created. The
+returned constraint object is used for the array slot that holds the
+values of the variable. \var{storage} is the storage class of the new
+variable which will be one of \code{UNIFORM}, \code{VARYING}, \code{VERTEX},
+\code{FACEVARYING} or \code{FACEVERTEX}. The method will never be called
+when \code{CONSTANT} or \code{USER} variables are created.
+\end{methoddesc}
+
+\begin{methoddesc}{newVariable}{name, storage, type, multiplicity=1, user_n=0}
+Attaches a new primitive variable to the geometry.
+
+\var{storage} specifies the storage
+class, i.e. how many values are actually stored. It must be one of
+\code{CONSTANT}, \code{UNIFORM}, \code{VARYING}, \code{VERTEX}, 
+\code{FACEVARYING}, \code{FACEVERTEX} or
+\code{USER}. The exact number of values depends on the actual geometry.
+However, \code{CONSTANT} is always exactly one value for the entire
+geometry and \code{USER} is a user defined number specified in \var{user_n}.
+
+\var{type} is the type of the variable and must be one of 
+\code{INT}, \code{FLOAT}, \code{STRING}, \code{COLOR}, \code{POINT}, 
+\code{VECTOR}, \code{NORMAL}, \code{MATRIX} and \code{HPOINT}. 
+If \var{multiplicity} is greater than 1, then an array with that size is
+created. 
+
+Creating a new variable will always create a new slot of that name as well.
+The slot is always an \class{ArraySlot} (even for \code{CONSTANT} variables).
+After you have created a variable you can use the corresponding slot to
+manipulate the values of the variable.
+
+Here is an example of a "varying int [3]" variable that's created on a sphere 
+geometry. This means, the variable will consist of four 3-tuples of integers
+(one for each parametric corner).
+
+\begin{verbatim}
+>>> from cgkit.all import *
+>>> sg=SphereGeom()
+>>> sg.newVariable("foo", VARYING, INT, multiplicity=3)
+>>> for v in sg.iterVariables(): print v
+...
+('foo', cgkit._core.VarStorage.VARYING, cgkit._core.VarType.INT, 3)
+>>> s=sg.slot("foo")
+>>> s[1]=(1,2,3)
+>>> for f in s: print f
+...
+(0, 0, 0)
+(1, 2, 3)
+(0, 0, 0)
+(0, 0, 0)
+\end{verbatim}
+\end{methoddesc}
+
+\begin{methoddesc}{deleteVariable}{name}
+Delete the primitive variable with the specified name.
+\end{methoddesc}
+
+\begin{methoddesc}{deleteAllVariables}{}
+Delete all primitive variables.
+\end{methoddesc}
+
+\begin{methoddesc}{findVariable}{name}
+Search for a particular primitive variable and return its descriptor.
+\code{None} is returned if a variable called \var{name} cannot be found.
+The return value is a 4-tuple (name, storage class, type, multiplicity)
+describing the variable. See the \method{newVariable()} method for a
+description of the individual elements.
+\end{methoddesc}
+
+\begin{methoddesc}{iterVariables}{}
+Return an iterator that iterates over all existing primitive variables.
+The iterator will return the same 4-tuple as returned by 
+\method{findVariable()}.
+\end{methoddesc}
+
+\begin{methoddesc}{convert}{targetgeom}
+Convert the geometry into another type of geometry. \var{targetgeom}
+is another \class{GeomObject} that will receive the result of the
+conversion.  If the conversion is not possible, a
+\exception{NotImplementedError} exception is thrown.
+
+In the following example, a box geometry is converted into a triangle
+mesh:
+
+\begin{verbatim}
+>>> bg=BoxGeom(segmentsx=3, segmentsy=3, segmentsz=3)
+>>> tm=TriMeshGeom()
+>>> bg.convert(tm)
+>>> print len(tm.verts)
+56
+>>> print len(tm.faces)
+108
+\end{verbatim}
+\end{methoddesc}
+
+
+

@@ -1,0 +1,57 @@
+/*======================================================================
+ cgkit - Python Computer Graphics Kit
+ Copyright (C) 2004 Matthias Baas (baas@ira.uka.de)
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+ cgkit homepage: http://cgkit.sourceforge.net
+======================================================================*/
+
+#ifndef GLDISTANTLIGHT_H
+#define GLDISTANTLIGHT_H
+
+/** \file gldistantlight.h
+ Contains the GLDistantLight class.
+ */
+
+#include "lightsource.h"
+
+namespace support3d {
+
+/**
+  A distant light source that's modeled after the OpenGL light model.
+
+ */
+class GLDistantLight : public LightSource
+{
+  public:
+  /// Ambient color 
+  Slot<vec3d> ambient;
+  /// Diffuse color 
+  Slot<vec3d> diffuse;
+  /// Specular color 
+  Slot<vec3d> specular;
+
+  public:
+  GLDistantLight();
+  GLDistantLight(string aname);
+
+  virtual void applyGL(int idx);
+};
+
+
+}  // end of namespace
+
+#endif

@@ -1,0 +1,291 @@
+\section{\module{glove} ---
+          Wrapper around the 5DT Data Glove SDK}
+
+\declaremodule{extension}{cgkit.glove}
+\modulesynopsis{Wrapper around the 5DT Data Glove SDK}
+
+This module contains a wrapper around the Data Glove SDK by
+\ulink{Fifth Dimension Technologies}{http://www.5dt.com/}. The underlying
+SDK can either be version 1 or version 2. Note that some methods are
+only implemented if the module was compiled with version 2 of the SDK.
+All the functions from the SDK are wrapped as methods of the 
+\class{DataGlove} class. Most methods require that a connection to
+a glove device was previously established via the \method{open()} method.
+
+% available()
+\begin{funcdesc}{available}{}
+Returns \code{True} if the Data Glove functionality is available. 
+
+If this function returns \code{False}, an exception will be raised
+whenever you try to instantiate a class from this module.
+\end{funcdesc}
+
+%------------------------------------------------------------------
+
+\begin{classdesc}{DataGlove}{}
+This class encapsulates the data glove handle and contains the
+functions from the SDK as methods. Before you can use most of
+the methods, you have to establish a connection to a data glove
+by calling the \method{open()} method.
+\end{classdesc}
+
+% isConnected
+\begin{methoddesc}{isConnected}{}
+Returns \code{True} if a connection to a data glove was established (i.e.
+if \method{open()} was successfully called).
+\end{methoddesc}
+
+% open
+\begin{methoddesc}{open}{port}
+Establish a connection to the data glove at the specified port. \var{port}
+is a string containing the serial port to use. For example, under Windows
+you might specify \code{"COM1"}, \code{"COM2"}, etc.
+\end{methoddesc}
+
+% close
+\begin{methoddesc}{close}{}
+Disconnect from the glove. The return value is a boolean indicating
+if there was an error. Calling \method{close()} while there is no
+connection established is not considered an error.
+\end{methoddesc}
+
+% getGloveHand
+\begin{methoddesc}{getGloveHand}{}
+Return the handedness of the glove. The return value is either
+\code{FD_HAND_LEFT} or \code{FD_HAND_RIGHT}. If you want a string
+representation of the handedness you can use the return value as
+key for the dictionary \code{HANDEDNESS}.
+\end{methoddesc}
+
+% getGloveType
+\begin{methoddesc}{getGloveType}{}
+Return the type of the data glove. The return value is one of the following:
+
+\begin{tableii}{l|l}{code}{Type}{Description}
+\lineii{FD_GLOVENONE}{No data glove}
+\lineii{FD_GLOVE5U}{Data Glove 5 Ultra serial}
+\lineii{FD_GLOVE5UW}{Data Glove 5 Ultra serial, wireless}
+\lineii{FD_GLOVE5U_USB}{Data Glove 5 Ultra USB}
+\lineii{FD_GLOVE7}{Data Glove 5}
+\lineii{FD_GLOVE7W}{Data Glove 5, wireless}
+\lineii{FD_GLOVE16}{Data Glove 16}
+\lineii{FD_GLOVE16W}{Data Glove 16, wireless}
+\lineii{FD_GLOVE14U}{Data Glove 14 Ultra serial}
+\lineii{FD_GLOVE14UW}{Data Glove 14 Ultra serial, wireless}
+\lineii{FD_GLOVE14U_USB}{Data Glove 14 Ultra USB}
+\end{tableii}
+
+If you want the string representation of the glove type you can use the
+return value as key for the dictionary \code{GLOVETYPE}.
+
+Todo: The above are only the return values of the v2 SDK.
+\end{methoddesc}
+
+% getNumSensors
+\begin{methoddesc}{getNumSensors}{}
+Return the number of sensors.
+\end{methoddesc}
+
+% getNumGestures
+\begin{methoddesc}{getNumGestures}{}
+Return the number of available gestures.
+\end{methoddesc}
+
+% getSensorRawAll
+\begin{methoddesc}{getSensorRawAll}{}
+Return a list with the raw sensor values of all sensors.
+\end{methoddesc}
+
+% getSensorRaw
+\begin{methoddesc}{getSensorRaw}{sensor}
+Return the raw sensor value of the specified sensor. \var{sensor} is an
+integer in the range between 0 and \method{getNumSensors()}-1.
+\end{methoddesc}
+
+% setSensorRawAll
+\begin{methoddesc}{setSensorRawAll}{data}
+\end{methoddesc}
+
+\begin{methoddesc}{setSensorRaw}{sensor, raw}
+\end{methoddesc}
+
+% getSensorScaledAll
+\begin{methoddesc}{getSensorScaledAll}{}
+Return a list of the scaled sensor values of all sensors.
+\end{methoddesc}
+
+% getSensorScaled
+\begin{methoddesc}{getSensorScaled}{sensor}
+Return the scaled sensor value of the specified sensor. \var{sensor} is an
+integer in the range between 0 and \method{getNumSensors()}-1.
+\end{methoddesc}
+
+% getCalibrationAll
+\begin{methoddesc}{getCalibrationAll}{}
+Return the current auto-calibration settings for all sensors. The return
+value is a 2-tuple (\var{lower}, \var{upper}) where \var{lower} is a list
+with the minimum values and \var{upper} a list with maximum values.
+\end{methoddesc}
+
+% getCalibration
+\begin{methoddesc}{getCalibration}{sensor}
+Return the auto-calibration for one particular sensor. The return value
+is a 2-tuple (\var{lower}, \var{upper}) that contains the minimum and
+maximum value.
+\end{methoddesc}
+
+% setCalibrationAll
+\begin{methoddesc}{setCalibrationAll}{lower, upper}
+Set the auto-calibration settings. \var{lower} is a list with the minimum
+sensor values and \var{upper} is a list with the maximum values.
+\end{methoddesc}
+
+% setCalibration
+\begin{methoddesc}{setCalibration}{sensor, lower, upper}
+Set the auto-calibration values for one sensor. \var{lower} is the minimum
+sensor value and \var{upper} is the maximum value.
+\end{methoddesc}
+
+% getSensorMaxAll
+\begin{methoddesc}{getSensorMaxAll}{}
+Return a list with the maximum scaled values of the sensors.
+\end{methoddesc}
+
+% getSensorMax
+\begin{methoddesc}{getSensorMax}{sensor}
+Return a maximum scaled sensor value for one particular sensor.
+\end{methoddesc}
+
+% setSensorMaxAll
+\begin{methoddesc}{setSensorMaxAll}{max}
+Set the maximum scaled sensor values. \var{max} is a list with the values.
+\end{methoddesc}
+
+% setSensorMax
+\begin{methoddesc}{setSensorMax}{sensor, max}
+Set the maximum scaled sensor value for one sensor.
+\end{methoddesc}
+
+% resetCalibration
+\begin{methoddesc}{resetCalibration}{[sensor]}
+Reset the auto-calibration values. In version 2 of the SDK you can pass
+an optional sensor index which will only reset that particular sensor.
+\end{methoddesc}
+
+% getGesture
+\begin{methoddesc}{getGesture}{}
+Return the current gesture.
+\end{methoddesc}
+
+% getThresholdAll
+\begin{methoddesc}{getThresholdAll}{}
+Return the current gesture recognition threshold values. The return
+value is a 2-tuple (\var{lower}, \var{upper}) that contains the lower
+and upper threshold values.
+\end{methoddesc}
+
+% getThreshold
+\begin{methoddesc}{getThreshold}{sensor}
+Return the gesture recognition threshold values for one sensor. The return
+value is a 2-tuple (\var{lower}, \var{upper}) that contains the lower
+and upper threshold value.
+\end{methoddesc}
+
+% setThresholdAll
+\begin{methoddesc}{setThresholdAll}{lower, upper}
+Set the gesture recognition threshold values for all sensors. \var{lower}
+is a list with the lower threshold values and \var{upper} is a list with
+the upper threshold values.
+\end{methoddesc}
+
+% setThreshold
+\begin{methoddesc}{setThreshold}{sensor, lower, upper}
+Set the gesture recognition threshold values for one sensor. \var{lower}
+is the lower threshold value and \var{upper} is the upper threshold value.
+\end{methoddesc}
+
+% getGloveInfo
+\begin{methoddesc}{getGloveInfo}{}
+Return a string with glove information.
+\end{methoddesc}
+
+% getDriverInfo
+\begin{methoddesc}{getDriverInfo}{}
+Return a string with driver information.
+\end{methoddesc}
+
+% scanUSB
+\begin{methoddesc}{scanUSB}{}
+Scans the USB for available gloves. The return value is a list with product
+IDs of the gloves found. The product IDs can be one of \code{DG14U_R}, 
+\code{DG14U_L}, \code{DG5U_R} and \code{DG5U_R}.\\
+Availability: {\bf V2}
+\end{methoddesc}
+
+% setCallback
+\begin{methoddesc}{setCallback}{callback}
+Set a callback function that gets called when a new packet was received.
+\var{callback} must be a callable object.\\
+Availability: {\bf V2}
+\end{methoddesc}
+
+% getPacketRate
+\begin{methoddesc}{getPacketRate}{}
+Return the current packet rate in Hertz.\\
+Availability: {\bf V2}
+\end{methoddesc}
+
+% newData
+\begin{methoddesc}{newData}{}
+Returns a boolean that indicates whether new data is available or not.\\
+Availability: {\bf V2}
+\end{methoddesc}
+
+% getFWVersionMajor
+\begin{methoddesc}{getFWVersionMajor}{}
+Return the major version of the glove's firmware. This is only implemented
+for the Data Glove 14 Ultra. Other gloves will always return 0.\\
+Availability: {\bf V2}
+\end{methoddesc}
+
+% getFWVersionMinor
+\begin{methoddesc}{getFWVersionMinor}{}
+Return the minor version of the glove's firmware. This is only implemented
+for the Data Glove 14 Ultra. Other gloves will always return 0.\\
+Availability: {\bf V2}
+\end{methoddesc}
+
+% getAutoCalibrate
+\begin{methoddesc}{getAutoCalibrate}{}
+Returns \code{True} if auto calibration is activated.\\
+Availability: {\bf V2}
+\end{methoddesc}
+
+% setAutoCalibrate
+\begin{methoddesc}{setAutoCalibrate}{flag}
+Enable or disable auto-calibration. If \var{flag} is \code{True} 
+auto-calibration is enabled.\\
+Availability: {\bf V2}
+\end{methoddesc}
+
+% saveCalibration
+\begin{methoddesc}{saveCalibration}{filename}
+Save the current calibration data to disk.\\
+Availability: {\bf V2}
+\end{methoddesc}
+
+% loadCalibration
+\begin{methoddesc}{loadCalibration}{filename}
+Load the calibration settings from a file.\\
+Availability: {\bf V2}
+\end{methoddesc}
+
+
+
+\begin{notice}[note]
+The module uses the SDK by Fifth Dimension Technologies (5DT) which
+can be found at \url{http://www.5dt.com/}. The following is
+the copyright information of the SDK:
+
+{\em Copyright (C) 2000-2004, 5DT <Fifth Dimension Technologies>}
+\end{notice}

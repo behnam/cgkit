@@ -1,0 +1,441 @@
+% RIBExport
+
+\subsection{RenderMan\textsuperscript{\textregistered} RIB export \label{ribexport}}
+
+The module \module{cgkit.ribexport} contains the class \class{RIBExporter}
+that exports the current scene as RIB and creates shaders from the materials
+and light sources used in the scene.
+
+To use the exporter you can simply use the \function{save()} command
+and pass a file name with suffix \code{.rib} (see chapter \ref{commands}).
+The plugin supports the following options that can be passed to
+the \function{save()} command:
+
+\begin{tableiii}{l|l|l}{code}{Option}{Default}{Description}
+\lineiii{camera}{\code{None}}{Camera object to be used}
+\lineiii{output}{\code{None}}{Output image file name or output specs}
+\lineiii{output_framebuffer}{\code{True}}{Framebuffer output?}
+\lineiii{bake}{\code{False}}{Activate texture baking mode}
+\lineiii{bakemodel}{\code{None}}{Determines the model to bake}
+\lineiii{bakestvar}{\code{"st"}}{Variable name of the bake texture coordinates}
+\end{tableiii}
+
+\var{camera} specifies the camera object to be used for rendering the scene.
+If \code{None} is specified the first camera found in the scene is used.
+
+\var{output} is the output image file name or a list of output specifiers.
+Each specifier is a 4-tuple (\var{filename}, \var{type}, \var{mode},
+\var{params}) containing the parameters for a \function{RiDisplay()} call.
+The additional parameters must be given as a dictionary. \var{output} can
+also be \code{None} in which case no \function{RiDisplay()} call is made.
+
+\var{output_framebuffer} is a flag that specifies if a framebuffer
+display should be opened in addition to writing the output image file
+to disk. This flag is only used when \var{output} is a string.
+
+If \var{bake} is \code{True} the exported scene will bake a texture map
+instead of producing a final image. 
+
+\var{bakemodel} is either the name of a WorldObject or a WorldObject itself.
+The texture will be baked for the specified model. This parameter doesn't
+have to be specified if there is only one mesh in the scene.
+
+\var{bakestvar} is the name of the primitive variable that holds the 
+texture coordinates that should be used for baking.
+
+The plugin uses the following global options:
+
+\begin{tableiii}{l|l|l}{code}{Option}{Default}{Description}
+\lineiii{displaymode}{\code{"rgb"}}{Display mode}
+\lineiii{output}{\code{None}}{Output image file name or output specs (see abvove)}
+\lineiii{resolution}{\code{(640,480)}}{Output image resolution}
+\lineiii{pixelsamples}{\code{(2,2)}}{Number of pixel samples}
+\lineiii{shadingrate}{\code{1.0}}{Shading rate}
+\lineiii{pixelfilter}{\code{None}}{Pixel filter setting}
+\lineiii{tiles}{\code{None}}{Render the image in tiles}
+\lineiii{rib}{\code{None}}{Additional global RIB requests}
+\end{tableiii}
+
+\var{displaymode} is the mode string for the \function{RiDisplay()} call
+and determines what data is written to the output. Usually you might want
+to switch between "rgb" (default) and "rgba".
+
+\var{output} is the image output name or a list of output specifiers 
+(see above).
+
+\var{resolution} is either a 2-tuple (\var{width}, \var{height}) or a 3-tuple 
+(\var{width}, \var{height}, \var{pixel aspect}) specifying the outpout
+image resolution.
+
+\var{pixelsamples} is a 2-tuple containing the pixel samples setting.
+
+\var{shadingrate} contains the shading rate setting.
+
+\var{pixelfilter} is a 2-tuple (\var{filter}, (\var{xwidth}, \var{ywidth}))
+that sets the pixel filter to use. If \code{None} is passed the default
+pixel filter of the renderer is used. Example: ("gaussian", (2,2))
+
+\var{tiles} contains two sequences that defines the positions where
+the image is split. The first sequence contains the x positions and
+the second sequence the y positions where a split should occur. Each
+value lies between 0 and 1, so for example tiles=((0.5,), (0.5,)) will
+render the image in four equal tiles. The tiles can than be stitched
+together using the \module{stitch} module.
+
+\var{rib} is a string containing additional RIB requests that are written
+in front of the frames.
+
+It is possible to attach user RIB requests to an object simply by
+adding a string attribute called \code{rib}. When present this string
+will be written right before the geometry calls. For example, this
+can be used to set attributes that are specific to a particular renderer:
+
+\begin{verbatim}
+s = Sphere(...)
+s.rib = 'Attribute "visibility" "transmission" "opaque"'
+\end{verbatim}
+
+For an object to be exported as RIB it has to use a geometry that supports
+the \class{IGeometry} protocol. Materials must support the \class{IMaterial}
+protocol and light sources the \class{ILightSource} protocol. For details
+on these protocols see the sub sections below. If there is an object that
+does {\em not} support one of these protocols an adapter can be written
+that implements the protocol on behalf of the original object.
+
+The remainder of this section is meant to be read by developers who
+want to extend the functionality of the exporter either by implementing 
+adapter classes for existing classes or by implementing new geometries,
+materials or light sources that natively support the respective protocol.
+
+%--------------------------------------------
+\subsubsection{The \class{IGeometry} protocol}
+
+Every \class{GeomObject} that supports the \class{IGeometry} protocol
+can be exported as RIB. If the geometry does not support the protocol
+it will be ignored.
+
+The \class{IGeometry} protocol only specifies the presence of one method:
+
+\begin{methoddesc}[IGeometry]{render}{matid}
+Creates Ri geometry requests for the geometry that has the material with 
+id \var{matid} assigned to it. 
+The geometry should be created in the local coordinate system
+of the \class{GeomObject}. The primitive variables should also be exported.
+The method can assume that there is already an enclosing 
+\function{RiAttributeBegin()}/\function{RiAttributeEnd()} block around the 
+call.
+\end{methoddesc}
+
+Here is an example of an adapter class that implements the \class{IGeometry}
+protocol for the \class{SphereGeom} (which knows nothing about RenderMan):
+
+\begin{verbatim}
+import protocols
+from ri import *
+
+# Adapter class that implements the IGeometry protocol on behalf of the SphereGeom class
+class SphereAdapter:
+
+    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[SphereGeom])
+    
+    def __init__(self, spheregeom, proto):
+        self.geom = spheregeom
+
+    def render(self, matid):
+        # A sphere can only have one single material
+	if matid==0:
+            r = self.geom.radius
+            RiSphere(r, -r, r, 360)
+\end{verbatim}
+
+
+%--------------------------------------------
+\subsubsection{The \class{IMaterial} protocol}
+
+A material that supports the \class{IMaterial} protocol will be mapped
+to a surface shader, displacement shader and interior shader. To support
+the \class{IMaterial} protocol the following methods have to be implemented:
+
+\begin{methoddesc}[IMaterial]{createPasses}{}
+Returns a list of \class{RenderPass} objects necessary for this material
+instance. These passes may be used to create environment maps, for example.
+If no extra passes are required an empty list has to be returned.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{preProcess}{exporter}
+This method is called before the image is rendered and can be used to
+create or copy image maps or do other initializations that have to be done
+before the actual rendering starts. The exporter instance is provided
+as argument to the method (for example, to find out where image maps
+are stored).
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{color}{}
+Return the color (as a 3-sequence of floats) for the \function{RiColor()}
+call. If no color is required the method may return \code{None} in which
+case no \code{Color} call is made.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{opacity}{}
+Return the opacity (as a 3-sequence of floats) for the \function{RiOpacity()}
+call. If no opacity is required the method may return \code{None} in which
+case no \code{Opacity} call is made.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{surfaceShaderName}{}
+Return the name of the surface shader for this material. The exporter
+may still modify this name to make it unique among all generated
+shaders.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{surfaceShaderSource}{}
+Return the RenderMan Shading Language source code for the surface shader.
+Instead of the shader name the generated source code should contain
+the variable \code{\$SHADERNAME} that will be substituted with the
+actual name of the shader. The method may also return \code{None} if
+no shader should be created. In this case, the name returned by
+\method{surfaceShaderName()} is assumed to be the name of an existing shader.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{surfaceShaderParams}{passes}
+Returns a dictionary that contains the shader parameters that should
+be used for the surface shader. The key is the name of the parameter
+(including inline declarations) and the value is the actual parameter
+value at the current time. The \var{passes} argument contains the list
+of passes as generated by \method{createPasses()}. This list can be
+used to obtain the actual name of an environment map, for example.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{surfaceShaderTransform}{}
+Return a mat4 containing the transformation that should be applied to
+the shader.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{displacementShaderName}{}
+Return the name of the displacement shader for this material. The exporter
+may still modify this name to make it unique among all generated
+shaders. You can also return \code{None} if no displacement shader is required.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{displacementShaderSource}{}
+Return the RenderMan Shading Language source code for the displacement shader.
+Instead of the shader name the generated source code should contain
+the variable \code{\$SHADERNAME} that will be substituted with the
+actual name of the shader. The method may also return \code{None} if
+no shader should be created. In this case, the name returned by
+\method{displacementShaderName()} is assumed to be the name of an existing 
+shader.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{displacementShaderParams}{passes}
+Returns a dictionary that contains the shader parameters that should
+be used for the displacement shader. The key is the name of the parameter
+(including inline declarations) and the value is the actual parameter
+value at the current time. The \var{passes} argument contains the list
+of passes as generated by \method{createPasses()}.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{displacementShaderTransform}{}
+Return a mat4 containing the transformation that should be applied to
+the shader.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{displacementBound}{}
+Returns a tuple (\var{coordinate system}, \var{distance}) that specifies the
+maximum displacement. The distance is the maximum amount that a
+surface point is displaced and is given in the specified coordinate
+system.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{interiorShaderName}{}
+Return the name of the interior shader for this material. The exporter
+may still modify this name to make it unique among all generated
+shaders. You can also return \code{None} if no interior shader is required.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{interiorShaderSource}{}
+Return the RenderMan Shading Language source code for the interior shader.
+Instead of the shader name the generated source code should contain
+the variable \code{\$SHADERNAME} that will be substituted with the
+actual name of the shader. The method may also return \code{None} if
+no shader should be created. In this case, the name returned by
+\method{displacementShaderName()} is assumed to be the name of an existing 
+shader.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{interiorShaderParams}{passes}
+Returns a dictionary that contains the shader parameters that should
+be used for the interior shader. The key is the name of the parameter
+(including inline declarations) and the value is the actual parameter
+value at the current time. The \var{passes} argument contains the list
+of passes as generated by \method{createPasses()}.
+\end{methoddesc}
+
+\begin{methoddesc}[IMaterial]{interiorShaderTransform}{}
+Return a mat4 containing the transformation that should be applied to
+the shader.
+\end{methoddesc}
+
+
+%--------------------------------------------
+\subsubsection{The \class{ILightSource} protocol}
+
+Every world object that supports the \class{ILightSource} protocol
+will be used as light source to illuminate the scene. In order to 
+support the \class{ILightSource} protocol the following four methods
+have to be implemented:
+
+\begin{methoddesc}[ILightSource]{createPasses}{}
+Returns a list of \class{RenderPass} objects necessary for this light
+source instance. Usually the light sources will make use of the
+\class{ShadowPass} pass. If no extra passes are required an empty
+list has to be returned.
+\end{methoddesc}
+
+\begin{methoddesc}[ILightSource]{shaderName}{}
+Return the name of the light source shader for this light source.
+The exporter may still modify this name to make it unique among all
+generated shaders.
+\end{methoddesc}
+
+\begin{methoddesc}[ILightSource]{shaderSource}{}
+Return the RenderMan Shading Language source code for this light source.
+Instead of the shader name the generated source code should contain
+the variable \code{\$SHADERNAME} that will be substituted with the
+actual name of the shader. The method may also return \code{None} if
+no shader should be created. In this case, the name returned by
+\method{shaderName()} is assumed to be the name of an existing shader.
+\end{methoddesc}
+
+\begin{methoddesc}[ILightSource]{shaderParams}{passes}
+Returns a dictionary that contains the shader parameters that should
+be used for this light source instance. The key is the name of the
+parameter (including inline declarations) and the value is the actual
+parameter value at the current time. The \var{passes} argument contains
+the list of passes as generated by \method{createPasses()}. This list
+can be used to obtain the actual name of a shadow map, for example.
+\end{methoddesc}
+
+%--------------------------------------------
+\subsubsection{\class{RenderPass} --- Base class for all passes}
+
+The creation of an image may take several render passes where shadow maps,
+environment maps and eventually the final image are created. The number 
+of passes is dependent on the number and types of light sources and the 
+materials used in the scene. Every render pass is represented by a class
+that is derived from the \class{RenderPass} class.
+
+An actual pass has to implement the \method{doPass()} method where it 
+has to output a frame block that generates one or more output files.
+To do the scene export it can use the methods from the exporter.
+
+\begin{classdesc}{RenderPass}{output, owner=None}
+\var{output} is a list of tuples (\var{name}, \var{type}, \var{mode}, 
+\var{params}) that each defines the output to create in this pass. 
+Each tuple contains the parameters necessary for a \code{RiDisplay()} call.
+\var{name} is the name of the output file, \var{type} is the output type
+(such as "file" or "zfile"), \var{mode} specifies what information will
+be stored in the file (\code{RI_RGB}, \code{RI_RGBA}, ...) and \var{params}
+is a dictionary with extra parameters.
+
+Every \class{RenderPass} instance has an attribute \var{exporter} that
+will contain a reference to the exporter. So the pass object may use
+the exporter methods to output the scene.
+\end{classdesc}
+
+\begin{methoddesc}{done}{}
+Check if this pass is already done or not. This method is used when
+shader parameters have to be determined. The output of a pass may
+only be used once the pass is done and the output really exists (for
+example, you cannot use a shadow map until it was created).
+\end{methoddesc}
+
+\begin{methoddesc}{doPass}{framenr}
+This method has to be overwritten in derived classes where the actual
+frame block is generated. \var{framenr} is the frame number to use
+for the \function{RiFrameBegin()} call.
+\end{methoddesc}
+
+\begin{methoddesc}{realFilename}{filename}
+Translate the logical file name \var{filename} into a real file name.
+A \exception{ValueError} exception is generated if \var{filename} is
+not a logical file name of this pass.
+\end{methoddesc}
+
+\begin{methoddesc}{getFilenameTable}{}
+Return the filename translation table. The return value is a dictionary
+that maps logical file names to real file names.
+\end{methoddesc}
+
+\begin{methoddesc}{setFilenameTable}{tab}
+Set an updated filename table. This method is used to set the updated
+file name table where no name clashes occur with other passes.
+\end{methoddesc}
+
+\begin{methoddesc}{initDisplays}{}
+This method calls \function{RiDisplay()} for all specified outputs.
+This is a helper method that can be used in \method{doPass()}.
+\end{methoddesc}
+
+%--------------------------------------------
+\subsubsection{\class{ImagePass} --- Creates the final image pass}
+
+\begin{classdesc}{ImagePass}{output, cam}
+	
+\end{classdesc}
+
+%--------------------------------------------
+\subsubsection{\class{ShadowPass} --- Creates a shadow map}
+
+\begin{classdesc}{ShadowPass}{output, light, fov, resolution}
+	
+\end{classdesc}
+
+
+%--------------------------------------------
+\subsubsection{\class{RIBExporter} --- The exporter class}
+
+Besides the usual methods that every exporter must implement this exporter
+has the following helper methods that have to be used by \class{RenderPass}
+objects:
+
+\begin{methoddesc}[RIBExporter]{isExportable}{wobj}
+\end{methoddesc}
+
+\begin{methoddesc}[RIBExporter]{applyViewTransform}{V}
+Applies the view transformation V (given as a \code{mat4}). This
+method corresponds to a
+\function{RiConcatTransform()} call. It outputs the view transformation 
+\var{V} (which transforms from world to camera coordinates) as a RenderMan 
+transformation. The handedness of the scene is taken into account.
+\end{methoddesc}
+
+\begin{methoddesc}[RIBExporter]{applyLightSource}{lgt}
+Apply the light source \var{lgt} which must be a light source world
+object. This method corresponds to a \function{RiLightSource()} call.
+\end{methoddesc}
+
+\begin{methoddesc}[RIBExporter]{applyTransformation}{T, linearvel=None, angularvel=None}
+Apply the transformation \var{T} (given as a \code{mat4}). This method
+corresponds to a \function{RiConcatTransform()} call. 
+It outputs \var{T} as a RenderMan transformation. If a linear or angular 
+velocity is given an motion block is written to enable motion blur.
+\end{methoddesc}
+
+\begin{methoddesc}[RIBExporter]{applyMaterial}{mat}
+Apply the material \var{mat} which must be a \class{Material} object.
+This method corresponds to the calls \function{RiColor()},
+\function{RiOpacity()}, \function{RiSurface()}, \function{RiDisplacement()}
+and \function{RiInterior()}.
+\end{methoddesc}
+
+\begin{methoddesc}[RIBExporter]{applyGeometry}{geom}
+Apply the geometry \var{geom} which must be a \class{GeomObject}.
+\end{methoddesc}
+
+\begin{methoddesc}[RIBExporter]{writeShader}{name, source}
+Write a shader source file and return the name of the shader. Usually, 
+you don't have to call this method yourself as it is called by the above
+applyXyz()-methods.
+\end{methoddesc}
+

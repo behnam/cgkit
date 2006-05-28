@@ -1,0 +1,33 @@
+% MotionPath
+
+\section{\class{MotionPath} ---
+         Motion path}
+
+\begin{classdesc}{MotionPath}{name = "MotionPath",\\ 
+                              curve = None,\\
+                              begintime = 0.0,\\
+                              endtime = 1.0,\\
+                              loop = False,\\
+                              follow = False,\\
+                              bank = False,\\
+                              bankamplitude = 0.1,\\
+                             }
+
+\var{curve} is an object supporting the curve protocol.
+
+\var{begintime} and \var{endtime} specify the parameter interval of
+the motion. At \var{begintime} the object will be located at the beginning
+of the curve and at \var{endtime} it will be at the end.
+
+\var{loop} is a boolean that specifies if the motion is repeated when 
+outside the specified parameter interval.
+
+\var{follow} determines if the object will change its orientation to
+follow the path.
+
+\var{bank} determines if the object will roll if the curve makes a turn.
+\var{bankamplitude} specifies how much the obect will roll.
+
+\end{classdesc}
+
+

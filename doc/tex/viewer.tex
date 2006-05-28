@@ -1,0 +1,165 @@
+% Viewer tool
+
+\section{The interactive viewer tool}
+
+The tool \file{viewer.py} reads one or more files and displays the
+scene using a simple OpenGL renderer. It creates events such as
+keyboard, mouse or joystick events that can be used by the components
+in the scene.
+
+If the environment variable \envvar{VIEWER_DEFAULT_OPTIONS} exists, it
+is read and parsed to set the default options. After that the options
+in the command line are parsed.
+
+{\bf Usage:}
+
+\begin{verbatim}
+viewer.py [options] inputfiles
+\end{verbatim}
+
+To exit the viewer press \kbd{Escape} or close the window. How to
+navigate in the scene depends on the navigation mode (see option -N).
+
+{\bf Options:}
+
+\begin{description}
+\item[\code{-f<int>} / \code{--fps=<int>}] 
+Specifies the frame rate that should be tried to maintain while playing
+back the scene (default: 30).
+
+\item[\code{-h} / \code{--help}]
+Print a help message.
+
+\item[\code{-F} / \code{--full-screen}]
+Open a full screen display.
+
+\item[\code{-W<int>} / \code{--width=<int>}]
+Specify the width in pixels of the window/screen (default: 640).
+
+\item[\code{-H<int>} / \code{--height=<int>}]
+Specify the height in pixels of the window/screen (default: 480). If
+no height is specified it is computed based on the width and an aspect
+ratio of 4/3.
+
+\item[\code{-v} / \code{--verbose}]
+Output info messages.
+
+\item[\code{-p<str>} / \code{--plugin=<str>}]
+If the argument specifies a file this file is loaded as a plugin, if it
+is a directory, all files in this directory are loaded. You can specify
+this option more than once or you can use a comma separated list of names.
+
+You can also set files and paths via the environment variable
+\envvar{CGKIT_PLUGIN_PATH}. The files/paths have to be separated either
+by ':' or ';'.
+
+\item[\code{-c<str>} / \code{--camera=<str>}]
+Select the camera that should be used to view the scene. The argument
+is the name of the camera. If no camera is specified the first camera
+found in the scene is used.
+
+\item[\code{-b<time>} / \code{--begin=<time>}]
+Specify a time or frame where the animation/simulation should be started
+(default: 0s). You can add the time unit such as 's' for seconds or 'f'
+for frames. Frames are assumed if you don't specify a unit.
+
+\item[\code{-e<time>} / \code{--end=<time>}]
+Specify a time or frame where the animation/simulation should be stopped.
+You can add the time unit such as 's' for seconds or 'f' for frames. 
+Frames are assumed if you don't specify a unit.
+
+\item[\code{-U<axis>} / \code{--up=<axis>}]
+Specify the default value for the up axis. The argument may be either
+'y' or 'z'.
+
+\item[\code{-O<str>} / \code{--option=<str>}]
+Add a global option that will be stored in the scene. The argument should
+have the form "name=value". Using this option is equivalent to writing
+"Globals( name=value )" in a scene file.
+
+\item[\code{-t} / \code{--set-time}]
+Set the starting time directly instead of stepping there from time 0.
+
+\item[\code{-S<str>} / \code{--stereo=<str>}]
+Activate stereo display. The argument specifies the method that should be
+used to create a stereo image. It can be either \var{vsplit} or \var{glstereo}.
+
+\item[\code{-D<float>} / \code{--eye-distance=<float>}]
+Default eye distance for stereo display (default 0.07). This distance
+value is used if the camera does not explicitly specify a distance value
+(i.e. if it has no attribute \var{eye_distance}).
+
+\item[\code{-B} / \code{--bounding-box}]
+Display the bounding boxes.
+
+\item[\code{-P<str>} / \code{--polygon-mode=<str>}]
+Specify how polygons should be rendered. Possible values are
+\var{fill} (default), \var{line} and \var{point}.
+
+\item[\code{-s<str>} / \code{--save=<str>}]
+When this option is specified each frame is saved under the given name
+(+ frame number). The extension determines the image format.
+
+\item[\code{-N<str>} / \code{--navigation-mode=<str>}]
+Specify which navigation mode to activate. The viewer can emulate the
+navigation of a few common 3D packages. Possible values are
+\var{Maya} (default), \var{MAX} and \var{Softimage} (case-insensitive).
+
+In Maya mode you navigate by pressing the \kbd{Alt} key in combination
+with any of the three mouse buttons. In MAX mode you press the middle
+mouse button either alone or in combination with \kbd{Alt} or \kbd{Control}
+and \kbd{Alt}. In Softimage mode, only the Softimage Navigation Tool is
+emulated (it's as if this tool is permanently active), i.e. you navigate
+by using one of the three mouse buttons.
+
+\item[\code{-X} / \code{--disable-spacedevice}]
+Disables support for SpaceMouse/SpaceBall. This option can be used if there
+are any problems with the driver or initialization takes too long.
+
+\item[\code{-T} / \code{--disable-wintab}]
+Disables tablet support. This option can be used if there are any
+problems with the driver or initialization takes too long.
+
+\end{description}
+
+{\bf Events:}
+
+The viewer tool generates the following user input events (see the
+module \refmodule{cgkit.events} for more details about these events):
+
+\begin{itemize}
+\item \code{KEY_PRESS}
+\item \code{KEY_RELEASE}
+\item \code{LEFT_DOWN}
+\item \code{MIDDLE_DOWN}
+\item \code{RIGHT_DOWN}
+\item \code{MOUSE_BUTTON_DOWN}
+\item \code{LEFT_UP}
+\item \code{MIDDLE_UP}
+\item \code{RIGHT_UP}
+\item \code{MOUSE_BUTTON_UP}
+\item \code{MOUSE_WHEEL}
+\item \code{MOUSE_MOVE}
+\item \code{JOYSTICK_AXIS}
+\item \code{JOYSTICK_BALL}
+\item \code{JOYSTICK_HAT}
+\item \code{JOYSTICK_BUTTON_DOWN}
+\item \code{JOYSTICK_BUTTON_UP}
+\item \code{SPACE_MOTION}
+\item \code{SPACE_BUTTON_DOWN}
+\item \code{SPACE_BUTTON_UP}
+\item \code{SPACE_BUTTON_ZERO}
+\item \code{TABLET}
+\end{itemize}
+
+{\bf Timing:}
+
+The operations per frame are as follows (in this order):
+
+\begin{enumerate}
+\item Render and display the current scene at time $t$
+\item Handle events
+\item Step frame (i.e. increase the time by $\Delta t$ and signal the
+  \code{STEP_FRAME} event)
+\item Sync to the specified framerate
+\end{enumerate}

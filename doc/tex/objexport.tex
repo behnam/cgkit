@@ -1,0 +1,24 @@
+% OBJ export
+
+\subsection{Wavefront OBJ export}
+
+The OBJ export plugin writes Wavefront OBJ files (including material files).
+
+The plugin supports the following options that can be passed to
+the \function{save()} command:
+
+\begin{tableiii}{l|l|l}{code}{Option}{Default}{Description}
+\lineiii{root}{\code{None}}{Export only a subtree of the scene.}
+\lineiii{exportmtl}{\code{True}}{Determines whether a MTL file will be written or not.}
+\lineiii{mtlname}{\code{None}}{The name of the material file that should be used.}
+\end{tableiii}
+
+No material information will be written into the OBJ file if
+\var{exportmtl} is \code{False} and \var{mtlname} is \code{None}.
+
+Currently, only the parameters of an \class{OBJMaterial} object (see
+section \ref{objmaterial}) will be written into the MTL file.  If you
+want to convert models from other formats into OBJ and preserve
+material information, you have to convert the materials before saving
+the model.
+

@@ -1,0 +1,386 @@
+\section{\module{sl} ---
+         RenderMan Shading Language functionality}
+
+\declaremodule{extension}{cgkit.sl}
+\modulesynopsis{Provides the same functions than the RenderMan Shading Language}
+
+This module provides some of the functionality from the RenderMan
+Shading Language. Those functions that require an actual rendering
+context (surfaces, light sources, etc.) are not supported.
+
+Most of the functions can be used just like in the Shading
+Language. An exception are those functions whose return type is
+dependant on the context as it is the case with \function{random()} or
+\function{noise()}. Here, those functions have to be prepended with the 
+return type, for example \function{float_random()} or 
+\function{point_noise()} (that is, the cast is part of the name).
+
+%----
+\subsection{Constants}
+
+\begin{datadesc}{PI}
+This is the same as \code{math.pi}.
+\end{datadesc}
+
+%-----
+\subsection{Math functions}
+
+\begin{funcdesc}{abs}{x}
+Returns the absolute value of its argument. This is just the builtin
+\function{abs()} function.
+\end{funcdesc}
+
+\begin{funcdesc}{acos}{a}
+Returns the arc cosine. This function is imported from the
+\module{math} module.
+\end{funcdesc}
+
+\begin{funcdesc}{asin}{a}
+Returns the arc sine. This function is imported from the \module{math} module.
+\end{funcdesc}
+
+\begin{funcdesc}{atan}{y[, x]}
+Returns the arc tangent. With one argument \function{math.atan()} is
+called, with two arguments \function{math.atan2()} is called.
+\end{funcdesc}
+
+\begin{funcdesc}{ceil}{x}
+Returns the largest integer not greater than \var{x}. This function is
+imported from the \module{math} module.
+\end{funcdesc}
+
+\begin{funcdesc}{clamp}{x, min, max}
+Returns \var{min} if \var{x} < \var{min}, \var{max} if \var{x} > \var{max}, 
+otherwise \var{x}.
+\end{funcdesc}
+
+\begin{funcdesc}{color_cellnoise}{p}
+Returns a color value (actually a \class{vec3}) whose value is a (pseudo)
+random function of its arguments. The return value is constant between
+integer lattice points.
+\end{funcdesc}
+
+\begin{funcdesc}{color_noise}{p}
+Returns a color value (actually a \class{vec3}) whose value is a (pseudo)
+random function of its arguments.
+\end{funcdesc}
+
+\begin{funcdesc}{color_pnoise}{p, period}
+Returns a color value (actually a \class{vec3}) whose value is a periodic
+(pseudo) random function of its arguments.
+\end{funcdesc}
+
+\begin{funcdesc}{color_random}{}
+Return a color whose componenets are a random number between 0 and
+1. The function actually returns a \class{vec3}.
+\end{funcdesc}
+
+\begin{funcdesc}{cos}{a}
+Returns the cosine. This function is imported from the \module{math} module.
+\end{funcdesc}
+
+\begin{funcdesc}{degrees}{rad}
+Converts from radians to degrees.
+\end{funcdesc}
+
+\begin{funcdesc}{exp}{x}
+Returns \code{pow(e,x)}. This function is imported from the
+\module{math} module.
+\end{funcdesc}
+
+\begin{funcdesc}{float_cellnoise}{p}
+Returns a float value which is a (pseudo) random function of its
+arguments. The return value is constant between integer lattice
+points. This function is imported from the \module{noise} module.
+\end{funcdesc}
+
+\begin{funcdesc}{float_noise}{p}
+Returns a float value which is a (pseudo) random function of its
+arguments. This function is imported from the \module{noise} module.
+\end{funcdesc}
+
+\begin{funcdesc}{float_pnoise}{p, period}
+Returns a float value which is a periodic (pseudo) random function of
+its arguments. This function is imported from the \module{noise} module.
+\end{funcdesc}
+
+\begin{funcdesc}{float_random}{}
+Return a random number between 0 and 1. This call is equivalent to
+\function{random.random()}.
+\end{funcdesc}
+
+\begin{funcdesc}{floor}{x}
+Returns the smallest integer not smaller than \var{x}. This function is
+imported from the \module{math} module.
+\end{funcdesc}
+
+\begin{funcdesc}{inversesqrt}{x}
+Returns \code{1/sqrt(x)}.
+\end{funcdesc}
+
+\begin{funcdesc}{log}{x[, base]}
+Returns the natural logarithm of \var{x} (the same as
+\function{math.log}) or the logarithm to the specified base.
+\end{funcdesc}
+
+\begin{funcdesc}{max}{a, b, ...}
+Returns the argument with maximum value. This is just the builtin
+\function{max()} function.
+\end{funcdesc}
+
+\begin{funcdesc}{min}{a, b, ...}
+Returns the argument with minimum value. This is just the builtin 
+\function{min()} function.
+\end{funcdesc}
+
+\begin{funcdesc}{mix}{val0, val1, t}
+For \var{t}=0 the value \var{val0} is returned, for \var{t}=1 the value 
+\var{val1} is returned. For values of \var{t} between 0 and 1 a linearly 
+interpolated value is returned.
+\end{funcdesc}
+
+\begin{funcdesc}{mod}{a, b}
+Returns \code{a\%b}. This is just an equivalent for the \%-operator.
+\end{funcdesc}
+
+\begin{funcdesc}{point_cellnoise}{p}
+Returns a point (as a \class{vec3}) whose value is a (pseudo) random
+function of its arguments. The return value is constant between
+integer lattice points.
+\end{funcdesc}
+
+\begin{funcdesc}{point_noise}{p}
+Returns a point (as a \class{vec3}) whose value is a (pseudo) random function
+of its arguments.
+\end{funcdesc}
+
+\begin{funcdesc}{point_pnoise}{p, period}
+Returns a point (as a \class{vec3}) whose value is a periodic (pseudo) random
+function of its arguments.
+\end{funcdesc}
+
+\begin{funcdesc}{point_random}{}
+Return a point (a \class{vec3}) whose componenets are a random number between
+0 and 1.
+\end{funcdesc}
+
+\begin{funcdesc}{pow}{x, y}
+Returns x**y. This function is imported from the \module{math} module.
+\end{funcdesc}
+
+\begin{funcdesc}{radians}{deg}
+Converts from degrees to radians.
+\end{funcdesc}
+
+\begin{funcdesc}{round}{deg}
+Returns the integer closest to \var{x}. This is just the builtin 
+\function{round()} function.
+\end{funcdesc}
+
+\begin{funcdesc}{sign}{x}
+Returns -1 with a negative argument, +1 with a positive argument, and
+0 if its argument is zero.
+\end{funcdesc}
+
+\begin{funcdesc}{sin}{a}
+Returns the sine. This function is imported from the \module{math} module.
+\end{funcdesc}
+
+\begin{funcdesc}{smoothstep}{min, max, value}
+Returns 0 if \var{value} < \var{min}, 1 if \var{value} > \var{max},
+and performs a smooth Hermite interpolation between 0 and 1 in the
+interval \var{min} to \var{max}.
+\end{funcdesc}
+
+\begin{funcdesc}{spline}{t, controlpoints}
+Fits a spline to the control points given and returns the value at \var{t}
+which ranges from 0 to 1. At least four control points must always be
+given.
+\end{funcdesc}
+
+\begin{funcdesc}{sqrt}{x}
+Returns the square root. This function is imported from the \module{math}
+module.
+\end{funcdesc}
+
+\begin{funcdesc}{step}{min, x}
+Returns 0 if \var{x} < \var{min}, otherwise 1.
+\end{funcdesc}
+
+\begin{funcdesc}{tan}{a}
+Returns the tangent. This function is imported from the \module{math} module.
+\end{funcdesc}
+
+\begin{funcdesc}{tan}{a}
+Returns the tangent. This function is imported from the \module{math} module.
+\end{funcdesc}
+
+\begin{funcdesc}{vector_cellnoise}{p}
+Returns a vector (as a \class{vec3}) whose value is a (pseudo) random function
+of its arguments. The return value is constant between integer lattice
+points.
+\end{funcdesc}
+
+\begin{funcdesc}{vector_noise}{p}
+Returns a vector (as a \class{vec3}) whose value is a (pseudo) random function
+of its arguments.
+\end{funcdesc}
+
+\begin{funcdesc}{vector_pnoise}{p, period}
+Returns a vector (as a \class{vec3}) whose value is a periodic (pseudo) random
+function of its arguments.
+\end{funcdesc}
+
+%-----
+\subsection{Geometric functions}
+
+\begin{funcdesc}{distance}{p1, p2}
+Returns the distance between two points. The arguments should be of type 
+\class{vec3}.
+\end{funcdesc}
+
+\begin{funcdesc}{faceforward}{N, I, Nref}
+Flips \var{N} so that it faces in the direction opposite to \var{I}. 
+
+\note{In contrast to the Shading Language \var{Nref} is not optional.}
+\end{funcdesc}
+
+\begin{funcdesc}{length}{v}
+Returns the length of a vector. This is equivalent to calling 
+\method{v.length()}.
+\end{funcdesc}
+
+\begin{funcdesc}{normalize}{v}
+Returns a unit vector in the direction of \var{v}. This is equivalent to
+calling \method{v.normalize()}.
+\end{funcdesc}
+
+\begin{funcdesc}{ptlined}{p0, p1, q}
+Returns the distance between point \var{q} and the line segment \var{p0},
+\var{p1}. The arguments should be of type \class{vec3}.
+\end{funcdesc}
+
+\begin{funcdesc}{reflect}{I, N}
+Returns the reflection vector given an incident direction \var{I} and a
+normal vector \var{N}. This is equivalent to calling \method{I.reflect(N)}.
+\end{funcdesc}
+
+\begin{funcdesc}{refract}{I, N, eta}
+Returns the transmitted vector given an incident direction \var{I},
+the normal vector \var{N} and the relative index of refraction
+\var{eta}. This is equivalent to calling \method{I.refract(N, eta)}.
+\end{funcdesc}
+
+\begin{funcdesc}{xcomp}{p}
+Return the x component of \var{p}. This is equivalent to \code{p.x}.
+\end{funcdesc}
+
+\begin{funcdesc}{ycomp}{p}
+Return the y component of \var{p}. This is equivalent to \code{p.y}.
+\end{funcdesc}
+
+\begin{funcdesc}{zcomp}{p}
+Return the z component of \var{p}. This is equivalent to \code{p.z}.
+\end{funcdesc}
+
+\begin{funcdesc}{setxcomp}{p, x}
+Set the x component of \var{p}. This is equivalent to \code{p.x = x}.
+\end{funcdesc}
+
+\begin{funcdesc}{setycomp}{p, y}
+Set the y component of \var{p}. This is equivalent to \code{p.y = y}.
+\end{funcdesc}
+
+\begin{funcdesc}{setzcomp}{p, z}
+Set the z component of \var{p}. This is equivalent to \code{p.z = z}.
+\end{funcdesc}
+
+\begin{funcdesc}{comp}{c, index}
+Get an individual color component. This is equivalent to \code{c[index]}.
+\end{funcdesc}
+
+\begin{funcdesc}{setcomp}{c, index, value}
+Set an individual color component. This is equivalent to 
+\code{c[index] = value}.
+\end{funcdesc}
+
+%-----
+\subsection{String functions}
+
+\begin{funcdesc}{concat}{str1, ..., strn}
+Returns a concatenated string.
+\end{funcdesc}
+
+\begin{funcdesc}{format}{pattern, val1, val2, ..., valn}
+Returns a formatted string (similar to the C function
+\cfunction{sprintf()}). Any occurance of the character \% followed by a
+letter is replaced by a value. In this implementation it doesn't
+matter what letter you are actually using (in the Shading Language it
+would be \%f for floats, \%p for points, vectors or normals, \%c for
+colors, \%m for matrices and \%s for strings).
+\end{funcdesc}
+
+\begin{funcdesc}{match}{pattern, subject}
+String pattern matching.
+\end{funcdesc}
+
+\begin{funcdesc}{printf}{pattern, val1, val2, ..., valn}
+Prints the values of the specified variables. Any occurance of the
+character \% followed by a letter is replaced by a value. In this
+implementation it doesn't matter what letter you are actually using (in
+the Shading Language it would be \%f for floats, \%p for points, vectors
+or normals, \%c for colors, \%m for matrices and \%s for strings).
+\end{funcdesc}
+
+%-----
+\subsection{Unsupported functions}
+
+The following functions are not supported by this module:
+
+\begin{itemize}
+\item \cfunction{Du()}
+\item \cfunction{Dv()}
+\item \cfunction{Deriv()}
+\item \cfunction{filterstep()}
+\end{itemize}
+
+\begin{itemize}
+\item \cfunction{area()}
+\item \cfunction{calculatenormal()}
+\item \cfunction{depth()}
+\item \cfunction{fresnel()}
+\item \cfunction{transform()}
+\item \cfunction{vtransform()}
+\item \cfunction{ntransform()}
+\end{itemize}
+
+\begin{itemize}
+\item \cfunction{ambient()}
+\item \cfunction{diffuse()}
+\item \cfunction{phong()}
+\item \cfunction{specular()}
+\item \cfunction{specularbrdf()}
+\item \cfunction{trace()}
+\end{itemize}
+
+\begin{itemize}
+\item \cfunction{environment()}
+\item \cfunction{shadow()}
+\item \cfunction{texture()}
+\item \cfunction{textureinfo()}
+\end{itemize}
+
+\begin{itemize}
+\item \cfunction{atmosphere()}
+\item \cfunction{displacement()}
+\item \cfunction{incident()}
+\item \cfunction{lightsource()}
+\item \cfunction{opposite()}
+\item \cfunction{surface()}
+\end{itemize}
+
+\begin{itemize}
+\item \cfunction{attribute()}
+\item \cfunction{option()}
+\item \cfunction{rendererinfo()}
+\end{itemize}

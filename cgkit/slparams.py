@@ -1,0 +1,439 @@
+###########################################################################
+# cgkit - Python Computer Graphics Kit
+# Copyright (C) 2004 Matthias Baas (baas@ira.uka.de)
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# -------------------------------------------------------------
+# The RenderMan (R) Interface Procedures and Protocol are:
+# Copyright 1988, 1989, 2000, Pixar
+# All Rights Reserved
+#
+# RenderMan (R) is a registered trademark of Pixar
+# -------------------------------------------------------------
+#
+# cgkit homepage: http://cgkit.sourceforge.net
+###########################################################################
+# $Id: slparams.py,v 1.4 2006/02/14 19:29:39 mbaas Exp $
+
+"""Extract shader parameters from a RenderMan shader source file.
+
+Functions:
+
+- slparams()
+- convertdefault()
+"""
+
+import os, os.path, sys, string, StringIO, sltokenize, types
+import cgtypes, math, sl, simplecpp
+import _slparser
+
+class SLParamsError(Exception):
+    pass
+
+class PreprocessorNotFound(SLParamsError):
+    pass
+
+class SyntaxError(SLParamsError):
+    pass
+
+class NoMoreTokens(SLParamsError):
+    pass
+
+
+# Parser class (subclassed from the generated Yapps parser)
+class _SLParser(_slparser._SLParserBase):
+    """SL parser class.
+
+    This class is derived from the generated parser and implements
+    some missing methods.
+    """
+    def __init__(self, scanner):
+        _slparser._SLParserBase.__init__(self, scanner)
+
+        # Current filename
+        self.filename = "?"
+        # Offset which has to be subtracted from the line number to
+        # get the true line number within the file.
+        self.linenroffset = 0
+
+        # Parameter attributes...
+        self.output   = ""
+        self.detail   = ""
+        self.type     = ""
+        self.arraylen = None
+        self.name     = ""
+        self.space    = None
+        self.default  = ""
+        self.spaces   = []
+
+        # Shader parameters
+        self.params = []
+
+    def newParams(self):
+        """Start a new shader.
+
+        The parameter list is cleared.
+        """
+        self.params = []
+
+    def newType(self):
+        """Clear all type parameters.
+
+        This is called when a new type is declared (which is not equivalent
+        to a new parameter, e.g. "float a,b,c")
+        """
+        self.output   = ""
+        self.detail   = "uniform"
+        self.type     = ""
+        self.arraylen = None
+        self.name     = ""
+        self.space    = None
+        self.default  = ""
+        self.spaces   = []
+
+    def defaultSpace(self, typ):
+        """Return the default space for typ."""
+        if typ in ["point", "vector", "normal", "matrix"]:
+            return "current"
+        elif typ=="color":
+            return "rgb"
+        else:
+            return None
+        
+    def appendSpace(self):
+        """Append self.space to self.spaces."""
+        if self.space!=None:
+            self.spaces.append(self.space)
+        else:
+            self.spaces.append(self.defaultSpace(self.type))
+                
+        self.space = None
+
+    def storeParam(self):
+        """Store the current set of attributes as a new parameter.
+
+        The attributes are reset so that a new parameter can begin.
+        """
+        if self.arraylen==None:
+            if self.space==None:
+                self.space = self.defaultSpace(self.type)
+            self.params.append((self.output, self.detail, self.type, None,
+                            self.name, self.space, self.default))
+        else:
+            spaces = self.spaces
+            if self.defaultSpace(self.type)==None:
+                spaces = None
+            self.params.append((self.output, self.detail, self.type,
+                               self.arraylen, self.name, spaces, self.default))
+        self.arraylen = None
+        self.name = ""
+        self.space = None
+        self.default = ""
+        self.spaces   = []
+        
+
+    def switchFile(self, cppline):
+        """Switch to another file.
+
+        This method is called when a preprocessor line (starting with #)
+        is read. This line contains the current file name and the line number.
+        """
+        f = cppline.strip().split(" ")
+        linenr = int(f[1])
+        filename = f[2][1:-1]
+        self.filename = filename
+        self.linenroffset = self._scanner.get_line_number()-linenr+1
+
+        
+# _SLfilter
+class _SLfilter:
+    """Used by the sltokenizer to filter the Shading Language source.
+
+    Only the shader and function definitions remain, the bodies will
+    be dropped. The filtered result will be used as input for the
+    actual parser.
+    """
+    def __init__(self):
+        # Current {}-depth (0 = outside any {..})
+        self.curly_depth = 0
+        # Current ()-depth
+        self.bracket_depth = 0
+        # Receives the source code that'll get passed to the parser
+        self.SLsource = ""
+        self.stream_enabled = True
+
+        self.current_filename = None
+        
+    def eater(self, type, tok, start, end, line, filename):
+        """Record only tokens with depth 0."""
+        if filename!=self.current_filename:
+            self.current_filename = filename
+            if self.SLsource!="" and self.SLsource[-1]!="\n":
+                self.SLsource+="\n"
+            self.SLsource+='# %d "%s"\n'%(start[0],filename)
+        
+        if tok=="}":
+            self.curly_depth-=1
+            if self.curly_depth==0 and self.bracket_depth==0:
+                self.stream_enabled = True
+        elif tok==")":
+            self.bracket_depth-=1
+
+        # Always record newlines so that line numbers won't get messed up
+        if self.stream_enabled or tok=="\n":
+            self.SLsource+=tok
+            
+        if tok=="{":
+            if self.curly_depth==0 and self.bracket_depth==0:
+                self.stream_enabled = False
+            self.curly_depth+=1
+        elif tok=="(":
+            self.bracket_depth+=1
+
+
+# slparams
+def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None):
+    """Extracts the shader parameters from a Shading Language source file.
+
+    The argument slfile is either the name of the shader source file
+    (*.sl) or it is a file-like object that provides the shader
+    sources.  cpp determines how the shader source is preprocessed. It
+    can either be a string containing the name of an external
+    preprocessor tool (such as 'cpp') that must take the file name as
+    parameter and dump the preprocessed output to stdout or it can be
+    a callable that takes slfile and cpperrstream as input and returns
+    the preprocessed sources as a string. If the external
+    preprocessor does not produce any data a PreprocessorNotFound
+    exception is thrown.
+    The error stream of the preprocessor is written to the object
+    that's specified by cpperrstream which must have a write()
+    method. If cpperrstream is None, the error stream is ignored.
+
+    If cpp is None a simple internal preprocessor based on the
+    simplecpp module is used.
+    The slname argument is an alias for slfile, it's only available
+    for backwards compatibility.
+    
+    The function returns a list of 3-tuples, one for each shader found
+    in the file. The tuple contains the type, the name and the
+    parameters of the shader. The parameters are given as a list of
+    7-tuples describing each parameter. The tuple contains the
+    following information (in the given order):
+
+    - The output specifier (either "output" or an empty string)
+    - The storage class ("uniform" or "varying")
+    - The parameter type
+    - The array length or None if the parameter is not an array
+    - The name of the parameter
+    - The space in which a point-like type was defined
+    - The default value (always given as a string)
+    """
+
+    if slname!=None:
+        slfile = slname
+    if slfile==None:
+        return []
+
+    # Run the preprocessor on the input file...
+    
+    if cpp==None:
+        cpp = simplecpp.PreProcessor()
+        
+    slsrc = preprocess(cpp, slfile, cpperrstream)
+    f = StringIO.StringIO(slsrc)
+    
+    # ...and filter it, so that only the shader and function
+    # definitions remain...
+    filter = _SLfilter()
+    sltokenize.tokenize(f.readline, filter.eater)
+    f.close()
+
+#    print filter.SLsource
+
+    # Parse the filtered source code...
+    scanner = _slparser._SLParserBaseScanner(filter.SLsource)
+    parser = _SLParser(scanner)
+    
+#    return wrap_error_reporter(parser, "definitions")
+
+    try:
+        return getattr(parser, "definitions")()
+    except _slparser.NoMoreTokens, err:
+        raise NoMoreTokens, "No more tokens"
+    except _slparser.SyntaxError, err:
+        scanner = parser._scanner
+        input = scanner.input
+        cpplineno = scanner.get_line_number()
+        lineno = cpplineno-parser.linenroffset
+        # '+1' at the end to exclude the newline. If no newline is found
+        # rfind() returns -1, so by adding +1 we get 0 which is what we want.
+        start = input.rfind("\n", 0, err.charpos)+1
+        end   = input.find("\n", err.charpos, -1)
+        origline = input[start:end].replace("\t", " ")
+        line = " "+origline.lstrip()
+        errpos = err.charpos-start-(len(origline)-len(line))
+#        print "%s^"%((errpos)*" ")
+        msg = 'Syntax error in "%s", line %d:\n'%(parser.filename, lineno)
+        msg += '\n%s\n%s^'%(line, errpos*" ")
+        exc = SyntaxError(msg)
+        exc.filename = parser.filename
+        exc.lineno = lineno
+        exc.line = line
+        exc.errpos = errpos
+        raise exc
+
+# preprocess
+def preprocess(cpp, file, cpperrstream=sys.stderr):
+    """Preprocess an input file.
+
+    cpp is either a string containing the name of an external preprocessor
+    command (e.g. 'cpp') or a callable function that takes file and
+    cpperrstream as input and returns the preprocessed source code as
+    a string.
+    If the external preprocessor produces no data it is assumed that
+    it was not found a a PreprocessorNotFound exception is thrown.
+
+    file is either a string containing the input file name or it's a
+    file-like object.
+    If the input file doesn't exist, an IOError is thrown.
+
+    cpperrstream is a stream that receives any error messages from
+    the preprocessor. If it's None, error messages are ignored.
+
+    The function returns the preprocessed sources as a string.
+    """
+
+    # Is cpp a callable then invoke it and return the result
+    if callable(cpp):
+        return cpp(file, cpperrstream)
+
+    # no callable, so cpp contains the name of an external preprocessor tool
+
+    # Variables:
+    #
+    # cmd: The command that is used to execute the preprocessor.
+    #      It either contains only the cpp name or the cpp name + input file
+    # slsrc: (string) Unprocessed SL source if it should be passed via stdin
+    #      otherwise it's None.
+    # ppslsrc: Preprocessed SL source (this is the result).
+
+    # Is file a string? Then it's a file name...
+    if isinstance(file, types.StringTypes):
+        cmd = "%s %s"%(cpp, file)
+        slsrc = None
+        # Check if the file exists and can be accessed (by trying to open it)
+        # If the file doesn't exist, an exception is thrown.
+        dummy = open(file)
+        dummy.close()
+    # ...otherwise it's a file-like object
+    else:
+        cmd = "%s"%cpp
+        slsrc = file.read()
+
+    # The preprocessed data will be in slsrc.
+    stdin, stdout, stderr = os.popen3(cmd)
+    if slsrc!=None:
+        stdin.write(slsrc)
+    stdin.close()
+    ppslsrc = stdout.read()
+    stdout.close()
+    if cpperrstream!=None:
+        errs = stderr.read()
+        cpperrstream.write(errs)
+    # No data? Then it's assumed that the preprocessor couldn't be found
+    if len(ppslsrc)==0:
+        raise PreprocessorNotFound("Calling '%s' didn't produce any data."%cmd)
+
+    return ppslsrc
+
+
+# Setup local namespace for convertdefault()
+_local_namespace = {}
+exec "from cgkit.sl import *" in _local_namespace
+   
+def convertdefault(paramtuple):
+    """Converts the default value of a shader parameter into a Python type.
+
+    paramtuple must be a 7-tuple as returned by slparams(). The
+    function returns a Python object that corresponds to the default
+    value of the parameter. If the default value can't be converted
+    then None is returned. Only the functions that are present in the
+    sl module are evaluated. If a default value calls a user defined
+    function then None is returned.
+
+    The SL types will be converted into the following Python types:
+
+    - float  -> float
+    - string -> string
+    - color  -> vec3
+    - point  -> vec3
+    - vector -> vec3
+    - normal -> vec3
+    - matrix -> mat4
+
+    Arrays will be converted into lists of the corresponding type.    
+    """
+    global _local_namespace
+    
+    typ = paramtuple[2]
+    arraylen = paramtuple[3]
+    defstr = paramtuple[6]
+
+    # Replace {} with [] so that SL arrays look like Python lists
+    defstr = defstr.replace("{","[").replace("}","]")
+    # If the parameter is not an array, then create an array with one
+    # element (to unify further processing). It will be unwrapped in the end
+    if arraylen==None:
+        defstr = "[%s]"%defstr
+    # Evaluate the string to create "raw" Python types (lists and tuples)
+    try:
+        rawres = eval(defstr, globals(), _local_namespace)
+    except:
+        return None
+
+    # Convert into the appropriate type...
+    if typ=="float":
+        try:
+            res = map(lambda x: float(x), rawres)
+        except:
+            return None
+    elif typ=="color" or typ=="point" or typ=="vector" or typ=="normal":
+        try:
+            res = map(lambda x: cgtypes.vec3(x), rawres)
+        except:
+            return None
+    elif typ=="matrix":
+        try:
+            res = map(lambda x: cgtypes.mat4(x), rawres)
+        except:
+            return None
+    elif typ=="string":
+        try:
+            res = map(lambda x: str(x), rawres)
+        except:
+            return None
+
+    if arraylen==None:
+        if len(res)==0:
+            return None
+        else:
+            res = res[0]
+
+    return res
+
+######################################################################
+
+if __name__=="__main__":
+    pass

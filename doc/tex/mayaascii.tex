@@ -1,0 +1,373 @@
+\section{\module{mayaascii} ---
+        Reading Maya ASCII files}
+
+\declaremodule{extension}{cgkit.mayaascii}
+\modulesynopsis{Reading Maya ASCII files}
+
+This module contains the \class{MAReader} class which can be used as a
+base class for reading Maya ASCII files. The class reads the file
+and invokes callback methods with the corresponding data in the
+file. Derived classes have to implement those callback methods and
+process the data as appropriate.
+
+%----------------------------------------------------------------
+\subsection{MAReader class}
+
+The \class{MAReader} class reads Maya ASCII files and calls
+appropriate methods which have to be implemented in a derived class.
+The content of the file is actually a subset of the {\em Maya Embedded
+Language} (MEL) which is the scripting language implemented inside
+Maya.  The \class{MAReader} parses the file, breaks down the content
+of the file in commands and their arguments and options (expressions
+are not evaluated). Each MEL command will then trigger a callback
+method that has to execute the command.  These callback methods have
+to be implemented in a derived class.
+
+There are 11 MEL commands that can appear in a Maya ASCII 
+file\footnote{Actually, there could appear any MEL command, but at least
+Maya will only export files containing the above commands.}:
+
+\begin{itemize}
+\item {\tt file}
+\item {\tt requires}
+\item {\tt fileInfo}
+\item {\tt currentUnit}
+\item {\tt createNode}
+\item {\tt setAttr}
+\item {\tt addAttr}
+\item {\tt connectAttr}
+\item {\tt disconnectAttr}
+\item {\tt parent}
+\item {\tt select}
+\end{itemize}
+
+Each command has a number of arguments and can also take options. The
+callback methods receive the arguments as regular arguments to the
+method and the options as an additional argument \code{opts} which is
+a dictionary containing the options that were specified in the
+file. The key is the long name of the option (without leading dash)
+and the value is a list of strings containing the option values.  The
+number of values and how they have to be interpreted depend on the
+actual option.
+
+\begin{classdesc}{MAReader}{}
+  Creates an instance of the reader.
+\end{classdesc}
+
+\begin{methoddesc}{read}{f}
+Read the content of a file. \var{f} must be a file like object that
+can be used to read the content of the file.
+\end{methoddesc}
+
+\begin{methoddesc}{begin}{}
+Callback method that is called before the file is read.
+\end{methoddesc}
+
+\begin{methoddesc}{end}{}
+Callback method that is called after the file was read.
+\end{methoddesc}
+
+\begin{methoddesc}{onFile}{filename, opts}
+Reference an external file.
+\end{methoddesc}
+
+\begin{methoddesc}{onRequires}{product, version}
+Specify a requirement that is needed to load the file properly.
+\var{product} is a string containing the required software component
+and \var{version} is a string containing the required version of that
+component.
+\end{methoddesc}
+
+\begin{methoddesc}{onFileInfo}{keyword, value, opts}
+Specifies information about the file. \var{keyword} and \var{value}
+are both strings.
+\end{methoddesc}
+
+\begin{methoddesc}{onCurrentUnit}{opts}
+Specify the units (linear, angular, time) used in the file.
+\end{methoddesc}
+
+\begin{methoddesc}{onCreateNode}{nodetype, opts}
+Create a new node. \var{nodetype} is a string specifying the type of node
+that is to be created. The new node will automatically be selected (i.e.
+subsequent setAttr commands refer to this node).
+\end{methoddesc}
+
+\begin{methoddesc}{onSetAttr}{attr, vals, opts}
+Set a node attribute. \var{attr} is a string containing the attribute
+to be set. \var{vals} is a list of values. The number of elements and
+the type of each element depends on the attribute.
+\end{methoddesc}
+
+\begin{methoddesc}{onAddAttr}{opts}
+Add a new attribute to the node.
+\end{methoddesc}
+
+\begin{methoddesc}{onConnectAttr}{srcattr, dstattr, opts}
+Connect two attributes. \var{srcattr} is a string specifiying the
+attribute that serves as a source and \var{dstattr} is the name of
+the attribute that will receive the value. 
+\end{methoddesc}
+
+\begin{methoddesc}{onDisconnectAttr}{srcattr, dstattr, opts}
+Break the attribute connection between two attributes.
+\end{methoddesc}
+
+\begin{methoddesc}{onParent}{objects, parent, opts}
+Set the parent of one or more nodes. \var{objects} is a list of node names
+and \var{parent} the name of the parent.
+\end{methoddesc}
+
+\begin{methoddesc}{onSelect}{objects, opts}
+Select a node from a referenced file. \var{objects} is a list of strings
+containing the node names.
+\end{methoddesc}
+
+%----------------------------------------------------------------
+\subsection{Node class}
+
+\begin{classdesc}{Node}{nodetype, opts}
+  \var{nodetype} and \var{opts} are the arguments of the 
+  \method{onCreateNode()} callback of the \class{MAReader} class.
+\end{classdesc}
+
+\begin{methoddesc}{getName}{}
+Return the name of the node or \code{None} if no name was specified.
+\end{methoddesc}
+
+\begin{methoddesc}{getParentName}{}
+Return the name of the parent node or \code{None} if no parent was specified.
+\end{methoddesc}
+
+\begin{methoddesc}{setAttr}{attr, vals, opts}
+\var{attr}, \var{vals} and \var{opts} are the arguments of the 
+\method{onSetAttr()} callback of the \class{MAReader} class. The Python
+value of an attribute can be obtained by calling \method{getAttrValue()}.
+\end{methoddesc}
+
+\begin{methoddesc}{addAttr}{opts}
+\var{opts} is the arguments of the \method{onAddAttr()} callback of 
+the \class{MAReader} class.
+\end{methoddesc}
+
+\begin{methoddesc}{addInConnection}{localattr, node, attrname}
+\end{methoddesc}
+
+\begin{methoddesc}{addOutConnection}{localattr, node, nodename, attrname}
+\end{methoddesc}
+
+\begin{methoddesc}{getAttrValue}{lname, sname, type, n=1, default=None}
+\end{methoddesc}
+
+\begin{methoddesc}{getInNode}{lname, sname}
+\end{methoddesc}
+
+\begin{methoddesc}{getOutAttr}{lname, sname, dstnodetype}
+\end{methoddesc}
+
+%----------------------------------------------------------------
+\subsection{Attribute class}
+
+\begin{classdesc}{Attribute}{attr, vals, opts}
+
+\var{attr}, \var{vals} and \var{opts} are the arguments of the 
+\method{onSetAttr()} callback of the \class{MAReader} class.
+
+\end{classdesc}
+
+\begin{methoddesc}{getBaseName}{}
+Return the base name of the attribute. This is the first part of the
+attribute name (and may actually refer to another attribute).
+
+\begin{verbatim}
+  ".t"            -> "t"
+  ".ed[0:11]"     -> "ed"
+  ".uvst[0].uvsn" -> "uvst"
+\end{verbatim}
+\end{methoddesc}
+
+\begin{methoddesc}{getFullName}{}
+Return the full attribute specifier.
+\end{methoddesc}
+
+\begin{methoddesc}{getValue}{type=None, n=None}
+Return the value of the attribute as appropriate Python value.
+\var{type} is a string containing the required type of the value.
+If \code{None} is passed, the method tries to retrieve the value from
+the attribute itself. If it fails, an exception is thrown. The following
+table lists the valid type strings and their corresponding Python type:
+
+\begin{tableii}{l|l}{code}{type}{Python type}
+\lineii{"bool"}{bool}
+\lineii{"int"}{int}
+\lineii{"float"}{float}
+\lineii{"string"}{str}
+\lineii{"short2"}{(int, int)}
+\lineii{"short3"}{(int, int, int)}
+\lineii{"long2"}{(int, int)}
+\lineii{"long3"}{(int, int, int)}
+\lineii{"int32Array"}{[int, ...]}
+\lineii{"float2"}{(float, float)}
+\lineii{"float3"}{(float, float, float)}
+\lineii{"double2"}{(float, float)}
+\lineii{"double3"}{(float, float, float)}
+\lineii{"doubleArray"}{[float, ...]}
+\lineii{"polyFaces"}{PolyFace (see \ref{polyface})}
+\lineii{"nurbsSurface"}{NurbsSurface (see \ref{nurbssurface})}
+\lineii{"nurbsCurve"}{NurbsCurve (see \ref{nurbscurve})}
+\end{tableii}
+
+The argument \var{n} specifies how many values are expected. An exception
+is thrown if the number of values that were set by the \code{setAttr} call
+doesn't match the required number. If \code{None} is passed, an arbitrary
+number of values is allowed. The value of \var{n} also influences the
+return type. If the value is 1 the method will return one of the types
+in the above table, otherwise it will return a list of the above types.
+
+\end{methoddesc}
+
+%----------------------------------------------------------------
+\subsection{PolyFace class}
+\label{polyface}
+
+\begin{classdesc*}{PolyFace}
+This class stores the data of a polygonal face. \class{PolyFace} objects
+are returned when the value of a \code{polyFaces} attribute is requested.
+\end{classdesc*}
+
+The class has the following data members:
+
+\begin{memberdesc}{f}
+This is a list of integers containing the edge indices of the edges 
+making up the face. If an index is negative the edge has to be
+reversed (the edge index then is -i-1).
+\end{memberdesc}
+
+\begin{memberdesc}{h}
+This is a list of holes. Each hole is described by a list of integers 
+containing the edge indices of the edges 
+making up the hole in the face. If an index is negative the edge has to be
+reversed (the edge index then is -i-1).
+\end{memberdesc}
+
+\begin{memberdesc}{mf}
+This is a list of texture coordinate ids of the face. This data type
+is obsolete as of Maya version 3.0. It is replaced by "mu".
+\end{memberdesc}
+
+\begin{memberdesc}{mh}
+This is a list of texture coordinate ids of the hole. This data type
+is obsolete as of Maya version 3.0. It is replaced by "mu".
+\end{memberdesc}
+
+\begin{memberdesc}{mu}
+For each loop (i.e. outer loop or hole) this list contains a list of
+2-tuples (\var{uvset}, \var{ids}) where \var{uvset} is the index of
+the UV set and \var{ids} the indices of the texture coordinates.
+\end{memberdesc}
+
+\begin{memberdesc}{fc}
+For each loop (outer loop or hole) this list contains a list of color 
+index values.
+\end{memberdesc}
+
+%----------------------------------------------------------------
+\subsection{NurbsSurface class}
+\label{nurbssurface}
+
+\begin{classdesc*}{NurbsSurface}
+This class stores the data of a NURBS surface. \class{NurbsSurface} objects
+are returned when the value of a \code{nurbsSurface} attribute is requested.
+\end{classdesc*}
+
+The class has the following data members:
+
+\begin{memberdesc}{udegree}
+Degree in u direction.
+\end{memberdesc}
+
+\begin{memberdesc}{vdegree}
+Degree in v direction.
+\end{memberdesc}
+
+\begin{memberdesc}{uform}
+Form attribute for the u direction. The attribute can have one of the 
+following values:
+
+\begin{tableii}{c|l}{code}{Value}{Meaning}
+\lineii{0}{Open}
+\lineii{1}{Closed}
+\lineii{2}{Periodic}
+\end{tableii}
+\end{memberdesc}
+
+\begin{memberdesc}{vform}
+Form attribute for the v direction (see above).
+\end{memberdesc}
+
+\begin{memberdesc}{isrational}
+This attribute is \code{True} if the surface contains a rational component.
+In this case, the control vertices are given as 4-tuples, otherwise
+as 3-tuples. 
+\end{memberdesc}
+
+\begin{memberdesc}{uknots}
+This is a list of floats containing the knot values for the u direction.
+\end{memberdesc}
+
+\begin{memberdesc}{vknots}
+This is a list of floats containing the knot values for the v direction.
+\end{memberdesc}
+
+\begin{memberdesc}{cvs}
+A list of control vertices. Each vertex is given either as a 3-tuple or
+4-tuple of floats.
+\end{memberdesc}
+
+%----------------------------------------------------------------
+\subsection{NurbsCurve class}
+\label{nurbscurve}
+
+\begin{classdesc*}{NurbsCurve}
+This class stores the data of a NURBS curve. \class{NurbsCurve} objects
+are returned when the value of a \code{nurbsCurve} attribute is requested.
+\end{classdesc*}
+
+The class has the following data members:
+
+\begin{memberdesc}{degree}
+The degree of the curve.
+\end{memberdesc}
+
+\begin{memberdesc}{spans}
+The number of spans.
+\end{memberdesc}
+
+\begin{memberdesc}{form}
+Form attribute. The attribute can have one of the following values:
+
+\begin{tableii}{c|l}{code}{Value}{Meaning}
+\lineii{0}{Open}
+\lineii{1}{Closed}
+\lineii{2}{Periodic}
+\end{tableii}
+\end{memberdesc}
+
+\begin{memberdesc}{isrational}
+This attribute is \code{True} if the curve contains a rational component.
+In this case, the control vertices have one additional value.
+\end{memberdesc}
+
+\begin{memberdesc}{dimension}
+The dimension of the curve (2 or 3).
+\end{memberdesc}
+
+\begin{memberdesc}{knots}
+This is a list of floats containing the knot values.
+\end{memberdesc}
+
+\begin{memberdesc}{cvs}
+A list of control vertices. Each vertex is a tuple of 2, 3 or 4 floats
+(the actual number depends on the \var{dimension} and \var{isrational}
+settings).
+\end{memberdesc}

@@ -1,0 +1,30 @@
+% LookAt component
+
+\section{\class{LookAt} ---
+         Align the orientation of objects so they point to a particular target}
+
+The \class{LookAt} component takes a position and target point and 
+calculates a rotation matrix that orients an object positioned at the
+input position so that the z axis points to target.
+
+The input slots are \var{pos_slot} and \var{target_slot} and the output
+slot is \var{output_slot}.
+
+\begin{classdesc}{LookAt}{name = "LookAt",\\ 
+			  pos = (0,0,0), \\
+                          target = (0,0,0), \\
+                          up = (0,0,1), \\
+                          roll = 0.0, \\
+                          auto_insert = True}
+
+\var{pos} is the position of the object.
+
+\var{target} is the target point that should be aimed at.
+
+\var{up} is the vector that is considered to be the 'up' direction.
+
+\var{roll} is an angle in degrees that the object is rotated around its
+local z axis.
+
+\end{classdesc}
+

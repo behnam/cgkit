@@ -346,9 +346,11 @@ surface $SHADERNAME(color ambient_col = color "rgb" (0, 0, 0);
            float refl_rotation = 0;
            float refl_percent = 0.0;
            float refl_blur = 0.0;
+           varying point Pref = point(0,0,0);
            )
 {
-  normal Nf = faceforward(normalize(N),I);
+  BAKE_BEGIN
+  normal Nf = BAKE_NORMAL(N);
   color C_diffuse = diffuse_col;
   color C_specular = specular_col;
   color C_opacity = Os;
@@ -449,6 +451,7 @@ surface $SHADERNAME(color ambient_col = color "rgb" (0, 0, 0);
   Ci = mix(Ci, C_diffuse, final_self_ilpct);
   Oi = C_opacity;
   Ci *= Oi;
+  BAKE_END
 }        
         """
 

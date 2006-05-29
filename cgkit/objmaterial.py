@@ -311,9 +311,12 @@ surface $SHADERNAME(float illum = 2;
            string map_d = "";
            float map_d_offset[3] = {0, 0, 0};
            float map_d_scale[3] = {1, 1, 1};
+
+           varying point Pref = point(0,0,0);
            )
 {
-  normal Nf = faceforward(normalize(N),I);
+  BAKE_BEGIN
+  normal Nf = BAKE_NORMAL(N);
   color _Ka = Ka;
   color _Kd = Kd;
   color _Ks = Ks;
@@ -383,6 +386,7 @@ surface $SHADERNAME(float illum = 2;
 
   Oi = _d*Tr*Tf;
   Ci *= Oi;
+  BAKE_END
 }        
         """
 

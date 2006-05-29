@@ -1108,8 +1108,9 @@ class BakePass(RenderPass):
 #        verts = 156*[(0,0,0)]
 
         # Create parameter list...
+        W = obj.worldtransform
         params = {"P":stcoords,
-                  "Pref":geom.verts}
+                  "Pref":map(lambda x: W*x, geom.verts)}
         RiDeclare("Pref", "vertex point")
         clss = ["constant", "uniform", "varying", "vertex", "facevarying", "facevertex", "user"]
         typs = ["integer", "float", "string", "color", "point", "vector",
@@ -1126,7 +1127,7 @@ class BakePass(RenderPass):
                     decl = "%s %s[%d]"%(cls, typ, multiplicity)
                 RiDeclare(name, decl)
 
-    #    RiCoordSysTransform("camera")
+#        RiCoordSysTransform("camera")
         RiPointsPolygons(len(geom.faces)*[3], list(geom.faces), params)
 
     def renderChilds(self, obj):
@@ -1767,9 +1768,11 @@ surface $SHADERNAME(color ambient = color "rgb" (0.2, 0.2, 0.2);
            float texenvcolor_alpha = 1;
            float blend_sfactor = -1;
            float blend_dfactor = -1;
+           varying point Pref = point(0,0,0);
            )
 {
-  normal Nf = faceforward(normalize(N),I);
+  BAKE_BEGIN
+  normal Nf = BAKE_NORMAL(N);
   vector V = normalize(-I);
   color diffuse = Cs;
 
@@ -1846,6 +1849,7 @@ surface $SHADERNAME(color ambient = color "rgb" (0.2, 0.2, 0.2);
     Ci = S*Ci;
     Oi = 1-D;
   }
+  BAKE_END
 }        
         """
 

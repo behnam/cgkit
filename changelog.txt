@@ -7,6 +7,11 @@ New features:
 
 Bug fixes/enhancements:
 
+- The built-in materials (GLMaterial, Material3DS, OBJMaterial) can now
+  also be used for baking.
+- Bugfix: When baking maps, the transformation of the object was ignored.
+  This led to incorrect surface shading when the transformation was 
+  anything else than the identity.
 - WorldObjects now support comparison (i.e. two WorldObject wrappers that
   reference the same C++ object will now appear as identical)
 - The setup script was checking for Boost.Python headers even when the

@@ -828,11 +828,12 @@ class ImagePass(RenderPass):
 
 # ShadowPass
 class ShadowPass(RenderPass):
-    def __init__(self, output, light, fov, resolution):
+    def __init__(self, output, light, fov, resolution, orientoffset=mat4(1)):
         RenderPass.__init__(self, output, None)
         self.light = light
         self.fov = fov
         self.resolution = resolution
+        self.orientoffset = orientoffset
 
     # doPass
     def doPass(self, framenr):
@@ -853,7 +854,7 @@ class ShadowPass(RenderPass):
 
         # Camera...
         RiProjection(RI_PERSPECTIVE, fov=self.fov)
-        V = self.light.transform.inverse()
+        V = (self.light.transform*self.orientoffset).inverse()
         self.exporter.applyViewTransform(V)
         RiShutter(0,1)
 

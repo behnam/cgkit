@@ -163,7 +163,11 @@ class RMShader(object):
         # Shader parameter?
         slot = self.__dict__.get("%s_slot"%name, None)
         if slot!=None:
-            return slot.getValue()
+            # Array slot or normal slot?
+            if isinstance(slot, IArraySlot):
+                return list(slot)
+            else:
+                return slot.getValue()
 
         # String parameter?
         str_params = self.__dict__.get("str_params", {})
@@ -177,7 +181,12 @@ class RMShader(object):
         # Shader parameter?
         slot = self.__dict__.get("%s_slot"%name, None)
         if slot!=None:
-            slot.setValue(val)
+            # Array slot or normal slot?
+            if isinstance(slot, IArraySlot):
+                for i,v in enumerate(val):
+                    slot[i] = v
+            else:
+                slot.setValue(val)
             return
 
         # String parameter?
@@ -381,14 +390,15 @@ class RMShader(object):
         
         if arraylen==None:
             exec "slot = %sSlot()"%type.capitalize()
+            if default!=None:
+                slot.setValue(default)
         else:
             exec "slot = %sArraySlot()"%type.capitalize()
             slot.resize(arraylen)
-
-        # TODO: set for ArraySlots
-        if default!=None:
-            slot.setValue(default)
-
+            if default!=None:
+                for i,v in enumerate(default):
+                    slot[i] = v
+                
         setattr(self, "%s_slot"%name, slot)
 
         

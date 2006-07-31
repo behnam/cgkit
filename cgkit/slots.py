@@ -42,6 +42,7 @@
 from cgtypes import vec3, vec4, mat3, mat4, quat
 import _core
 from _core import Dependent, UserSizeConstraint, LinearSizeConstraint
+from _core import ISlot, IArraySlot
 
 # Factory functions for the individual slots:
 

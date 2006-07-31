@@ -5,8 +5,15 @@ Changes from cgkit-2.0.0alpha6 to cgkit-2.0.0alpha7:
 
 New features:
 
+- The license has changed! Instead of the LGPL cgkit now uses the
+  MPL/GPL/LGPL tri-license (this applies to the Python package "cgkit").
+  The Maya package und plugin uses the MPL.
+
 Bug fixes/enhancements:
 
+- RMShader: Array parameters can now be processed as well.
+- A Globals section can now appear more than once without that it resets
+  some of the scene values (like the up vector or handedness).
 - The built-in materials (GLMaterial, Material3DS, OBJMaterial) can now
   also be used for baking.
 - Bugfix: When baking maps, the transformation of the object was ignored.

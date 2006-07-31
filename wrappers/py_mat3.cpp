@@ -51,7 +51,7 @@ mat3d identity(mat3d* self)
 }
 
 // scaling() method
-mat3d scaling(mat3d* self, vec3d& s)
+mat3d scaling(mat3d* self, const vec3d& s)
 {
   mat3d res;
   res.setScaling(s);
@@ -59,7 +59,7 @@ mat3d scaling(mat3d* self, vec3d& s)
 }
 
 // rotation() method
-mat3d rotation(mat3d* self, double angle, vec3d& axis)
+mat3d rotation(mat3d* self, double angle, const vec3d& axis)
 {
   mat3d res;
   res.setRotation(angle, axis);

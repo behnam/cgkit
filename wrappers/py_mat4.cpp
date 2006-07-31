@@ -48,7 +48,7 @@ mat4d identity(mat4d* self)
 }
 
 // translation() method
-mat4d translation(mat4d* self, vec3d& t)
+mat4d translation(mat4d* self, const vec3d& t)
 {
   mat4d res;
   res.setTranslation(t);
@@ -56,7 +56,7 @@ mat4d translation(mat4d* self, vec3d& t)
 }
 
 // scaling() method
-mat4d scaling(mat4d* self, vec3d& s)
+mat4d scaling(mat4d* self, const vec3d& s)
 {
   mat4d res;
   res.setScaling(s);
@@ -64,7 +64,7 @@ mat4d scaling(mat4d* self, vec3d& s)
 }
 
 // rotation() method
-mat4d rotation(mat4d* self, double angle, vec3d& axis)
+mat4d rotation(mat4d* self, double angle, const vec3d& axis)
 {
   mat4d res;
   res.setRotation(angle, axis);

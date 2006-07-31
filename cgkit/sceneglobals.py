@@ -51,17 +51,21 @@ class Globals:
     """
 
     def __init__(self,
-                 up = (0,0,1),
-                 handedness = 'r',
-                 unit = "m",
-                 unitscale = 1.0,
+                 up = None,
+                 handedness = None,
+                 unit = None,
+                 unitscale = None,
                  **keyargs):
 
         scene = getScene()
-        scene.up = vec3(up)
-        scene.handedness = handedness
-        scene.unit = unit
-        scene.unitscale = unitscale
+        if up!=None:
+            scene.up = vec3(up)
+        if handedness!=None:
+            scene.handedness = handedness
+        if unit!=None:
+            scene.unit = unit
+        if unitscale!=None:
+            scene.unitscale = unitscale
 
         for opt in keyargs:
             scene._globals[opt] = keyargs[opt]

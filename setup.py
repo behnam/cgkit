@@ -600,7 +600,7 @@ setup(name = PACKAGE_NAME,
       author = "Matthias Baas",
       author_email = "baas@ira.uka.de",
       url = "http://cgkit.sourceforge.net",
-      license = "LGPL",
+      license = "MPL/GPL/LGPL",
 
       # Process all pure Python modules in the cgkit directory
       packages = [PACKAGE_NAME,

@@ -11,6 +11,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- Wherever a wrapped C++ function was expecting a vec3/vec4 as input it 
+  is now also possible to pass a sequence with 3/4 floats.
 - RMShader: Array parameters can now be processed as well.
 - A Globals section can now appear more than once without that it resets
   some of the scene values (like the up vector or handedness).

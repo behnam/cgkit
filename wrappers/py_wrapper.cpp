@@ -240,6 +240,112 @@ void NoInputConnectionsAllowedTypesTranslator(const ENoInputConnectionsAllowed& 
 
 //////////////////////////////////////////////////////////////////////
 
+// Convert a Python sequence to a vec3
+struct vec3_from_sequence
+{
+  vec3_from_sequence()
+  {
+    boost::python::converter::registry::push_back(
+      &convertible,
+      &construct,
+      boost::python::type_id<vec3d>());
+  }
+
+  static void* convertible(PyObject* obj_ptr)
+  {
+    if (!PySequence_Check(obj_ptr))
+      return 0;
+    int size = PySequence_Size(obj_ptr);
+    if (size==-1)
+    {
+      PyErr_Clear();
+      return 0;
+    }
+    if (size!=3)
+      return 0;
+    return obj_ptr;
+  }
+
+  static void construct(
+      PyObject* obj_ptr,
+      boost::python::converter::rvalue_from_python_stage1_data* data)
+  {
+    double values[3] = {0.0, 0.0, 0.0};
+    for(int i=0; i<PySequence_Size(obj_ptr); i++)
+    {
+      PyObject* item = PySequence_ITEM(obj_ptr, i);
+      if (item==0)
+         boost::python::throw_error_already_set();
+      values[i] = PyFloat_AsDouble(item);
+      Py_DECREF(item);
+      if (PyErr_Occurred()!=0)
+      {
+         boost::python::throw_error_already_set();
+      }
+    }
+      
+    void* storage = (
+        (boost::python::converter::rvalue_from_python_storage<vec3d>*)
+         data)->storage.bytes;
+    new (storage) vec3d(values[0], values[1], values[2]);
+    data->convertible = storage;
+  }
+};
+
+// Convert a Python sequence to a vec4
+struct vec4_from_sequence
+{
+  vec4_from_sequence()
+  {
+    boost::python::converter::registry::push_back(
+      &convertible,
+      &construct,
+      boost::python::type_id<vec4d>());
+  }
+
+  static void* convertible(PyObject* obj_ptr)
+  {
+    if (!PySequence_Check(obj_ptr))
+      return 0;
+    int size = PySequence_Size(obj_ptr);
+    if (size==-1)
+    {
+      PyErr_Clear();
+      return 0;
+    }
+    if (size!=4)
+      return 0;
+    return obj_ptr;
+  }
+
+  static void construct(
+      PyObject* obj_ptr,
+      boost::python::converter::rvalue_from_python_stage1_data* data)
+  {
+    double values[4] = {0.0, 0.0, 0.0, 0.0};
+    for(int i=0; i<PySequence_Size(obj_ptr); i++)
+    {
+      PyObject* item = PySequence_ITEM(obj_ptr, i);
+      if (item==0)
+         boost::python::throw_error_already_set();
+      values[i] = PyFloat_AsDouble(item);
+      Py_DECREF(item);
+      if (PyErr_Occurred()!=0)
+      {
+         boost::python::throw_error_already_set();
+      }
+    }
+      
+    void* storage = (
+        (boost::python::converter::rvalue_from_python_storage<vec4d>*)
+         data)->storage.bytes;
+    new (storage) vec4d(values[0], values[1], values[2], values[3]);
+    data->convertible = storage;
+  }
+};
+
+//////////////////////////////////////////////////////////////////////
+
 double _setEpsilon(double eps)
 {
   double res = vec3d::epsilon;
@@ -401,7 +507,11 @@ BOOST_PYTHON_MODULE(_core)
   #ifdef OSG_AVAILABLE
   class_OsgCore();
   #endif
-  
+
+  // Type conversion
+  vec3_from_sequence();
+  vec4_from_sequence();
+
   // Test
   def("_set_debug_flag", set_debug_flag);
   def("_get_debug_flag", get_debug_flag);

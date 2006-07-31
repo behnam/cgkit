@@ -263,6 +263,19 @@ struct vec3_from_sequence
     }
     if (size!=3)
       return 0;
+    // Check that the first item is a float (it is assumed that the other
+    // items are also floats then)
+    PyObject* item = PySequence_ITEM(obj_ptr, 0);
+    if (item==0)
+    {
+      PyErr_Clear();
+      return 0;
+    }
+    int is_num = PyNumber_Check(item);
+    Py_DECREF(item);
+    if (!is_num)
+      return 0;
+    
     return obj_ptr;
   }
 
@@ -275,12 +288,12 @@ struct vec3_from_sequence
     {
       PyObject* item = PySequence_ITEM(obj_ptr, i);
       if (item==0)
-         boost::python::throw_error_already_set();
+	boost::python::throw_error_already_set();
       values[i] = PyFloat_AsDouble(item);
       Py_DECREF(item);
       if (PyErr_Occurred()!=0)
       {
-         boost::python::throw_error_already_set();
+	boost::python::throw_error_already_set();
       }
     }
       
@@ -315,6 +328,19 @@ struct vec4_from_sequence
     }
     if (size!=4)
       return 0;
+    // Check that the first item is a float (it is assumed that the other
+    // items are also floats then)
+    PyObject* item = PySequence_ITEM(obj_ptr, 0);
+    if (item==0)
+    {
+      PyErr_Clear();
+      return 0;
+    }
+    int is_num = PyNumber_Check(item);
+    Py_DECREF(item);
+    if (!is_num)
+      return 0;
+
     return obj_ptr;
   }
 

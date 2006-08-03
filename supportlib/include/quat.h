@@ -165,15 +165,23 @@ inline quat<T> operator*(const T r,const quat<T>& q)
   \param t Interpolation value
   \param q0 First quaternion (t=0.0)
   \param q1 Second quaternion (t=1.0)
+  \param shortest Always interpolate along the shortest path (negating q0 or q1 will lead to the same interpolation)
   \return Interpolated quaternion
  */
 
 template<class T>
-quat<T> slerp(T t, const quat<T>& q0, const quat<T>& q1)
+quat<T> slerp(T t, const quat<T>& q0, const quat<T>& q1, bool shortest=true)
 {
   T o,so,a,b;
+  bool neg_q1 = false;   // Does q1 have to be negated (so that the shortest path is taken)?
 
-  o = acos(q0.dot(q1));
+  T ca = q0.dot(q1);
+  if (shortest && ca<0)
+  {
+    ca = -ca;
+    neg_q1 = true;
+  }
+  o = acos(ca);
   so = sin(o);
 
   if (xabs(so)<vec3<T>::epsilon)
@@ -181,7 +189,10 @@ quat<T> slerp(T t, const quat<T>& q0, const quat<T>& q1)
 
   a = sin(o*(1.0-t)) / so;
   b = sin(o*t) / so;
-  return q0*a + q1*b;
+  if (neg_q1)
+    return q0*a - q1*b;
+  else
+    return q0*a + q1*b;
 }
 
 /**

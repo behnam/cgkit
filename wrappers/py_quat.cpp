@@ -93,8 +93,8 @@ void class_quat()
     .def_pickle(quat_pickle_suite())
   ;
 
-  quatd (*slerpd)(double t, const quatd& q0, const quatd& q1) = &slerp;
+  quatd (*slerpd)(double t, const quatd& q0, const quatd& q1, bool shortest) = &slerp;
   quatd (*squadd)(double t, const quatd& a, const quatd& b,const quatd& c, const quatd& d) = &squad;
-  def("slerp", slerpd, (arg("t"), arg("q0"), arg("q1")));
+  def("slerp", slerpd, (arg("t"), arg("q0"), arg("q1"), arg("shortest")=true));
   def("squad", squadd, (arg("t"), arg("a"), arg("b"), arg("c"), arg("d")));
 }

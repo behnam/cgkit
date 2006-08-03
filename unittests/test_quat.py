@@ -253,34 +253,28 @@ class TestQuat(unittest.TestCase):
     ######################################################################
     def testSlerp(self):
         a = quat(1,-2,3,2).normalize()
-        b = quat(3,0.5,-2,1).normalize()
+        b = quat(-3,-0.5,2,-1).normalize()
 
-        self.failUnless(slerp(0,a,b)==a,
-                        "slerp() falsch: slerp(0,a,b) != a")
+        self.assertEqual(slerp(0,a,b), a)
 
-        self.failUnless(slerp(1,a,b)==b,
-                        "slerp() falsch: slerp(1,a,b) != b")
+        self.assertEqual(slerp(1,a,b),b)
 
-        c = quat(0.77887132205373066, -0.25620524298387737, 0.13401221041358841, 0.55656002785855052)
-        self.failUnless(slerp(0.5,a,b)==c,
-                        "slerp() falsch: slerp(0.5,a,b) != %s"%c)
+        c = quat(-0.37269829371452667, -0.4025936484158687, 0.8246578256709034, 0.13767282475934825)
+        self.assertEqual(slerp(0.5,a,b,shortest=False), c)
 
     ######################################################################
     def testSquad(self):
         a = quat(1,-2,3,2).normalize()
         b = quat(0.2,0.5,2,1).normalize()
         c = quat(-1,1,2,-2).normalize()
-        d = quat(3,0.5,-2,1).normalize()
+        d = quat(-3,-0.5,2,-1).normalize()
 
-        self.failUnless(squad(0,a,b,c,d)==a,
-                        "squad() falsch: squad(0,a,b,c,d) != a")
+        self.assertEqual(squad(0,a,b,c,d), a)
 
-        self.failUnless(squad(1,a,b,c,d)==d,
-                        "squad() falsch: squad(1,a,b,c,d) != d")
+        self.assertEqual(squad(1,a,b,c,d), d)
 
-        sq = quat(0.4855923456748571, 0.055359613337289365, 0.80715868853955475, 0.33110457343299027)
-        self.failUnless(squad(0.5,a,b,c,d)==sq,
-                        "squad() falsch: squad(0.5,a,b,c,d) != %s"%sq)
+        sq = quat(-0.281512430255, -0.0403661020814, 0.958668907982, 0.0086749225996)
+        self.assertEqual(squad(0.5,a,b,c,d), sq)
 
     ######################################################################
     def testPickle(self):

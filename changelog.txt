@@ -11,6 +11,13 @@ New features:
 
 Bug fixes/enhancements:
 
+- quat: By default, the slerp() function now always interpolates along
+  the shortest path. The function has a new optional argument "shortest"
+  (default: True) that controls this behavior. If you set shortest to
+  False you will get the previous behavior where it depends on the
+  quaternions if you get the shortest or longest path (you can switch
+  between those paths by negating one of the quaternions).
+  This fixes "bug" 1488467.
 - Wherever a wrapped C++ function was expecting a vec3/vec4 as input it 
   is now also possible to pass a sequence with 3/4 floats.
 - RMShader: Array parameters can now be processed as well.

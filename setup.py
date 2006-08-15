@@ -566,19 +566,18 @@ print " ",", ".join(LIBS)
 print ""
 
 # Check if the boost/python.hpp header can be found...
-if not INSTALL_CGKIT_LIGHT:
-    for p in INC_DIRS:
-        if os.path.exists(os.path.join(p, "boost", "python.hpp")):
-            print "Boost.Python header found in %s"%p
-            break
-    else:
-        print 70*"-"
-        print "Error: The header <boost/python.hpp> is not available."
-#        print "Please check the BOOST_BASE variable in your config file."
-#        print "Currently, it points to:"
-#        print BOOST_BASE
-        print 70*"-"
-        sys.exit(1)
+# [disabled the test because it doesn't take the built-in search paths
+# (such as /usr/include) into account]
+#if not INSTALL_CGKIT_LIGHT:
+#    for p in INC_DIRS:
+#        if os.path.exists(os.path.join(p, "boost", "python.hpp")):
+#            print "Boost.Python header found in %s"%p
+#            break
+#    else:
+#        print 70*"-"
+#        print "Error: The header <boost/python.hpp> is not available."
+#        print 70*"-"
+#        sys.exit(1)
 
 # Check if config.cpp is newer than py_wrapper.cpp
 # If it is, "touch" py_wrapper.cpp so that it will be compiled again

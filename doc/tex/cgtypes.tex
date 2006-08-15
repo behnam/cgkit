@@ -74,19 +74,21 @@ values are considered to be equal if their absolute difference is less
 than or equal to epsilon.
 \end{funcdesc}
 
-\begin{funcdesc}{slerp}{t, q0, q1}
-Performs a spherical linear interpolation between two quaternions q0
-and q1. For t=0.0 the return value equals q0, for t=1.0 it equals
-q1. q0 and q1 must be unit quaternions. \\
-New in version 1.1.
+\begin{funcdesc}{slerp}{t, q0, q1, shortest=True}
+Performs a spherical linear interpolation between two quaternions \var{q0}
+and \var{q1}. For \var{t}=0.0 the return value equals \var{q0}, for 
+\var{t}=1.0 it equals \var{q1}. \var{q0} and \var{q1} must be unit 
+quaternions. If \var{shortest} is \code{True} the interpolation will always
+be along the shortest path, otherwise it depends on the orientation of
+the input quaternions whether the shortest or longest path will be taken
+(you can switch between the paths by negating either \var{q0} or \var{q1}).
 \end{funcdesc}
 
 \begin{funcdesc}{squad}{t, a, b, c, d}
-Performs a spherical cubic interpolation between quaternion a and d
-where quaternion b and c define the shape of the interpolation
-curve. For t=0.0 the return value equals a, for t=1.0 it equals d. All
-quaternions must be unit quaternions. \\
-New in version 1.1.
+Performs a spherical cubic interpolation between quaternion \var{a} and \var{d}
+where quaternion \var{b} and \var{c} define the shape of the interpolation
+curve. For \var{t}=0.0 the return value equals \var{a}, for \var{t}=1.0 it 
+equals \var{d}. All quaternions must be unit quaternions.
 \end{funcdesc}
 
 %----------------------------------------------------------------------

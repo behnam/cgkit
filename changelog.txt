@@ -5,12 +5,19 @@ Changes from cgkit-2.0.0alpha6 to cgkit-2.0.0alpha7:
 
 New features:
 
-- The license has changed! Instead of the LGPL cgkit now uses the
+- The license has changed. Instead of the LGPL cgkit now uses the
   MPL/GPL/LGPL tri-license (this applies to the Python package "cgkit").
   The Maya package und plugin uses the MPL.
 
 Bug fixes/enhancements:
 
+- simplecpp: The built-in preprocessor is now a bit more capable than 
+  before (but it's still not a full replacement for a true preprocessor).
+  It now handles line-continuation, preprocessor directives and macros
+  that do not take arguments.
+- setup.py: The setup script doesn't check for the Boost.Python header
+  anymore because the test didn't take the built-in paths (such as
+  /usr/include) into account.
 - quat: By default, the slerp() function now always interpolates along
   the shortest path. The function has a new optional argument "shortest"
   (default: True) that controls this behavior. If you set shortest to

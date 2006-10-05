@@ -8,6 +8,8 @@ New features:
 - The license has changed. Instead of the LGPL cgkit now uses the
   MPL/GPL/LGPL tri-license (this applies to the Python package "cgkit").
   The Maya package und plugin uses the MPL.
+- New class MayaSpotLight that approximates spot lights as they appear
+  in Maya. The object is created by the ma importer.
 
 Bug fixes/enhancements:
 

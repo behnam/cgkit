@@ -40,6 +40,7 @@ import pluginmanager
 import freecamera
 import quadrics, box, plane, polyhedron, joint, trimesh, trimeshgeom
 import glpointlight, glfreespotlight, glfreedistantlight
+import mayaspotlight
 from geomobject import *
 from cgtypes import *
 from worldobject import WorldObject
@@ -216,31 +217,36 @@ class MAImporter(mayaascii.MAReader):
         
         cl = vec3(node.getAttrValue("color", "cl", "float3", 1, vec3(1)))
         intensity = node.getAttrValue("intensity", "in", "float", 1, 1.0)
-        ca = node.getAttrValue("coneAngle", "ca", "float", 1, 40.0)
         de = node.getAttrValue("decayRate", "de", "int", 1, 0)
-        if de==0:
-            catt = 1.0
-            latt = 0.0
-            qatt = 0.0
-        elif de==1:
-            catt = 0.0
-            latt = 1.0
-            qatt = 0.0
-        else:
-            catt = 0.0
-            latt = 0.0
-            qatt = 1.0
+        ca = node.getAttrValue("coneAngle", "ca", "float", 1, 40.0)
+        pa = node.getAttrValue("penumbraAngle", "pa", "float", 1, 0.0)
+        dro = node.getAttrValue("dropoff", "dro", "float", 1, 0.0)
 
-        args["transform"] = args["transform"]*mat4(1).rotation(pi, vec3(1,0,0))
+        dms = node.getAttrValue("useDepthMapShadows", "dms", "bool", 1, False)
+        dr = node.getAttrValue("dmapResolution", "dr", "int", 1, 512)
+        md = node.getAttrValue("useMidDistDmap", "md", "bool", 1, True)
+        af = node.getAttrValue("useDmapAutoFocus", "af", "bool", 1, True)
+        df = node.getAttrValue("dmapFocus", "df", "float", 1, 90.0)
+        fs = node.getAttrValue("dmapFilterSize", "fs", "int", 1, 1)
+        db = node.getAttrValue("dmapBias", "db", "float", 1, 0.001)
 
-        lgt = glfreespotlight.GLFreeSpotLight(diffuse = cl,
-                                        intensity = intensity,
-                                        cutoff = ca/2.0,      
-                                        constant_attenuation = catt,
-                                        linear_attenuation = latt,
-                                        quadratic_attenuation = qatt,
-                                        enabled = args["visible"],
-                                        **args)
+        args["transform"] = args["transform"]
+
+        lgt = mayaspotlight.MayaSpotLight(color = cl,
+                                          intensity = intensity,
+                                          decayRate = de,
+                                          coneAngle = ca,
+                                          penumbraAngle = pa,
+                                          dropoff = dro,
+                                          useDepthMapShadows = dms,
+                                          dmapResolution = dr,
+                                          useMidDistDmap = md,
+                                          useDmapAutoFocus = af,
+                                          dmapFocus = df,
+                                          dmapFilterSize = fs,
+                                          dmapBias = db,
+                                          enabled = args["visible"],
+                                          **args)
         self.newWorldObject(lgt, node.getParentName())
 
     def onNodeDirectionalLight(self, node, name, parent):

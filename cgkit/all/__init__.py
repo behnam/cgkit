@@ -104,6 +104,7 @@ from cgkit.gltargetdistantlight import GLTargetDistantLight
 from cgkit.spotlight3ds import SpotLight3DS
 from cgkit.material3ds import Material3DS, TextureMap3DS
 from cgkit.objmaterial import OBJMaterial, OBJTextureMap
+from cgkit.mayaspotlight import MayaSpotLight
 
 from cgkit.camcontrol import CameraControl
 

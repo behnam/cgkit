@@ -76,14 +76,19 @@ class RMShader(object):
                  transform = mat4(1),
                  cpp = None,
                  cpperrstream = sys.stderr,
+                 includedirs = None,
+                 defines = None,
                  params = None,
                  **keyargs):
         """Constructor.
 
         The first argument is the shader name or file name. cpp determines
         the preprocessor that should be used when extracting parameters.
-        cpperrstream is used to output errors from the preprocessor (see
-        the function slparams.slparams() for details).
+        cpperrstream is used to output errors from the preprocessor. 
+        includedirs is a list of strings that contain directories where to
+        look for include files. defines is a list of tuples (name, value)
+        that specify the predefined symbols to use (see the function 
+        slparams.slparams() for details).
         params can be used to declare parameters if the shader source
         is not available. The value must be a dictionary that contains
         token/value pairs. The token may contain an inline declaration.
@@ -91,7 +96,7 @@ class RMShader(object):
         parameter. However, this parameter cannot have an inline declaration,
         so it is recommended to declare the parameter afterwards using
         the declare() method.
-
+        
         \param name (\c str) Shader file name or shader name
         """
       
@@ -142,7 +147,7 @@ class RMShader(object):
 
         # Read the shader parameters from the shader source file...
         if self.filename!=None:
-            slinfo = slparams.slparams(shader, cpp=cpp, cpperrstream=cpperrstream)
+            slinfo = slparams.slparams(shader, cpp=cpp, cpperrstream=cpperrstream, includedirs=includedirs, defines=defines)
             if len(slinfo)==0:
                 raise ValueError, "no shader found in %s"%shader
             if len(slinfo)>1:

@@ -59,7 +59,17 @@ class PreProcessor:
     This class implements a subset of the functionality of the C preprocessor.
     """
 
-    def __init__(self):
+    def __init__(self, defines=None, includedirs=None):
+        """Constructor.
+        
+        defines is a list of tuples (name, value) that specify the initial set
+        of defined macros.
+        includedirs is a list of strings that is used to find include files.
+        """
+
+        # The error stream
+        self.errstream = sys.stderr
+        
         # Flag that specifies if the starting position of the next line is
         # already inside a comment (i.e. if there was a '/*' without a '*/'
         self.inside_comment = False
@@ -77,11 +87,25 @@ class PreProcessor:
         
         self.output_buffer = []
 
+        # Set the predefined macros
+        if defines!=None:
+            for name,val in defines:
+                if val==None:
+                    val = ""
+                self.onDefine("define", "%s %s"%(name, str(val)))
+
+        # Set the include directories
+        self.includedirs = []
+        if includedirs!=None:
+            self.includedirs.extend(includedirs)
+
     def __call__(self, source, errstream=None):
         """Preprocess a file or a file-like object.
 
         source may either be the name of a file or a file-like object.
         """
+        
+        self.errstream = errstream
         
         if isinstance(source, types.StringTypes):
             fhandle = file(source, "rt")
@@ -165,19 +189,23 @@ class PreProcessor:
         """Handle #include directives.
         """
         filename = arg[1:-1]
-        if os.path.exists(filename):
-            f = file(filename, "rt")
-            ctx = Context(f)
-            self.readFile(ctx)
-        else:
+        fullfilename = self.findFile(filename)
+        if fullfilename==None:
             ctx = self.context
-            print >>sys.stderr, "%s:%d: %s: No such file or directory"%(ctx.filename, ctx.linenr, filename)
+            print >>self.errstream, "%s:%d: %s: No such file or directory"%(ctx.filename, ctx.linenr, filename)
+            return
+
+        f = file(fullfilename, "rt")
+        ctx = Context(f)
+        self.readFile(ctx)
         
     def onDefine(self, directive, arg):
         """Handle #define directives.
         """
         a = arg.split()
         if len(a)==0:
+            ctx = self.context
+            print >>self.errstream, "%s:%d: Invalid macro definition"%(ctx.filename, ctx.linenr)
             return
         name = a[0]
         value = " ".join(a[1:])
@@ -189,6 +217,8 @@ class PreProcessor:
         """Handle #undef directives.
         """
         if arg=="":
+            ctx = self.context
+            print >>self.errstream, "%s:%d: Invalid macro name"%(ctx.filename, ctx.linenr)
             return
         if arg not in self.defined:
             return
@@ -216,6 +246,8 @@ class PreProcessor:
         """
         a = arg.split()
         if len(a)==0:
+            ctx = self.context
+            print >>self.errstream, "%s:%d: '#ifdef' with no argument"%(ctx.filename, ctx.linenr)
             return
 
         name = a[0]
@@ -228,6 +260,8 @@ class PreProcessor:
         """
         a = arg.split()
         if len(a)==0:
+            ctx = self.context
+            print >>self.errstream, "%s:%d: '#ifndef' with no argument"%(ctx.filename, ctx.linenr)
             return
         
         name = a[0]
@@ -253,7 +287,7 @@ class PreProcessor:
         """Handle #endif directives.
         """
         if len(self.context.condition_list)==0:
-            print >>sys.stderr, "%s:%d: unbalanced '#endif'"%(self.context.filename, self.context.linenr)
+            print >>self.errstream, "%s:%d: unbalanced '#endif'"%(self.context.filename, self.context.linenr)
             return
         
         self.context.condition_list.pop()
@@ -282,6 +316,24 @@ class PreProcessor:
             self.output('# %d "%s"'%(self.context.linenr, self.context.filename))
             self.output("")
         return ctx
+
+    def findFile(self, filename):
+        """Search for an include file and return its name.
+
+        The returned file name is guaranteed to refer to an existing file.
+        If the file is not found None is returned.
+        """
+        
+        if os.path.exists(filename):
+            return filename
+
+        for incdir in self.includedirs:
+            name = os.path.join(incdir, filename)
+            if os.path.exists(name):
+                return name
+
+        return None
+        
 
     def iterStringIntervals(self, s):
         """Iterate over the separate 'intervals' in the given string.
@@ -417,7 +469,20 @@ class PreProcessor:
 ######################################################################
 
 if __name__=="__main__":
+    import optparse
     
-    p = PreProcessor()
-    print p(file(sys.argv[1]))
+    op = optparse.OptionParser()
+    op.add_option("-D", "--define", action="append", default=[],
+                 help="Define a symbol")    
+    op.add_option("-I", "--includedir", action="append", default=[],
+                 help="Specify include paths")    
     
+    opts, args = op.parse_args()
+    p = PreProcessor(includedirs=opts.includedir, defines=map(lambda x: (x,None), opts.define))
+    if len(args)==0:
+        print p(sys.stdin)
+    else:
+        try:
+            print p(file(args[0]))
+        except IOError, e:
+            print e

@@ -218,7 +218,7 @@ class _SLfilter:
 
 
 # slparams
-def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None):
+def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None, includedirs=None, defines=None):
     """Extracts the shader parameters from a Shading Language source file.
 
     The argument slfile is either the name of the shader source file
@@ -239,6 +239,10 @@ def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None):
     simplecpp module is used.
     The slname argument is an alias for slfile, it's only available
     for backwards compatibility.
+    
+    includedirs is a list of strings that contain directories where to
+    look for include files. defines is a list of tuples (name, value)
+    that specify the predefined symbols to use.
     
     The function returns a list of 3-tuples, one for each shader found
     in the file. The tuple contains the type, the name and the
@@ -262,10 +266,7 @@ def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None):
 
     # Run the preprocessor on the input file...
     
-    if cpp==None:
-        cpp = simplecpp.PreProcessor()
-        
-    slsrc = preprocess(cpp, slfile, cpperrstream)
+    slsrc = preprocess(cpp, slfile, cpperrstream=cpperrstream, defines=defines, includedirs=includedirs)
     f = StringIO.StringIO(slsrc)
     
     # ...and filter it, so that only the shader and function
@@ -309,13 +310,13 @@ def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None):
         raise exc
 
 # preprocess
-def preprocess(cpp, file, cpperrstream=sys.stderr):
+def preprocess(cpp, file, cpperrstream=sys.stderr, defines=None, includedirs=None):
     """Preprocess an input file.
 
     cpp is either a string containing the name of an external preprocessor
-    command (e.g. 'cpp') or a callable function that takes file and
+    command (e.g. 'cpp'), a callable function that takes file and
     cpperrstream as input and returns the preprocessed source code as
-    a string.
+    a string or None in which case the built-in preprocessor is used.
     If the external preprocessor produces no data it is assumed that
     it was not found a a PreprocessorNotFound exception is thrown.
 
@@ -326,11 +327,17 @@ def preprocess(cpp, file, cpperrstream=sys.stderr):
     cpperrstream is a stream that receives any error messages from
     the preprocessor. If it's None, error messages are ignored.
 
+    defines is a list of tuples (name, value) that specify the predefined
+    symbols. includedirs is a list of strings with include paths.
+
     The function returns the preprocessed sources as a string.
     """
 
+    if cpp==None:
+        cpp = simplecpp.PreProcessor(defines=defines, includedirs=includedirs)
+        return cpp(file, cpperrstream)
     # Is cpp a callable then invoke it and return the result
-    if callable(cpp):
+    elif callable(cpp):
         return cpp(file, cpperrstream)
 
     # no callable, so cpp contains the name of an external preprocessor tool
@@ -345,7 +352,18 @@ def preprocess(cpp, file, cpperrstream=sys.stderr):
 
     # Is file a string? Then it's a file name...
     if isinstance(file, types.StringTypes):
-        cmd = "%s %s"%(cpp, file)
+        cmdtoks = [cpp]
+        if defines!=None:
+            for name,value in defines:
+                if value==None:
+                    cmdtoks.append("-D%s"%name)
+                else:
+                    cmdtoks.append("-D%s=%s"%(name,value))
+        if includedirs!=None:
+            cmdtoks.extend(map(lambda dir: "-I%s"%dir, includedirs))
+        cmdtoks.append(file)
+        cmd = " ".join(cmdtoks)
+        print cmd
         slsrc = None
         # Check if the file exists and can be accessed (by trying to open it)
         # If the file doesn't exist, an exception is thrown.

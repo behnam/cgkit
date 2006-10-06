@@ -13,10 +13,14 @@ New features:
 
 Bug fixes/enhancements:
 
-- simplecpp: The built-in preprocessor is now a bit more capable than 
-  before (but it's still not a full replacement for a true preprocessor).
+- simplecpp: The built-in preprocessor (which is used for parsing RenderMan
+  shaders) is now a bit more capable than before (but it's still not a full 
+  replacement for a true preprocessor).
   It now handles line-continuation, preprocessor directives and macros
   that do not take arguments.
+  The slparams.slparams() function and the RMShader constructor now have
+  new arguments 'includedirs' and 'defines' which are passed to the
+  preprocessor (either the built-in one or the external one).
 - setup.py: The setup script doesn't check for the Boost.Python header
   anymore because the test didn't take the built-in paths (such as
   /usr/include) into account.

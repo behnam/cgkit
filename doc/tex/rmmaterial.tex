@@ -87,6 +87,8 @@ The \class{RMShader} class encapsulates a single RenderMan shader.
                             transform = mat4(1), \\
                             cpp = None, \\
                             cpperrstream = sys.stderr, \\
+                            includedirs = None,\\
+                            defines = None,\\
                             params = None, \\
                             paramlist}
 	
@@ -100,7 +102,10 @@ to the object it is applied to.
 
 \var{cpp} determines the preprocessor that should be used when extracting
 parameters. \var{cpperrstream} is used to output errors from the
-preprocessor (see the function \function{slparams.slparams()} (section
+preprocessor. \var{includedirs} is a list of strings that contain
+directories where to look for include files. \var{defines} is a list of
+tuples (name, value) that specify the predefined symbols to use (see
+the function \function{slparams.slparams()} (section
 \ref{slparams}) for details).
 
 \var{params} can be used to declare parameters if the shader source

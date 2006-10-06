@@ -5,14 +5,14 @@
 \declaremodule{extension}{cgkit.slparams}
 \modulesynopsis{Extracting RenderMan Shader parameters}
 
-New in version 1.1. This module can be used to extract the parameters
-of a RenderMan shader from the shader source file.
+This module can be used to extract the parameters of a RenderMan
+shader from the shader source file.
 
-\begin{funcdesc}{slparams}{slname, cpp=None, cpperrstream=sys.stderr, includedirs=None, defines=None}
+\begin{funcdesc}{slparams}{slfile, cpp=None, cpperrstream=sys.stderr, includedirs=None, defines=None}
 Extracts the shader parameters from a Shading Language source file. 
 
-The argument \var{slname} is the name of the shader source file
-(*.sl). 
+The argument \var{slfile} is either the name of the shader source file
+(*.sl) or it is a file-like object that provides the shader sources.
 
 \var{cpp} determines how the shader source is preprocessed. It can be
 either a string containing the name of an external preprocessor tool

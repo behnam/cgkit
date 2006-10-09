@@ -10,7 +10,12 @@ include cgkit/cgkitinfo_template.txt
 exclude cgkit/cgkitinfo.py
 recursive-include wrappers *.h
 recursive-include wrappers *.cpp
-recursive-include wrappers/rply/rply *.*
+recursive-include wrappers/rply/rply *.c
+recursive-include wrappers/rply/rply *.h
+recursive-include wrappers/rply/rply *.html
+recursive-include wrappers/rply/rply *.css
+recursive-include wrappers/rply/rply *.png
+recursive-include wrappers/rply/rply *.ply
 include wrappers/rply/rply/LICENSE
 include supportlib/SConstruct
 include supportlib/Doxyfile

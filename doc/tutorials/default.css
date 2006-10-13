@@ -151,7 +151,8 @@ ol.upperroman {
 
 /* font type for normal text */
 body {
-  font-family: sans-serif  
+  font-family: sans-serif;
+  margin: 0em 3em;
 }
 
 p.attribution {

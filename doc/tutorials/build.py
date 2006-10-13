@@ -50,18 +50,22 @@ def isNewer(file1, file2):
 # build
 def build(name, stylesheet="../default.css"):
     """Build a tutorial by converting RST into HTML."""
-    n,ext = os.path.splitext(name)
+    prevdir = os.getcwd()
+    
+    dir,filename = os.path.split(name)
+    os.chdir(dir)
+
+    n,ext = os.path.splitext(filename)
     dest = n+".html"
-    if isNewer(name, dest):
-        cmd = "rst2html %s %s --stylesheet=%s"%(name, dest, stylesheet)
+    if isNewer(filename, dest):
+        cmd = "python ../rst2html.py %s %s --stylesheet=%s --link-stylesheet"%(filename, dest, stylesheet)
+#        cmd = "rst2html %s %s --stylesheet=%s"%(name, dest, stylesheet)
         print cmd
         os.system(cmd)
 
-######################################################################
+    os.chdir(prevdir)
 
-# Change to the directory where the script is located
-# (so that the following commands uses the correct paths)
-os.chdir(os.path.dirname(sys.argv[0]))
+######################################################################
 
 #build("index.txt", stylesheet="default.css")
 build("first_steps/first_steps.txt")
@@ -71,6 +75,7 @@ build("renderman/renderman.txt")
 build("custom_vars/custom_vars.txt")
 build("ogre/ogre.txt")
 build("baking/baking.txt")
+build("grow_utility/grow_utility.txt")
 build("code_examples/demo1.txt")
 build("code_examples/demo2.txt")
 build("code_examples/demo3.txt")

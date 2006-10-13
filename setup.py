@@ -594,7 +594,7 @@ if INSTALL_CGKIT_LIGHT:
     ext_modules = []
 
 setup(name = PACKAGE_NAME,
-      version = "2.0.0alpha6cvs",
+      version = "2.0.0alpha7cvs",
       description = "Python Computer Graphics Kit",
       author = "Matthias Baas",
       author_email = "baas@ira.uka.de",

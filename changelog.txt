@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Changes from cgkit-2.0.0alpha7 to cgkit-2.0.0alpha8:
+
+Bug fixes/enhancements:
+
+- simplecpp: Don't use keyword arguments to pass the compare function to
+  sort(). This wasn't supported before Python 2.4.
+
+----------------------------------------------------------------------
 Changes from cgkit-2.0.0alpha6 to cgkit-2.0.0alpha7:
 
 New features:

@@ -211,7 +211,7 @@ class PreProcessor:
         value = " ".join(a[1:])
         self.defined[name] = value
         self.substitution_list.append((name, value))
-        self.substitution_list.sort(cmp=lambda a,b: cmp(len(b[0]), len(a[0])))
+        self.substitution_list.sort(lambda a,b: cmp(len(b[0]), len(a[0])))
 
     def onUndef(self, directive, arg):
         """Handle #undef directives.

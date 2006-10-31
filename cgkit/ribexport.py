@@ -354,7 +354,7 @@ class RIBExporter:
 #            return
 
         # Save the light shader if it wasn't already saved before...
-        cls = lgt.__class__
+        cls = "%s_%s"%(lgt.__class__, explgt.shaderName())
         if cls not in self.light_shader:
             shadername = self.writeShader(explgt.shaderName(),
                                           explgt.shaderSource())

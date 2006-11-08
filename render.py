@@ -224,12 +224,16 @@ class Render(Tool):
             h = self.options.height
             a = getattr(self.options, "aspect", 1.0)
             scene.setGlobal("resolution", (w,h,a))
+
+            output_framebuffer = scene.getGlobal("output_framebuffer")
+            if output_framebuffer==None:
+                output_framebuffer = (self.time_end==None)
            
             # Create RIB & shaders
             save(ribname,
                  camera = self.cam,
                  output = _output,
-                 output_framebuffer = (self.time_end==None),
+                 output_framebuffer = output_framebuffer,
                  bake = self.options.bake,
                  bakemodel = bakemodel,
                  bakestvar = bakestvar

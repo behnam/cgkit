@@ -5,8 +5,12 @@ Changes from cgkit-2.0.0alpha7 to cgkit-2.0.0alpha8:
 
 Bug fixes/enhancements:
 
+- render.py: The Globals section can now contain a parameter output_framebuffer
+  that controls whether a framebuffer display is opened or not.
 - simplecpp: Don't use keyword arguments to pass the compare function to
   sort(). This wasn't supported before Python 2.4.
+- ribexport: All RMLightSource instances were using the same shader as the
+  first RM light source that was encountered during export.
 
 ----------------------------------------------------------------------
 Changes from cgkit-2.0.0alpha6 to cgkit-2.0.0alpha7:

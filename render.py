@@ -225,9 +225,7 @@ class Render(Tool):
             a = getattr(self.options, "aspect", 1.0)
             scene.setGlobal("resolution", (w,h,a))
 
-            output_framebuffer = scene.getGlobal("output_framebuffer")
-            if output_framebuffer==None:
-                output_framebuffer = (self.time_end==None)
+            output_framebuffer = scene.getGlobal("output_framebuffer", self.time_end==None)
            
             # Create RIB & shaders
             save(ribname,

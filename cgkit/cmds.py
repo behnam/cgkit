@@ -925,8 +925,12 @@ def load(filename, **options):
 
     # Import the file
     imp = objdesc.object()
-    imp.importFile(os.path.basename(filename), **options)
-
+    try:
+        imp.importFile(os.path.basename(filename), **options)
+    except:
+        os.chdir(oldpath)
+        raise
+        
     # Change back to the previous directory
     os.chdir(oldpath)
 

@@ -74,9 +74,10 @@ void BoundingBox::clear()
 /**
   Return the minimum and maximum bound.
 
+  Returns two identical points if the bounding box is empty.
+
   \param[out] min Minimum bound.
   \param[out] max Maximum bound.
-  \todo What happens if the bounding box is empty?
  */
 void BoundingBox::getBounds(vec3d& min, vec3d& max) const 
 { 
@@ -93,6 +94,65 @@ void BoundingBox::getBounds(vec3d& min, vec3d& max) const
 }
 
 /**
+  Return the minimum and maximum bound along a direction.
+
+  Returns two opposite corners of the bounding box. Which corners
+  these actually are is defined by \a dir. \a min will always be
+  before \a max when sorted along a ray with the given direction.
+  If you negate \ dir the values of \a min and \a max will just be 
+  swapped.
+
+  Returns two identical points if the bounding box is empty.
+
+  \param dir Direction
+  \param[out] min Minimum bound along dir
+  \param[out] max Maximum bound along dir
+ */
+void BoundingBox::getBounds(const vec3d& dir, vec3d& min, vec3d& max) const 
+{ 
+  if (isEmpty())
+  {
+    min = min;
+    max = min;
+  }
+  else
+  {
+    if (dir.x<0)
+    {
+      min.x = bmax.x;
+      max.x = bmin.x;
+    }
+    else
+    {
+      min.x = bmin.x;
+      max.x = bmax.x;
+    }
+
+    if (dir.y<0)
+    {
+      min.y = bmax.y;
+      max.y = bmin.y;
+    }
+    else
+    {
+      min.y = bmin.y;
+      max.y = bmax.y;
+    }
+
+    if (dir.z<0)
+    {
+      min.z = bmax.z;
+      max.z = bmin.z;
+    }
+    else
+    {
+      min.z = bmin.z;
+      max.z = bmax.z;
+    }
+  }
+}
+
+/**
   Set new bounds for the bounding box. 
   
   The rectangle given by b1 and b2 defines the new bounding box.
@@ -104,6 +164,21 @@ void BoundingBox::setBounds(const vec3d& min, const vec3d& max)
 {
   bmin.set(xmin(min.x, max.x), xmin(min.y, max.y), xmin(min.z, max.z));
   bmax.set(xmax(min.x, max.x), xmax(min.y, max.y), xmax(min.z, max.z));
+}
+
+/**
+  Return the center of the bounding box.
+
+  0 is returned if the bounding box is empty.
+
+  \return Center of the bounding box, i.e. 0.5*(bmin+bmax)
+ */
+vec3d BoundingBox::center() const
+{
+  if (isEmpty())
+    return vec3d(0);
+  else
+    return 0.5*(bmin+bmax);
 }
 
 /**
@@ -175,6 +250,35 @@ void BoundingBox::transform(const mat4d& M, BoundingBox& bb)
   }
 }
 
+/**
+   Clamp a point so that it lies within the bounding box.
+
+   Each axis is clamped against the corresponding bounding box interval.
+
+   \param p The point to clamp
+   \return The clamped point
+ */
+vec3d BoundingBox::clamp(const vec3d& p) const
+{
+  vec3d res;
+  clamp(p, res);
+  return res;
+}
+
+/**
+   Clamp a point so that it lies within the bounding box.
+
+   Each axis is clamped against the corresponding bounding box interval.
+
+   \param p The point to clamp
+   \param[out] target The clamped point (may be the same reference as p)
+ */
+void BoundingBox::clamp(const vec3d& p, vec3d& target) const
+{
+  target.x = xmin(xmax(bmin.x, p.x), bmax.x);
+  target.y = xmin(xmax(bmin.y, p.y), bmax.y);
+  target.z = xmin(xmax(bmin.z, p.z), bmax.z);
+}
 
 std::ostream& operator<<(std::ostream& os, const BoundingBox& bb)
 {

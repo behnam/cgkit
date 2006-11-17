@@ -74,10 +74,14 @@ class CGKIT_SHARED BoundingBox
   /// Return true if the bounding box is empty.
   bool isEmpty() const { return bmin.x>bmax.x; }
   void getBounds(vec3d& min, vec3d& max) const;
+  void getBounds(const vec3d& dir, vec3d& min, vec3d& max) const;
   void setBounds(const vec3d& min, const vec3d& max);
+  vec3d center() const;
   void addPoint(const vec3d& p);
   void addBoundingBox(const BoundingBox& bb);
   void transform(const mat4d& M, BoundingBox& bb);
+  vec3d clamp(const vec3d& p) const;
+  void clamp(const vec3d& p, vec3d& target) const;
 };
 
 CGKIT_SHARED std::ostream& operator<<(std::ostream& os, const BoundingBox& bb);

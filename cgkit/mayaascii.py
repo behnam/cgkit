@@ -39,6 +39,20 @@ import simplecpp
 # The keywords that may be used for the value True
 _true_keywords = ["true", "on", "yes"]
 
+# MAPreProcessor
+class MAPreProcessor(simplecpp.PreProcessor):
+    """Preprocess the source file and invoke a callback for each line.
+    """
+    
+    def __init__(self, linehandler):
+        simplecpp.PreProcessor.__init__(self)
+        self.linehandler = linehandler
+        
+    def output(self, s):
+        # Ignore the preprocessor lines
+        if s[0:1]!="#":
+            self.linehandler(s)
+
 # PolyFace
 class PolyFace:
     """Stores the data of a polyFace value.
@@ -827,18 +841,21 @@ class MAReader:
         self.new_cmd = True
         self.cmd = None
         self.args = None
-        cpp = simplecpp.PreProcessor()
-        for s in f:
-            self._linenr += 1
-            z = cpp.filterLine(s).strip()
-            if z=="":
-                continue
 
-            self.processCommands(z)
-
+        cpp = MAPreProcessor(self.lineHandler)
+        # Read the file and invoke the lineHandler for each line...
+        cpp(f)
+       
         # Execute the last command
         self.processCommands(";")
         self.end()
+
+    def lineHandler(self, s):
+        self._linenr += 1
+        z = s.strip()
+        if z!="":
+            self.processCommands(z)
+        
 
     def begin(self):
         pass

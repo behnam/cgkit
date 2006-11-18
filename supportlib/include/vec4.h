@@ -162,16 +162,16 @@ class vec4
 
   // Return component/index with maximum value
   T max() const;
-  int max_index() const;
+  int maxIndex() const;
   // Return component/index with minimum value
   T min() const;
-  int min_index() const;
+  int minIndex() const;
   // Return component/index with maximum absolute value
-  T maxabs() const;
-  int maxabs_index() const;
+  T maxAbs() const;
+  int maxAbsIndex() const;
   // Return component/index with minimum absolute value
-  T minabs() const;
-  int minabs_index() const;
+  T minAbs() const;
+  int minAbsIndex() const;
 
  //char* to_str(char *s) const;
 
@@ -684,22 +684,28 @@ inline T vec4<T>::max() const
   return std::max(std::max(std::max(x,y),z),w);
 }
 
-/*--------------------------------max_index----------------------------*//**
+/*--------------------------------maxIndex----------------------------*//**
   Return index of component with maximum value.
 
-  @return   Index (1,2 or 3).
+  @return   Index (0,1,2 or 3).
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline int vec4<T>::max_index() const
+inline int vec4<T>::maxIndex() const
 {
   // Is x maximum?
   if ((x>=y) && (x>=z) && (x>=w))
   {
-    return 1;
+    return 0;
   }
   else
   {
-    if (y>=z) return 2; else return 3;
+    // Is y maximum?
+    if ((y>=z) && (y>=w))
+      return 1; 
+    else 
+    {
+      if (z>=w) return 2; else return 3;
+    }
   }
 }
 
@@ -711,93 +717,121 @@ inline int vec4<T>::max_index() const
 template<class T> 
 inline T vec4<T>::min() const
 {
-  return std::min(std::min(x,y),z);
+  return std::min(std::min(std::min(x,y),z),w);
 }
 
-/*--------------------------------min_index----------------------------*//**
+/*--------------------------------minIndex----------------------------*//**
   Return index of component with minimum value.
 
-  @return   Index (1,2 or 3).
+  @return   Index (0,1,2 or 3).
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline int vec4<T>::min_index() const
+inline int vec4<T>::minIndex() const
 {
   // Is x minimum?
-  if ((x<=y) && (x<=z))
+  if ((x<=y) && (x<=z) && (x<=w))
   {
-    return 1;
+    return 0;
   }
   else
   {
-    if (y<=z) return 2; else return 3;
+    if ((y<=z) && (y<=w)) 
+      return 1; 
+    else 
+    {
+      if (z<=w)
+	return 2;
+      else
+	return 3;
+    }
   }
 }
 
-/*-------------------------------maxabs--------------------------------*//**
+/*-------------------------------maxAbs--------------------------------*//**
   Return component with maximum absolute value.
 
-  @return    Maximum absolute value.
+  @return  Maximum absolute value.
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline T vec4<T>::maxabs() const
+inline T vec4<T>::maxAbs() const
 {
-  return std::max(std::max(xabs(x),xabs(y)),xabs(z));
+  return std::max(std::max(std::max(xabs(x),xabs(y)),xabs(z)),xabs(w));
 }
 
-/*-----------------------------maxabs_index-----------------------------*//**
+/*-----------------------------maxAbsIndex-----------------------------*//**
   Return index of component with maximum absolute value.
 
-  @return    Index (1,2 or 3).
+  @return    Index (0,1,2 or 3).
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline int vec4<T>::maxabs_index() const
+inline int vec4<T>::maxAbsIndex() const
 {
   T ax = xabs(x);
   T ay = xabs(y);
   T az = xabs(z);
+  T aw = xabs(w);
 
   // Is ax maximum?
-  if ((ax>=ay) && (ax>=az))
+  if ((ax>=ay) && (ax>=az) && (ax>=aw))
   {
-    return 1;
+    return 0;
   }
   else
   {
-    if (ay>=az) return 2; else return 3;
+    // Is ay maximum?
+    if ((ay>=az) && (ay>=aw))
+      return 1; 
+    else 
+    {
+      if (az>=aw)
+	return 2;
+      else
+	return 3;
+    }
   }
 }
 
-/*-------------------------------minabs--------------------------------*//**
+/*-------------------------------minAbs--------------------------------*//**
   Return component with minimum absolute value.
 
   @return    Minimum absolute value.
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline T vec4<T>::minabs() const
+inline T vec4<T>::minAbs() const
 {
-  return std::min(std::min(xabs(x),xabs(y)),xabs(z));
+  return std::min(std::min(std::min(xabs(x),xabs(y)),xabs(z)),xabs(w));
 }
 
-/*-----------------------------minabs_index-----------------------------*//**
+/*-----------------------------minAbsIndex-----------------------------*//**
   Return index of component with minimum absolute value.
 
-  @return    Index (1,2 or 3).
+  @return    Index (0,1,2 or 3).
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline int vec4<T>::minabs_index() const
+inline int vec4<T>::minAbsIndex() const
 {
   T ax = xabs(x);
   T ay = xabs(y);
   T az = xabs(z);
+  T aw = xabs(w);
 
   // Is ax minimum?
-  if ((ax<=ay) && (ax<=az))
+  if ((ax<=ay) && (ax<=az) && (ax<=aw))
   {
-    return 1;
+    return 0;
   }
   else
   {
-    if (ay<=az) return 2; else return 3;
+    // Is ay minimum?
+    if ((ay<=az) && (ay<=aw))
+      return 1; 
+    else 
+    {
+      if (az<=aw)
+	return 2;
+      else
+	return 3;
+    }
   }
 }
 

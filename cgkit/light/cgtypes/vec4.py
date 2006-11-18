@@ -514,6 +514,84 @@ class vec4(object):
         nlen = 1.0/math.sqrt(self*self)
         return vec4(self.x*nlen, self.y*nlen, self.z*nlen, self.w*nlen)
 
+    def min(self):
+        """Return the minimum value of the components.
+        """
+        return min(self.x, self.y, self.z, self.w)
+
+    def max(self):
+        """Return the maximum value of the components.
+        """
+        return max(self.x, self.y, self.z, self.w)
+
+    def minIndex(self):
+        """Return the index of the component with the minimum value.
+        """
+        if self.x<=self.y and self.x<=self.z and self.x<=self.w:
+            return 0
+        elif self.y<=self.z and self.y<=self.w:
+            return 1
+        elif self.z<=self.w:
+            return 2
+        else:
+            return 3
+
+    def maxIndex(self):
+        """Return the index of the component with the maximum value.
+        """
+        if self.x>=self.y and self.x>=self.z and self.x>=self.w:
+            return 0
+        elif self.y>=self.z and self.y>=self.w:
+            return 1
+        elif self.z>=self.w:
+            return 2
+        else:
+            return 3
+        
+    def minAbs(self):
+        """Return the minimum absolute value of the components.
+        """
+        return min(abs(self.x), abs(self.y), abs(self.z), abs(self.w))
+
+    def maxAbs(self):
+        """Return the maximum absolute value of the components.
+        """
+        return max(abs(self.x), abs(self.y), abs(self.z), abs(self.w))
+
+    def minAbsIndex(self):
+        """Return the index of the component with the minimum absolute value.
+        """
+        ax = abs(self.x)
+        ay = abs(self.y)
+        az = abs(self.z)
+        aw = abs(self.w)
+        
+        if ax<=ay and ax<=az and ax<=aw:
+            return 0
+        elif ay<=az and ay<=aw:
+            return 1
+        elif az<=aw:
+            return 2
+        else:
+            return 3
+
+    def maxAbsIndex(self):
+        """Return the index of the component with the maximum absolute value.
+        """
+        ax = abs(self.x)
+        ay = abs(self.y)
+        az = abs(self.z)
+        aw = abs(self.w)
+        
+        if ax>=ay and ax>=az and ax>=aw:
+            return 0
+        elif ay>=az and ay>=aw:
+            return 1
+        elif az>=aw:
+            return 2
+        else:
+            return 3
+
 
     # "t" property (which is an alias for 'w')...
     

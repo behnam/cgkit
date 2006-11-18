@@ -559,16 +559,84 @@ class vec3:
         x=abs(self.x)
         y=abs(self.y)
         z=abs(self.z)
-        # Is z the smallest element? Then use x and y
-        if z<=x and z<=y:
-            return vec3(-self.y, self.x, 0.0)
-        # Is y smallest element? Then use x and z
-        elif y<=x and y<=z:
-            return vec3(-self.z, 0.0, self.x)
-        # x is smallest
-        else:
+        # Is x the smallest element? 
+        if x<y and x<z:
             return vec3(0.0, -self.z, self.y)
+        # Is y smallest element?
+        elif y<z:
+            return vec3(-self.z, 0.0, self.x)
+        # z is smallest
+        else:
+            return vec3(-self.y, self.x, 0.0)
+
+    def min(self):
+        """Return the minimum value of the components.
+        """
+        return min(self.x, self.y, self.z)
+
+    def max(self):
+        """Return the maximum value of the components.
+        """
+        return max(self.x, self.y, self.z)
+
+    def minIndex(self):
+        """Return the index of the component with the minimum value.
+        """
+        if self.x<=self.y and self.x<=self.z:
+            return 0
+        elif self.y<=self.z:
+            return 1
+        else:
+            return 2
+
+    def maxIndex(self):
+        """Return the index of the component with the maximum value.
+        """
+        if self.x>=self.y and self.x>=self.z:
+            return 0
+        elif self.y>=self.z:
+            return 1
+        else:
+            return 2
         
+    def minAbs(self):
+        """Return the minimum absolute value of the components.
+        """
+        return min(abs(self.x), abs(self.y), abs(self.z))
+
+    def maxAbs(self):
+        """Return the maximum absolute value of the components.
+        """
+        return max(abs(self.x), abs(self.y), abs(self.z))
+
+    def minAbsIndex(self):
+        """Return the index of the component with the minimum absolute value.
+        """
+        ax = abs(self.x)
+        ay = abs(self.y)
+        az = abs(self.z)
+        
+        if ax<=ay and ax<=az:
+            return 0
+        elif ay<=az:
+            return 1
+        else:
+            return 2
+
+    def maxAbsIndex(self):
+        """Return the index of the component with the maximum absolute value.
+        """
+        ax = abs(self.x)
+        ay = abs(self.y)
+        az = abs(self.z)
+
+        if ax>=ay and ax>=az:
+            return 0
+        elif ay>=az:
+            return 1
+        else:
+            return 2
+
 
 ######################################################################
 def _test():

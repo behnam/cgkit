@@ -208,16 +208,16 @@ class vec3
 
   // Return component/index with maximum value
   T max() const;
-  int max_index() const;
+  int maxIndex() const;
   // Return component/index with minimum value
   T min() const;
-  int min_index() const;
+  int minIndex() const;
   // Return component/index with maximum absolute value
-  T maxabs() const;
-  int maxabs_index() const;
+  T maxAbs() const;
+  int maxAbsIndex() const;
   // Return component/index with minimum absolute value
-  T minabs() const;
-  int minabs_index() const;
+  T minAbs() const;
+  int minAbsIndex() const;
 
  //char* to_str(char *s) const;
 
@@ -802,22 +802,37 @@ inline vec3<T> vec3<T>::normalize() const
 }
 
 /*--------------------------------ortho--------------------------------*//**
-  Return a vector that's orthogonal to *this.
+  Return a vector that is orthogonal to *this.
 
   Returns an arbitrary vector that is orthogonal to *this (dot product
-  is zero). This function always returns a vector that is differnt from
-  the null vector, even when the input vector is 0.
+  is zero).
 
-  @return    Orthogonal vector.
-  @warning   With the current version of this function there might 
-             be problems with vectors that have small x components (close
-             to zero)!
+  The implementation uses the algorithm as described in:
+
+  John F. Hughes and Tomas Möller<br> 
+  \em Building \em an \em Orthonormal \em Basis \em from \em a \em Unit \em Vector<br>
+  Journal of graphics tools, 4(4):33-35, 1999<br>
+  http://www.acm.org/jgt/papers/HughesMoller99/<br>
+
+  \return    Orthogonal vector.
 *//*------------------------------------------------------------------------*/
 template<class T> 
 inline vec3<T> vec3<T>::ortho() const
 {
-  if (x!=0) return vec3<T>(-y, x, 0);
-  else      return vec3<T>(1,0,0);
+  double ax = xabs(x);
+  double ay = xabs(y);
+  double az = xabs(z);
+
+  // Is x the smallest component?
+  if (ax<ay && ax<az)
+    return vec3<T>(0, -z, y);
+
+  // Is y the smallest component?
+  if (ay<az)
+    return vec3<T>(-z, 0, x);
+
+  // z is the smallest component
+  return vec3<T>(-y, x, 0);
 }
 
 /**
@@ -879,22 +894,22 @@ inline T vec3<T>::max() const
   return std::max(std::max(x,y),z);
 }
 
-/*--------------------------------max_index----------------------------*//**
+/*--------------------------------maxIndex----------------------------*//**
   Return index of component with maximum value.
 
-  @return   Index (1,2 or 3).
+  @return  Index (0,1 or 2).
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline int vec3<T>::max_index() const
+inline int vec3<T>::maxIndex() const
 {
   // Is x maximum?
   if ((x>=y) && (x>=z))
   {
-    return 1;
+    return 0;
   }
   else
   {
-    if (y>=z) return 2; else return 3;
+    if (y>=z) return 1; else return 2;
   }
 }
 
@@ -909,43 +924,43 @@ inline T vec3<T>::min() const
   return std::min(std::min(x,y),z);
 }
 
-/*--------------------------------min_index----------------------------*//**
+/*--------------------------------minIndex----------------------------*//**
   Return index of component with minimum value.
 
-  @return   Index (1,2 or 3).
+  @return   Index (0,1 or 2).
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline int vec3<T>::min_index() const
+inline int vec3<T>::minIndex() const
 {
   // Is x minimum?
   if ((x<=y) && (x<=z))
   {
-    return 1;
+    return 0;
   }
   else
   {
-    if (y<=z) return 2; else return 3;
+    if (y<=z) return 1; else return 2;
   }
 }
 
-/*-------------------------------maxabs--------------------------------*//**
+/*-------------------------------maxAbs--------------------------------*//**
   Return component with maximum absolute value.
 
   @return    Maximum absolute value.
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline T vec3<T>::maxabs() const
+inline T vec3<T>::maxAbs() const
 {
   return std::max(std::max(xabs(x),xabs(y)),xabs(z));
 }
 
-/*-----------------------------maxabs_index-----------------------------*//**
+/*-----------------------------maxAbsIndex-----------------------------*//**
   Return index of component with maximum absolute value.
 
-  @return    Index (1,2 or 3).
+  @return    Index (0,1 or 2).
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline int vec3<T>::maxabs_index() const
+inline int vec3<T>::maxAbsIndex() const
 {
   T ax = xabs(x);
   T ay = xabs(y);
@@ -954,32 +969,32 @@ inline int vec3<T>::maxabs_index() const
   // Is ax maximum?
   if ((ax>=ay) && (ax>=az))
   {
-    return 1;
+    return 0;
   }
   else
   {
-    if (ay>=az) return 2; else return 3;
+    if (ay>=az) return 1; else return 2;
   }
 }
 
-/*-------------------------------minabs--------------------------------*//**
+/*-------------------------------minAbs--------------------------------*//**
   Return component with minimum absolute value.
 
   @return    Minimum absolute value.
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline T vec3<T>::minabs() const
+inline T vec3<T>::minAbs() const
 {
   return std::min(std::min(xabs(x),xabs(y)),xabs(z));
 }
 
-/*-----------------------------minabs_index-----------------------------*//**
+/*-----------------------------minAbsIndex-----------------------------*//**
   Return index of component with minimum absolute value.
 
-  @return    Index (1,2 or 3).
+  @return    Index (0,1 or 2).
 *//*------------------------------------------------------------------------*/
 template<class T> 
-inline int vec3<T>::minabs_index() const
+inline int vec3<T>::minAbsIndex() const
 {
   T ax = xabs(x);
   T ay = xabs(y);
@@ -988,11 +1003,11 @@ inline int vec3<T>::minabs_index() const
   // Is ax minimum?
   if ((ax<=ay) && (ax<=az))
   {
-    return 1;
+    return 0;
   }
   else
   {
-    if (ay<=az) return 2; else return 3;
+    if (ay<=az) return 1; else return 2;
   }
 }
 

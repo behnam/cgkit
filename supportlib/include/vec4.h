@@ -129,7 +129,7 @@ class vec4
   vec4<T>& set(T ax, T ay, T az, T aw);
   void get(T& ax, T& ay, T& az, T& aw) const;
 
-  T& operator[](const int);
+  T& operator[](int);
 
   vec4<T>& operator+=(const vec4<T>& v);
   vec4<T>& operator-=(const vec4<T>& v);
@@ -285,7 +285,7 @@ inline void vec4<T>::get(T& ax, T& ay, T& az, T& aw) const
   @exception EIndexError  Index is out of range.
 *//*------------------------------------------------------------------------*/
 template<class T>
-T& vec4<T>::operator[](const int index)
+T& vec4<T>::operator[](int index)
 {
   switch (index)
   {

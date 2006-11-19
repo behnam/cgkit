@@ -169,7 +169,7 @@ class vec3
   void get(T& ax, T& ay, T& az) const;
   void get_polar(T& r, T& theta, T& phi) const;
 
-  T& operator[](const int);
+  T& operator[](int);
 
   vec3<T>& operator+=(const vec3<T>& v);
   vec3<T>& operator-=(const vec3<T>& v);
@@ -404,7 +404,7 @@ inline void vec3<T>::get_polar(T& r, T& theta, T& phi) const
   @exception EIndexError  Index is out of range.
 *//*------------------------------------------------------------------------*/
 template<class T>
-T& vec3<T>::operator[](const int index)
+T& vec3<T>::operator[](int index)
 {
   switch (index)
   {

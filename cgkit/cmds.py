@@ -346,6 +346,16 @@ def extractUniform(tm, varname, value):
             for i in range(len(newfaces)):
                 oldid = newfaces[i]
                 dst[i] = src[oldid]
+        elif (storage==_core.VarStorage.FACEVARYING or
+              storage==_core.VarStorage.FACEVERTEX):
+            newgeom.newVariable(name, storage, type, mult)
+            src = tm.slot(name)
+            dst = newgeom.slot(name)
+            for i in range(len(newfaces)):
+                oldid = newfaces[i]
+                dst[3*i] = src[3*oldid]
+                dst[3*i+1] = src[3*oldid+1]
+                dst[3*i+2] = src[3*oldid+2]
         else:
             src = tm.slot(name)
             # Create slot

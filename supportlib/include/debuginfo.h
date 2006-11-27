@@ -65,4 +65,7 @@ CGKIT_SHARED bool get_debug_flag();
 // Output a debug message with three arguments. txt must be a format string suitable for sprintf.
 #define DEBUGINFO3(obj, txt, arg1, arg2, arg3) if (_debug_on) { sprintf(_debug_buf, txt, arg1, arg2, arg3); std::cerr<<"0x"<<std::hex<<(long)obj<<std::dec<<": "<<_debug_buf<<std::endl; }
 
+// Output a debug message with four arguments. txt must be a format string suitable for sprintf.
+#define DEBUGINFO4(obj, txt, arg1, arg2, arg3, arg4) if (_debug_on) { sprintf(_debug_buf, txt, arg1, arg2, arg3, arg4); std::cerr<<"0x"<<std::hex<<(long)obj<<std::dec<<": "<<_debug_buf<<std::endl; }
+
 #endif

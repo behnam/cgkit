@@ -439,7 +439,7 @@ class mat4:
             return self.transpose().mlist
             
 
-    def identity(self):
+    def identity():
         """Return identity matrix.
 
         >>> print mat4().identity()
@@ -452,6 +452,7 @@ class mat4:
                     0.0, 1.0, 0.0, 0.0,
                     0.0, 0.0, 1.0, 0.0,
                     0.0, 0.0, 0.0, 1.0)
+    identity = staticmethod(identity)
 
     def transpose(self):
         """Transpose matrix.
@@ -536,25 +537,29 @@ class mat4:
                 Mi[j,i]=sign*m3.determinant()/d
         return Mi
 
-    def translation(self, t):
+    def translation(t):
         """Return translation matrix."""
         return mat4(1.0, 0.0, 0.0, t.x,
                     0.0, 1.0, 0.0, t.y,
                     0.0, 0.0, 1.0, t.z,
                     0.0, 0.0, 0.0, 1.0)
+    translation = staticmethod(translation)
 
-    def scaling(self, s):
+    def scaling(s):
         """Return scaling matrix."""
-        return mat4(s.x, 0.0, 0.0, 0.0,
-                    0.0, s.y, 0.0, 0.0,
-                    0.0, 0.0, s.z, 0.0,
+        sx,sy,sz = s
+        return mat4(sx, 0.0, 0.0, 0.0,
+                    0.0, sy, 0.0, 0.0,
+                    0.0, 0.0, sz, 0.0,
                     0.0, 0.0, 0.0, 1.0)
+    scaling = staticmethod(scaling)
 
-    def rotation(self, angle, axis):
+    def rotation(angle, axis):
         """Return rotation matrix.
 
         angle must be given in radians. axis should be of type vec3.
         """
+        axis = _vec3(axis)
 
         sqr_a = axis.x*axis.x
         sqr_b = axis.y*axis.y
@@ -575,30 +580,37 @@ class mat4:
                      k1ab+k3c, k1*sqr_b+k2, k1bc-k3a, 0.0,
                      k1ac-k3b, k1bc+k3a, k1*sqr_c+k2, 0.0,
                      0.0, 0.0, 0.0, 1.0)
+    rotation = staticmethod(rotation)
 
     def translate(self, t):
         """Concatenate a translation."""
+        tx = float(t[0])
+        ty = float(t[1])
+        tz = float(t[2])
         m11,m12,m13,m14,m21,m22,m23,m24,m31,m32,m33,m34,m41,m42,m43,m44 = self.mlist
-        self.mlist[3]  = m11*t.x + m12*t.y + m13*t.z + m14
-        self.mlist[7]  = m21*t.x + m22*t.y + m23*t.z + m24
-        self.mlist[11] = m31*t.x + m32*t.y + m33*t.z + m34
-        self.mlist[15] = m41*t.x + m42*t.y + m43*t.z + m44
+        self.mlist[3]  = m11*tx + m12*ty + m13*tz + m14
+        self.mlist[7]  = m21*tx + m22*ty + m23*tz + m24
+        self.mlist[11] = m31*tx + m32*ty + m33*tz + m34
+        self.mlist[15] = m41*tx + m42*ty + m43*tz + m44
         return self
 
     def scale(self, s):
         """Concatenate a scaling."""
-        self.mlist[0]  *= s.x
-        self.mlist[1]  *= s.y
-        self.mlist[2]  *= s.z
-        self.mlist[4]  *= s.x
-        self.mlist[5]  *= s.y
-        self.mlist[6]  *= s.z
-        self.mlist[8]  *= s.x
-        self.mlist[9]  *= s.y
-        self.mlist[10] *= s.z
-        self.mlist[12] *= s.x
-        self.mlist[13] *= s.y
-        self.mlist[14] *= s.z
+        sx = float(s[0])
+        sy = float(s[1])
+        sz = float(s[2])
+        self.mlist[0]  *= sx
+        self.mlist[1]  *= sy
+        self.mlist[2]  *= sz
+        self.mlist[4]  *= sx
+        self.mlist[5]  *= sy
+        self.mlist[6]  *= sz
+        self.mlist[8]  *= sx
+        self.mlist[9]  *= sy
+        self.mlist[10] *= sz
+        self.mlist[12] *= sx
+        self.mlist[13] *= sy
+        self.mlist[14] *= sz
         return self
 
     def rotate(self, angle, axis):
@@ -611,7 +623,7 @@ class mat4:
         return self
 
 
-    def frustum(self, left, right, bottom, top, near, far):
+    def frustum(left, right, bottom, top, near, far):
         """Set a perspective transformation.
         
         This method is equivalent to the OpenGL command glFrustum().
@@ -620,8 +632,9 @@ class mat4:
                      0.0, (2.0*near)/(top-bottom), float(top+bottom)/(top-bottom), 0.0,
                      0.0, 0.0, -float(far+near)/(far-near), -(2.0*far*near)/(far-near),
                      0.0, 0.0, -1.0, 0.0)
+    frustum = staticmethod(frustum)
     
-    def perspective(self, fovy, aspect, near, far):
+    def perspective(fovy, aspect, near, far):
         """ Set a perspective transformation.
 
         This method is equivalent to the OpenGL utility command
@@ -633,8 +646,9 @@ class mat4:
         right  = top * aspect
 
         return self.frustum(left, right, bottom, top, near, far)
+    perspective = staticmethod(perspective)
 
-    def orthographic(self, left, right, bottom, top, near, far):
+    def orthographic(left, right, bottom, top, near, far):
         """Returns a matrix that represents an orthographic transformation.
 
         This method is equivalent to the OpenGL command glOrtho().
@@ -656,15 +670,18 @@ class mat4:
                     0.0, 2.0/t_b, 0.0, -(top+bottom)/t_b,
                     0.0, 0.0, -2.0/f_n, -(farval+nearval)/f_n,
                     0.0, 0.0, 0.0, 1.0)
-        
+    orthographic = staticmethod(orthographic)
 
-    def lookAt(self, pos, target, up=_vec3(0,0,1)):
+    def lookAt(pos, target, up=_vec3(0,0,1)):
         """Look from pos to target.
 
         The resulting transformation moves the origin to pos and
         rotates so that The z-axis points to target. The y-axis is
         as close as possible to the up vector.
         """
+        pos = _vec3(pos)
+        target = _vec3(target)
+        up = _vec3(up)
         dir = (target - pos).normalize()
         up  = up.normalize()
         up -= (up * dir) * dir
@@ -683,6 +700,7 @@ class mat4:
                     right.z, up.z, dir.z, pos.z,
                     0.0, 0.0, 0.0, 1.0]
         return self
+    lookAt = staticmethod(lookAt)
 
     def ortho(self):
         """Return a matrix with orthogonal base vectors.

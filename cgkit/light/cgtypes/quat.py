@@ -500,16 +500,24 @@ class quat:
                      ww*v.z - xx*v.z - yy*v.z + zz*v.z + 2*((xz-wy)*v.x + (yz+wx)*v.y))
     
 
-def slerp(t, q0, q1):
+def slerp(t, q0, q1, shortest=True):
     """Spherical linear interpolation between two quaternions.
 
     The return value is an interpolation between q0 and q1. For t=0.0
     the return value equals q0, for t=1.0 it equals q1.
     q0 and q1 must be unit quaternions.
+    If shortest is True the interpolation is always done along the
+    shortest path.
     """
     global _epsilon
-    
-    o = math.acos(q0.dot(q1))
+
+    ca = q0.dot(q1)
+    if shortest and ca<0:
+        ca = -ca
+        neg_q1 = True
+    else:
+        neg_q1 = False
+    o = math.acos(ca)
     so = math.sin(o)
 
     if (abs(so)<=_epsilon):
@@ -517,7 +525,10 @@ def slerp(t, q0, q1):
 
     a = math.sin(o*(1.0-t)) / so
     b = math.sin(o*t) / so
-    return q0*a + q1*b
+    if neg_q1:
+        return q0*a - q1*b
+    else:
+        return q0*a + q1*b
 
 def squad(t, a, b, c, d):
     """Spherical cubic interpolation."""

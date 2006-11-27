@@ -523,6 +523,7 @@ class vec3:
         (2.6000, 0.5000, -0.2000)
         """
 
+        N = vec3(N)
         return self - 2.0*(self*N)*N
 
     def refract(self, N, eta):
@@ -538,6 +539,7 @@ class vec3:
         (1.3300, -1.7920, 1.0640)
         """
 
+        N = vec3(N)
         dot = self*N
         k   = 1.0 - eta*eta*(1.0 - dot*dot)
         if k<0:

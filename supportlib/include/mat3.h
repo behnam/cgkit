@@ -155,6 +155,8 @@ class mat3
   void getRotationYZX(T& x, T& y, T& z) const;
   void getRotationZYX(T& x, T& y, T& z) const;
 
+  mat3<T>& fromToRotation(const vec3<T>& from, const vec3<T>& to);
+
   // Operators
   mat3<T>& operator+=(const mat3<T>& A);       // matrix += matrix
   mat3<T>& operator-=(const mat3<T>& A);       // matrix -= matrix
@@ -1747,6 +1749,101 @@ void mat3<T>::getRotationXYZ(T& x, T& y, T& z) const
     z = 0;
     x = acos(r2.y);
   }  
+}
+
+/**
+   Set a rotation matrix that rotates one vector into another.
+
+   This method is based on the code from:
+
+   Tomas Möller, John Hughes<br>
+   \em Efficiently \em Building \em a \em Matrix \em to \em Rotate \em One \em Vector \em to \em Another<br>
+   Journal of Graphics Tools, 4(4):1-4, 1999<br>
+   http://www.acm.org/jgt/papers/MollerHughes99/<br>
+
+   \param from  Source vector (must be a unit vector)
+   \param to  Target vector (must be a unit vector)
+   \return A reference to this.
+ */
+template<class T> 
+mat3<T>& mat3<T>::fromToRotation(const vec3<T>& from, const vec3<T>& to)
+{
+  const T EPSILON = 0.000001;
+  T e = from*to;
+  T f = (e<0)? -e:e;
+
+  if (f>1.0-EPSILON)     /* "from" and "to"-vector almost parallel */
+  {
+    /* vector most nearly orthogonal to "from" */
+    vec3<T> x((from.x>0.0)? from.x : -from.x,
+              (from.y>0.0)? from.y : -from.y,
+	      (from.z>0.0)? from.z : -from.z);
+
+    if (x.x<x.y)
+    {
+      if (x.x<x.z)
+      {
+        x.set(1.0, 0.0, 0.0);
+      }
+      else
+      {
+        x.set(0.0, 0.0, 1.0);
+      }
+    }
+    else
+    {
+      if (x.y<x.z)
+      {
+        x.set(0.0, 1.0, 0.0);
+      }
+      else
+      {
+        x.set(0.0, 0.0, 1.0);
+      }
+    }
+
+    /* temporary storage vectors */
+    vec3<T> u = x-from;
+    vec3<T> v = x-to;
+
+    T c1 = 2.0/(u*u);
+    T c2 = 2.0/(v*v);
+    T c3 = c1*c2*u*v;
+
+    for(int i = 0; i<3; i++) 
+    {
+      for(int j = 0; j<3; j++) 
+      {
+        at(i,j) =  - c1 * u[i] * u[j]
+	           - c2 * v[i] * v[j]
+                   + c3 * v[i] * u[j];
+      }
+      at(i,i) += 1.0;
+    }
+  }
+  else  /* the most common case, unless "from"="to", or "from"=-"to" */
+  {
+    vec3<T> v = from.cross(to);
+    T h = 1.0/(1.0 + e);      /* optimization by Gottfried Chen */
+    T hvx = h*v.x;
+    T hvz = h*v.z;
+    T hvxy = hvx*v.y;
+    T hvxz = hvx*v.z;
+    T hvyz = hvz*v.y;
+
+    r1.x = e + hvx*v.x;
+    r1.y = hvxy - v.z;
+    r1.z = hvxz + v.y;
+
+    r2.x = hvxy + v.z;
+    r2.y = e + h*v.y*v.y;
+    r2.z = hvyz - v.x;
+
+    r3.x = hvxz - v.y;
+    r3.y = hvyz + v.x;
+    r3.z = e + hvz*v.z;
+  }
+  return *this;
 }
 
 

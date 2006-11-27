@@ -44,25 +44,33 @@ object toList1(const mat3d* self, bool rowmajor)
   return res;
 }
 
-// identity() method
-mat3d identity(mat3d* self)
+// identity() method (static)
+mat3d identity()
 {
   return mat3d(1);
 }
 
-// scaling() method
-mat3d scaling(mat3d* self, const vec3d& s)
+// scaling() method (static)
+mat3d scaling(const vec3d& s)
 {
   mat3d res;
   res.setScaling(s);
   return res;
 }
 
-// rotation() method
-mat3d rotation(mat3d* self, double angle, const vec3d& axis)
+// rotation() method (static)
+mat3d rotation(double angle, const vec3d& axis)
 {
   mat3d res;
   res.setRotation(angle, axis);
+  return res;
+}
+
+// fromToRotation() method (static)
+mat3d fromToRotation(const vec3d& from, const vec3d& to)
+{
+  mat3d res;
+  res.fromToRotation(from, to);
   return res;
 }
 
@@ -264,8 +272,11 @@ void class_mat3()
     .def("toList", &toList0)
     .def("toList", &toList1, arg("rowmajor"))
     .def("identity", &identity)
+    .staticmethod("identity")
     .def("scaling", &scaling, arg("s"))
+    .staticmethod("scaling")
     .def("rotation", &rotation, (arg("angle"), arg("axis")))
+    .staticmethod("rotation")
     .def("transpose", transpose)
     .def("determinant", &mat3d::determinant)
     .def("inverse", inverse)
@@ -285,6 +296,8 @@ void class_mat3()
     .def("toEulerXZY", toEulerXZY)
     .def("toEulerYXZ", toEulerYXZ)
     .def("toEulerZYX", toEulerZYX)
+    .def("fromToRotation", fromToRotation, (arg("from"), arg("to")))
+    .staticmethod("fromToRotation")
     .def_pickle(mat3_pickle_suite())
   ;
 }

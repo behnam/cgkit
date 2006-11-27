@@ -343,11 +343,12 @@ class mat3:
         else:
             return self.transpose().mlist
 
-    def identity(self):
+    def identity():
         """Return the identity matrix."""
         return mat3(1.0, 0.0, 0.0,
                     0.0, 1.0, 0.0,
                     0.0, 0.0, 1.0)
+    identity = staticmethod(identity)
 
     def transpose(self):
         """Return the transposed matrix."""
@@ -374,14 +375,17 @@ class mat3:
                      m23*m31-m21*m33, m11*m33-m31*m13, m21*m13-m11*m23,
                      m21*m32-m31*m22, m31*m12-m11*m32, m11*m22-m12*m21 )*d
 
-    def scaling(self, s):
+    def scaling(s):
         """Return a scale transformation."""
-        return mat3(s.x, 0.0, 0.0,
-                    0.0, s.y, 0.0,
-                    0.0, 0.0, s.z)
+        sx,sy,sz = s
+        return mat3(sx, 0.0, 0.0,
+                    0.0, sy, 0.0,
+                    0.0, 0.0, sz)
+    scaling = staticmethod(scaling)
 
-    def rotation(self, angle, axis):
+    def rotation(angle, axis):
         """Return a rotation matrix."""
+        axis = _vec3(axis)
         
         sqr_a = axis.x*axis.x
         sqr_b = axis.y*axis.y
@@ -401,17 +405,21 @@ class mat3:
         return mat3( k1*sqr_a+k2, k1ab-k3c, k1ac+k3b,
                      k1ab+k3c, k1*sqr_b+k2, k1bc-k3a,
                      k1ac-k3b, k1bc+k3a, k1*sqr_c+k2)
+    rotation = staticmethod(rotation)
 
     def scale(self, s):
-        self.mlist[0] *= s.x
-        self.mlist[1] *= s.y
-        self.mlist[2] *= s.z
-        self.mlist[3] *= s.x
-        self.mlist[4] *= s.y
-        self.mlist[5] *= s.z
-        self.mlist[6] *= s.x
-        self.mlist[7] *= s.y
-        self.mlist[8] *= s.z
+        sx = float(s[0])
+        sy = float(s[1])
+        sz = float(s[2])
+        self.mlist[0] *= sx
+        self.mlist[1] *= sy
+        self.mlist[2] *= sz
+        self.mlist[3] *= sx
+        self.mlist[4] *= sy
+        self.mlist[5] *= sz
+        self.mlist[6] *= sx
+        self.mlist[7] *= sy
+        self.mlist[8] *= sz
         return self
 
     def rotate(self, angle, axis):
@@ -717,6 +725,83 @@ class mat3:
             x = math.acos(r2.y)
 
         return (x,y,z)
+
+    def fromToRotation(self, _from, to):
+        """Returns a rotation matrix that rotates one vector into another.
+
+        The generated rotation matrix will rotate the vector _from into
+        the vector to. _from and to must be unit vectors!
+
+        This method is based on the code from:
+
+        Tomas Möller, John Hughes
+        Efficiently Building a Matrix to Rotate One Vector to Another
+        Journal of Graphics Tools, 4(4):1-4, 1999
+        http://www.acm.org/jgt/papers/MollerHughes99/
+        """
+        
+        _from = _vec3(_from)
+        to = _vec3(to)
+        EPSILON = 0.000001
+        e = _from*to
+        f = abs(e)
+
+        if (f>1.0-EPSILON):    # "from" and "to"-vector almost parallel
+            # vector most nearly orthogonal to "from"
+            fx = abs(_from.x)
+            fy = abs(_from.y)
+            fz = abs(_from.z)
+
+            if (fx<fy):
+                if (fx<fz):
+                    x = _vec3(1.0, 0.0, 0.0)
+                else:
+                    x = _vec3(0.0, 0.0, 1.0)
+            else:
+                if (fy<fz):
+                    x = _vec3(0.0, 1.0, 0.0)
+                else:
+                    x = _vec3(0.0, 0.0, 1.0)
+
+            u = x-_from
+            v = x-to
+
+            c1 = 2.0/(u*u)
+            c2 = 2.0/(v*v)
+            c3 = c1*c2*u*v
+
+            res = mat3()
+            for i in range(3):
+                for j in range(3):
+                    res[i,j] =  - c1*u[i]*u[j] - c2*v[i]*v[j] + c3*v[i]*u[j]
+                res[i,i] += 1.0
+                
+            return res
+                
+        else:  # the most common case, unless "from"="to", or "from"=-"to"
+            v = _from.cross(to)
+            h = 1.0/(1.0 + e)    # optimization by Gottfried Chen
+            hvx = h*v.x
+            hvz = h*v.z
+            hvxy = hvx*v.y
+            hvxz = hvx*v.z
+            hvyz = hvz*v.y
+
+            m11 = e + hvx*v.x
+            m12 = hvxy - v.z
+            m13 = hvxz + v.y
+
+            m21 = hvxy + v.z
+            m22 = e + h*v.y*v.y
+            m23 = hvyz - v.x
+
+            m31 = hvxz - v.y
+            m32 = hvyz + v.x
+            m33 = e + hvz*v.z
+
+            return mat3(m11,m12,m13,m21,m22,m23,m31,m32,m33)
+
+    fromToRotation = staticmethod(fromToRotation)
 
 
 ######################################################################

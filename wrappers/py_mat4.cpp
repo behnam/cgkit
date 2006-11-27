@@ -41,68 +41,68 @@ object toList1(const mat4d* self, bool rowmajor)
   return res;
 }
 
-// identity() method
-mat4d identity(mat4d* self)
+// identity() method (static)
+mat4d identity()
 {
   return mat4d(1);
 }
 
-// translation() method
-mat4d translation(mat4d* self, const vec3d& t)
+// translation() method (static)
+mat4d translation(const vec3d& t)
 {
   mat4d res;
   res.setTranslation(t);
   return res;
 }
 
-// scaling() method
-mat4d scaling(mat4d* self, const vec3d& s)
+// scaling() method (static)
+mat4d scaling(const vec3d& s)
 {
   mat4d res;
   res.setScaling(s);
   return res;
 }
 
-// rotation() method
-mat4d rotation(mat4d* self, double angle, const vec3d& axis)
+// rotation() method (static)
+mat4d rotation(double angle, const vec3d& axis)
 {
   mat4d res;
   res.setRotation(angle, axis);
   return res;
 }
 
-// orthographic() method
-mat4d orthographic(mat4d* self, double left, double right, double bottom, double top, double nearval, double farval)
+// orthographic() method (static)
+mat4d orthographic(double left, double right, double bottom, double top, double nearval, double farval)
 {
   mat4d res;
   res.setOrthographic(left, right, bottom, top, nearval, farval);
   return res;
 }
 
-// frustum() method
-mat4d frustum(mat4d* self, double left, double right, double bottom, double top, double nearval, double farval)
+// frustum() method (static)
+mat4d frustum(double left, double right, double bottom, double top, double nearval, double farval)
 {
   mat4d res;
   res.setFrustum(left, right, bottom, top, nearval, farval);
   return res;
 }
 
-// perspective() method
-mat4d perspective(mat4d* self, double fovy, double aspect, double nearval, double farval)
+// perspective() method (static)
+mat4d perspective(double fovy, double aspect, double nearval, double farval)
 {
   mat4d res;
   res.setPerspective(fovy, aspect, nearval, farval);
   return res;
 }
 
-// lookAt() method 
-mat4d lookAt(mat4d* self, const vec3d& pos, const vec3d& target, const vec3d& up=vec3d(0,0,1))
+// lookAt() method  (static)
+mat4d lookAt(const vec3d& pos, const vec3d& target, const vec3d& up=vec3d(0,0,1))
 {
   mat4d res;
   res.setLookAt(pos, target, up);
   return res;
 }
-BOOST_PYTHON_FUNCTION_OVERLOADS(lookAt_overloads, lookAt, 3, 4)
+BOOST_PYTHON_FUNCTION_OVERLOADS(lookAt_overloads, lookAt, 2, 3)
 
 
 // decompose() method
@@ -252,14 +252,22 @@ void class_mat4()
     .def("toList", &toList0)
     .def("toList", &toList1, arg("rowmajor"))
     .def("identity", &identity)
+    .staticmethod("identity")
     .def("translation", &translation, arg("t"))
+    .staticmethod("translation")
     .def("scaling", &scaling, arg("s"))
+    .staticmethod("scaling")
     .def("rotation", &rotation, (arg("angle"), arg("axis")))
+    .staticmethod("rotation")
     .def("orthographic", &orthographic, (arg("left"), arg("right"), arg("bottom"), arg("top"), arg("near"), arg("far")))
+    .staticmethod("orthographic")
     .def("frustum", &frustum, (arg("left"), arg("right"), arg("bottom"), arg("top"), arg("near"), arg("far")))
+    .staticmethod("frustum")
     .def("perspective", &perspective, (arg("fovy"), arg("aspect"), arg("near"), arg("far")))
+    .staticmethod("perspective")
     .def("lookAt", &lookAt, lookAt_overloads((arg("pos"), arg("target"), arg("up"))))
     //    .def("lookAt", &lookAt3)
+    .staticmethod("lookAt")
     .def("transpose", transpose)
     .def("determinant", &mat4d::determinant)
     .def("inverse", inverse)

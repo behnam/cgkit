@@ -475,7 +475,30 @@ class quat:
             res.w = math.exp(self.w)*math.cos(b)
 
         return res
-                
+
+    def rotateVec(self, v):
+        """Return the rotated vector v.
+
+        The quaternion must be a unit quaternion.
+        This operation is equivalent to turning v into a quat, computing
+        self*v*self.conjugate() and turning the result back into a vec3.
+        """
+        
+        ww = self.w*self.w
+        xx = self.x*self.x
+        yy = self.y*self.y
+        zz = self.z*self.z
+        wx = self.w*self.x
+        wy = self.w*self.y
+        wz = self.w*self.z
+        xy = self.x*self.y
+        xz = self.x*self.z
+        yz = self.y*self.z
+
+        return _vec3(ww*v.x + xx*v.x - yy*v.x - zz*v.x + 2*((xy-wz)*v.y + (xz+wy)*v.z),
+                     ww*v.y - xx*v.y + yy*v.y - zz*v.y + 2*((xy+wz)*v.x + (yz-wx)*v.z),
+                     ww*v.z - xx*v.z - yy*v.z + zz*v.z + 2*((xz-wy)*v.x + (yz+wx)*v.y))
+    
 
 def slerp(t, q0, q1):
     """Spherical linear interpolation between two quaternions.

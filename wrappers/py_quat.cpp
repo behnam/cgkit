@@ -52,6 +52,7 @@ void class_quat()
   mat4d (quatd::*toMat4)() const = &quatd::toMat4;
   quatd (quatd::*log)() const = &quatd::log;
   quatd (quatd::*exp)() const = &quatd::exp;
+  vec3d (quatd::*rotateVec)(const vec3d& v) const = &quatd::rotateVec;
 
   class_<quatd>("quat")
     .def(init<double>())
@@ -90,6 +91,7 @@ void class_quat()
     .def("fromAngleAxis", &quatd::fromAngleAxis, return_self<>(), (arg("angle"), arg("axis")))
     .def("log", log)
     .def("exp", exp)
+    .def("rotateVec", rotateVec)
     .def_pickle(quat_pickle_suite())
   ;
 

@@ -125,6 +125,9 @@ class quat
   void exp(quat<T>& q);
   quat<T> exp() const;
 
+  void rotateVec(const vec3<T>& v, vec3<T>& dest) const;
+  vec3<T> rotateVec(const vec3<T>& v) const;
+
   //////////////////// Alternatives to operators /////////////////////
 
   quat<T>& add(const quat<T>& a, const quat<T>& b) { w=a.w+b.w; x=a.x+b.x; y=a.y+b.y; z=a.z+b.z; return *this; }
@@ -732,6 +735,73 @@ quat<T> quat<T>::exp() const
     q.set(::exp(w)*cos(b), f*x, f*y, f*z);
   }
   return q;
+}
+
+/**
+   Rotate a vector.
+
+   This operation is equivalent to this*v*this->conjugate()
+   (where v is turned into a quaternion).
+
+   Note: If you have to do a lot of rotations with the same
+   quaternion it will be more efficient to convert the quat
+   into a matrix and do the rotation via matrix multiplication.
+
+   \pre The quaternion must be a unit quaternion.
+   \pre dest must not be the same reference as v!
+   \param v The vector to rotate.
+   \param[out] dest Rotate vector v
+ */
+template<class T>
+void quat<T>::rotateVec(const vec3<T>& v, vec3<T>& dest) const
+{
+  T ww = w*w;
+  T xx = x*x;
+  T yy = y*y;
+  T zz = z*z;
+  T wx = w*x;
+  T wy = w*y;
+  T wz = w*z;
+  T xy = x*y;
+  T xz = x*z;
+  T yz = y*z;
+
+  dest.x = ww*v.x + xx*v.x - yy*v.x - zz*v.x + 2*((xy-wz)*v.y + (xz+wy)*v.z);
+  dest.y = ww*v.y - xx*v.y + yy*v.y - zz*v.y + 2*((xy+wz)*v.x + (yz-wx)*v.z);
+  dest.z = ww*v.z - xx*v.z - yy*v.z + zz*v.z + 2*((xz-wy)*v.x + (yz+wx)*v.y);
+}
+
+/**
+   Rotate a vector.
+
+   This operation is equivalent to this*v*this->conjugate()
+   (where v is turned into a quaternion).
+
+   Note: If you have to do a lot of rotations with the same
+   quaternion it will be more efficient to convert the quat
+   into a matrix and do the rotation via matrix multiplication.
+   
+   \pre The quaternion must be a unit quaternion.
+   \param v The vector to rotate.
+   \return Rotated vector v
+ */
+template<class T>
+vec3<T> quat<T>::rotateVec(const vec3<T>& v) const
+{
+  T ww = w*w;
+  T xx = x*x;
+  T yy = y*y;
+  T zz = z*z;
+  T wx = w*x;
+  T wy = w*y;
+  T wz = w*z;
+  T xy = x*y;
+  T xz = x*z;
+  T yz = y*z;
+
+  return vec3<T>(ww*v.x + xx*v.x - yy*v.x - zz*v.x + 2*((xy-wz)*v.y + (xz+wy)*v.z),
+		 ww*v.y - xx*v.y + yy*v.y - zz*v.y + 2*((xy+wz)*v.x + (yz-wx)*v.z),
+		 ww*v.z - xx*v.z - yy*v.z + zz*v.z + 2*((xz-wy)*v.x + (yz+wx)*v.y));
 }
 
 

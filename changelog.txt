@@ -3,14 +3,48 @@ Changelog
 
 Changes from cgkit-2.0.0alpha7 to cgkit-2.0.0alpha8:
 
+New features:
+
 Bug fixes/enhancements:
 
+- BoundingBox: New method center() that returns the center of the box.
+- BoundingBox: getBounds() now accepts an optional direction that controls
+  which corners will get returned.
+- BoundingBox: New method clamp() that clamps a point so that it lies
+  within the bounding box.
+- vec3: The C++ implementation of ortho() is now more stable (now it matches
+  the version in the pure Python implementation)
+- vec3/vec4: Finished and exposed the min(), max(), minIndex(), maxIndex(),
+  minAbs(), maxAbs(), minAbsIndex() and maxAbsIndex() methods.
+- quat: New method rotateVec() to rotate a vector about a unit quaternion.
+- mat3: New static method fromToRotation() to create a rotation matrix that 
+  rotates one vector into another.
+- mat3: identity(), scaling() and rotation() are now static methods, so you
+  don't have to create a temporary instance anymore just to invoke those 
+  methods.
+- mat4: identity(), scaling(), rotation(), frustum(), perspective(), 
+  orthographic() and lookAt() are now static methods, so you don't have
+  to create a temporary instance anymore just to invoke those methods.
+- mat3/mat4/vec3 (light version): The methods taking a vec3 now also
+  accept any other 3-sequence of floats (as the regular version is already
+  doing).
+- quat (light version): Added the "shortest" argument (as done in the
+  previous release with the regular version).
+- Bugfix: The render tool wasn't properly processing facevarying/facevertex
+  variables on meshes (the extractUniform() function didn't take these
+  storage classes into account).
+- mayaascii: The importer was broken because of the previous modification
+  of the simplecpp module. This is fixed now.
 - render.py: The Globals section can now contain a parameter output_framebuffer
   that controls whether a framebuffer display is opened or not.
 - simplecpp: Don't use keyword arguments to pass the compare function to
   sort(). This wasn't supported before Python 2.4.
 - ribexport: All RMLightSource instances were using the same shader as the
   first RM light source that was encountered during export.
+- cmds.load(): When the importer raises an error the original current 
+  directory is restored.
+
+Thanks to Martin Blais for pointing out a lot of the above issues!
 
 ----------------------------------------------------------------------
 Changes from cgkit-2.0.0alpha6 to cgkit-2.0.0alpha7:

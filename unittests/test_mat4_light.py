@@ -1,8 +1,8 @@
 # Test the mat4 class
 
 import unittest
-from cgkit.cgtypes import *
-#from cgkit.light.cgtypes import *
+#from cgkit.cgtypes import *
+from cgkit.light.cgtypes import *
 import math, os, pickle, cPickle, sys
 
 class TestMat4(unittest.TestCase):

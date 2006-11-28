@@ -85,6 +85,54 @@ object decompose(mat3d* self)
   return make_tuple(rot, scale);
 }
 
+// fromEulerXYZ() method (static)
+mat3d fromEulerXYZ(double x, double y, double z)
+{
+  mat3d res;
+  res.setRotationXYZ(x, y, z);
+  return res;
+}
+
+// fromEulerYZX() method (static)
+mat3d fromEulerYZX(double x, double y, double z)
+{
+  mat3d res;
+  res.setRotationYZX(x, y, z);
+  return res;
+}
+
+// fromEulerZXY() method (static)
+mat3d fromEulerZXY(double x, double y, double z)
+{
+  mat3d res;
+  res.setRotationZXY(x, y, z);
+  return res;
+}
+
+// fromEulerXZY() method (static)
+mat3d fromEulerXZY(double x, double y, double z)
+{
+  mat3d res;
+  res.setRotationXZY(x, y, z);
+  return res;
+}
+
+// fromEulerYXZ() method (static)
+mat3d fromEulerYXZ(double x, double y, double z)
+{
+  mat3d res;
+  res.setRotationYXZ(x, y, z);
+  return res;
+}
+
+// fromEulerZYX() method (static)
+mat3d fromEulerZYX(double x, double y, double z)
+{
+  mat3d res;
+  res.setRotationZYX(x, y, z);
+  return res;
+}
+
 // toEulerXYZ() method
 // Returns a tuple (x,y,z)
 object toEulerXYZ(mat3d* self)
@@ -284,12 +332,18 @@ void class_mat3()
     .def("rotate", &mat3d::rotate, return_internal_reference<>(), (arg("angle"), arg("axis")))
     .def("ortho", ortho)
     .def("decompose", &decompose)
-    .def("fromEulerXYZ", &mat3d::setRotationXYZ, return_self<>(), (arg("x"), arg("y"), arg("z")))
-    .def("fromEulerYZX", &mat3d::setRotationYZX, return_self<>(), (arg("x"), arg("y"), arg("z")))
-    .def("fromEulerZXY", &mat3d::setRotationZXY, return_self<>(), (arg("x"), arg("y"), arg("z")))
-    .def("fromEulerXZY", &mat3d::setRotationXZY, return_self<>(), (arg("x"), arg("y"), arg("z")))
-    .def("fromEulerYXZ", &mat3d::setRotationYXZ, return_self<>(), (arg("x"), arg("y"), arg("z")))
-    .def("fromEulerZYX", &mat3d::setRotationZYX, return_self<>(), (arg("x"), arg("y"), arg("z")))
+    .def("fromEulerXYZ", fromEulerXYZ, (arg("x"), arg("y"), arg("z")))
+    .staticmethod("fromEulerXYZ")
+    .def("fromEulerYZX", fromEulerYZX, (arg("x"), arg("y"), arg("z")))
+    .staticmethod("fromEulerYZX")
+    .def("fromEulerZXY", fromEulerZXY, (arg("x"), arg("y"), arg("z")))
+    .staticmethod("fromEulerZXY")
+    .def("fromEulerXZY", fromEulerXZY, (arg("x"), arg("y"), arg("z")))
+    .staticmethod("fromEulerXZY")
+    .def("fromEulerYXZ", fromEulerYXZ, (arg("x"), arg("y"), arg("z")))
+    .staticmethod("fromEulerYXZ")
+    .def("fromEulerZYX", fromEulerZYX, (arg("x"), arg("y"), arg("z")))
+    .staticmethod("fromEulerZYX")
     .def("toEulerXYZ", toEulerXYZ)
     .def("toEulerYZX", toEulerYZX)
     .def("toEulerZXY", toEulerZXY)

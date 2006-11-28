@@ -1649,7 +1649,7 @@ void mat3<T>::getRotationZXY(T& x, T& y, T& z) const
 template<class T> 
 void mat3<T>::getRotationZYX(T& x, T& y, T& z) const
 {
-  T D = -r1.x;
+  T D = -r3.x;
 
   y = asin(D);
 

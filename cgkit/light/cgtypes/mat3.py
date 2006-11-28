@@ -478,8 +478,7 @@ class mat3:
 
         return (dummy, scale)
 
-
-    def fromEulerYXZ(self, x, y, z):
+    def fromEulerYXZ(x, y, z):
         """Initializes self from Euler angles."""
         A = math.cos(x)
         B = math.sin(x)
@@ -492,12 +491,13 @@ class mat3:
         DE = D*E
         DF = D*F
 
-        self.setRow(0, (CE+DF*B, DE*B-CF, A*D))
-        self.setRow(1, (A*F, A*E, -B))
-        self.setRow(2, (CF*B-DE, DF+CE*B, A*C))
-        return self
+        return mat3( CE+DF*B, DE*B-CF, A*D,
+                     A*F, A*E, -B,
+                     CF*B-DE, DF+CE*B, A*C )
 
-    def fromEulerZXY(self, x, y, z):
+    fromEulerYXZ = staticmethod(fromEulerYXZ)
+
+    def fromEulerZXY(x, y, z):
         """Initializes self from Euler angles."""
         A = math.cos(x)
         B = math.sin(x)
@@ -510,12 +510,13 @@ class mat3:
         DE = D*E
         DF = D*F
 
-        self.setRow(0, (CE-DF*B, -A*F, DE+CF*B))
-        self.setRow(1, (CF+DE*B, A*E, DF-CE*B))
-        self.setRow(2, (-A*D, B, A*C))
-        return self
+        return mat3( CE-DF*B, -A*F, DE+CF*B,
+                     CF+DE*B, A*E, DF-CE*B,
+                     -A*D, B, A*C )
 
-    def fromEulerZYX(self, x, y, z):
+    fromEulerZXY = staticmethod(fromEulerZXY)
+
+    def fromEulerZYX(x, y, z):
         """Initializes self from Euler angles."""
         A = math.cos(x)
         B = math.sin(x)
@@ -528,12 +529,13 @@ class mat3:
         BE = B*E
         BF = B*F
 
-        self.setRow(0, (C*E, BE*D-AF, AE*D+BF))
-        self.setRow(1, (C*F, BF*D+AE, AF*D-BE))
-        self.setRow(2, (-D, B*C, A*C))
-        return self
+        return mat3( C*E, BE*D-AF, AE*D+BF,
+                     C*F, BF*D+AE, AF*D-BE,
+                     -D, B*C, A*C )
 
-    def fromEulerYZX(self, x, y, z):
+    fromEulerZYX = staticmethod(fromEulerZYX)
+
+    def fromEulerYZX(x, y, z):
         """Initializes self from Euler angles."""
         A = math.cos(x)
         B = math.sin(x)
@@ -546,12 +548,13 @@ class mat3:
         BC = B*C
         BD = B*D
 
-        self.setRow(0, (C*E, BD-AC*F, BC*F+AD))
-        self.setRow(1, (F, A*E, -B*E))
-        self.setRow(2, (-D*E, AD*F+BC, AC-BD*F))
-        return self
+        return mat3( C*E, BD-AC*F, BC*F+AD,
+                     F, A*E, -B*E,
+                     -D*E, AD*F+BC, AC-BD*F )
 
-    def fromEulerXZY(self, x, y, z):
+    fromEulerYZX = staticmethod(fromEulerYZX)
+
+    def fromEulerXZY(x, y, z):
         """Initializes self from Euler angles."""
         A = math.cos(x)
         B = math.sin(x)
@@ -564,12 +567,13 @@ class mat3:
         BC = B*C
         BD = B*D
 
-        self.setRow(0, (C*E, -F, D*E))
-        self.setRow(1, (AC*F+BD, A*E, AD*F-BC))
-        self.setRow(2, (BC*F-AD, B*E, BD*F+AC))
-        return self
+        return mat3( C*E, -F, D*E,
+                     AC*F+BD, A*E, AD*F-BC,
+                     BC*F-AD, B*E, BD*F+AC )
 
-    def fromEulerXYZ(self, x, y, z):
+    fromEulerXZY = staticmethod(fromEulerXZY)
+
+    def fromEulerXYZ(x, y, z):
         """Initializes self from Euler angles."""
         A = math.cos(x)
         B = math.sin(x)
@@ -582,11 +586,11 @@ class mat3:
         BE = B*E
         BF = B*F
 
-        self.setRow(0, (C*E, -C*F, D))
-        self.setRow(1, (AF+BE*D, AE-BF*D, -B*C))
-        self.setRow(2, (BF-AE*D, BE+AF*D, A*C))
-        return self
+        return mat3( C*E, -C*F, D,
+                     AF+BE*D, AE-BF*D, -B*C,
+                     BF-AE*D, BE+AF*D, A*C )
 
+    fromEulerXYZ = staticmethod(fromEulerXYZ)
 
     def toEulerYXZ(self):
         """Return the Euler angles of a rotation matrix."""
@@ -642,7 +646,7 @@ class mat3:
         r2 = self.getRow(1)
         r3 = self.getRow(2)
         
-        D = -r1.x
+        D = -r3.x
 
         y = math.asin(D)
 

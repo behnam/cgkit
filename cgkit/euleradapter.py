@@ -43,6 +43,7 @@ from component import *
 import slots
 from cgtypes import *
 from math import pi
+import _core
 
 # EulerAdapter
 class EulerAdapter(Component):
@@ -108,7 +109,7 @@ class EulerAdapter(Component):
         # self.fromEuler is the mat3() method that computes the matrix
         # from the euler angles. Which one exactly it is depends on the
         # order
-        exec "self.fromEuler = mat3().fromEuler%s"%order.upper()
+        exec "self.fromEuler = mat3.fromEuler%s"%order.upper()
 
     def protocols(self):
         return [ISceneItem, IComponent]

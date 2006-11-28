@@ -7,6 +7,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- asfamcimport: Updates because the mat3.fromEuler*() methods are now static.
+- euleradapter: Updates because the mat3.fromEuler*() methods are now static.
 - BoundingBox: New method center() that returns the center of the box.
 - BoundingBox: getBounds() now accepts an optional direction that controls
   which corners will get returned.
@@ -19,9 +21,12 @@ Bug fixes/enhancements:
 - quat: New method rotateVec() to rotate a vector about a unit quaternion.
 - mat3: New static method fromToRotation() to create a rotation matrix that 
   rotates one vector into another.
-- mat3: identity(), scaling() and rotation() are now static methods, so you
-  don't have to create a temporary instance anymore just to invoke those 
-  methods.
+- mat3: Bugfix: There was a typo in toEulerZYX() which has led to incorrect
+  results.
+- mat3: identity(), scaling(), rotation() and the fromEuler*() methods are 
+  now static methods, so you don't have to create a temporary instance 
+  anymore just to invoke those methods. Note: fromEuler*() now just returns
+  a rotation matrix but does not initialize self anymore!
 - mat4: identity(), scaling(), rotation(), frustum(), perspective(), 
   orthographic() and lookAt() are now static methods, so you don't have
   to create a temporary instance anymore just to invoke those methods.

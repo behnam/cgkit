@@ -116,8 +116,7 @@ class ASFReader(asfamc.ASFReader):
                           pos = length*dir.normalize(),
                           parent = parent)
                 exec "fromEuler = mat3.fromEuler%s"%axis_order.upper()
-                R = mat3()
-                fromEuler(R, radians(axis.x), radians(axis.y), radians(axis.z))
+                R = fromEuler(radians(axis.x), radians(axis.y), radians(axis.z))
                 j.setOffsetTransform(mat4(1).setMat3(R))
                 j.freezePivot()
                 self.joints[j.name] = j
@@ -231,8 +230,7 @@ class AMCReader(asfamc.AMCReader):
             
             ang = vec3(d["rx"], d["ry"], d["rz"])
             exec "fromEuler = mat3.fromEuler%s"%axis_order.upper()
-            R = mat3()
-            fromEuler(R, radians(ang.x), radians(ang.y), radians(ang.z))
+            R = fromEuler(radians(ang.x), radians(ang.y), radians(ang.z))
             vtabrot.append((t, R))
             
             framenr += 1

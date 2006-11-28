@@ -507,11 +507,9 @@ class vec3:
         >>> print a.angle(b)
         1.99306755584
         """
-        
-        if isinstance(other, vec3):
-            return math.acos((self*other) / (abs(self)*abs(other)))
-        else:
-            raise TypeError, "unsupported operand type for angle()"
+
+        other = vec3(other)
+        return math.acos((self*other) / (abs(self)*abs(other)))
 
     def reflect(self, N):
         """Return the reflection vector.

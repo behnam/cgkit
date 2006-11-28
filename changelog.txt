@@ -25,6 +25,8 @@ Bug fixes/enhancements:
 - mat4: identity(), scaling(), rotation(), frustum(), perspective(), 
   orthographic() and lookAt() are now static methods, so you don't have
   to create a temporary instance anymore just to invoke those methods.
+  (in cgkit light, mat4 was modifying self. This has been changed so that
+  it matches the regular version)
 - mat3/mat4/vec3 (light version): The methods taking a vec3 now also
   accept any other 3-sequence of floats (as the regular version is already
   doing).

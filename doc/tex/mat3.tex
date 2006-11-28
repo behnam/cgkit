@@ -114,7 +114,7 @@ in column-major order. If you set the optional argument \var{rowmajor} to
 \end{methoddesc}
 
 \begin{methoddesc}{identity}{}
-Returns the identity matrix. 
+Returns the identity matrix. This is a static method.
 \end{methoddesc}
 
 \begin{methoddesc}{transpose}{}
@@ -138,11 +138,14 @@ s.x & 0 & 0 \\
 0 & s.y & 0 \\
 0 & 0 & s.z \\
 \end{array} \right) \]
+
+This is a static method.
 \end{methoddesc}
 
 \begin{methoddesc}{rotation}{angle, axis}
 Returns a rotation transformation. The angle must be given in radians,
-\var{axis} has to be a 3-sequence (e.g. a \class{vec3}).
+\var{axis} has to be a 3-sequence (e.g. a \class{vec3}).\\
+This is a static method.
 \end{methoddesc}
 
 \begin{methoddesc}{scale}{s}
@@ -166,33 +169,39 @@ returns a tuple (rotation, scaling). The scaling part is given as a
 \end{methoddesc}
 
 \begin{methoddesc}{fromEulerXYZ}{x, y, z}
-Initializes a rotation matrix from Euler angles. \var{x} is the angle
+Returns a rotation matrix created from Euler angles. \var{x} is the angle
 around the x axis, \var{y} the angle around the y axis and \var{z} the
 angle around the z axis. All angles must be given in radians. The order
 of the individual rotations is X-Y-Z (where each axis refers to the {\em
 local} axis, i.e. the first rotation is about the x axis which rotates
 the Y and Z axis, then the second rotation is about the rotated Y axis 
-and so on).
+and so on).\\
+This is a static method.
 \end{methoddesc}
 
 \begin{methoddesc}{fromEulerYZX}{x, y, z}
 See above. The order is YZX.
+This is a static method.
 \end{methoddesc}
 
 \begin{methoddesc}{fromEulerZXY}{x, y, z}
 See above. The order is ZXY.
+This is a static method.
 \end{methoddesc}
 
 \begin{methoddesc}{fromEulerXZY}{x, y, z}
 See above. The order is XZY.
+This is a static method.
 \end{methoddesc}
 
 \begin{methoddesc}{fromEulerYXZ}{x, y, z}
 See above. The order is YXZ.
+This is a static method.
 \end{methoddesc}
 
 \begin{methoddesc}{fromEulerZYX}{x, y, z}
 See above. The order is ZYX.
+This is a static method.
 \end{methoddesc}
 
 \begin{methoddesc}{toEulerXYZ}{}
@@ -217,4 +226,19 @@ Return the Euler angles of a rotation matrix. The order is YXZ.
 
 \begin{methoddesc}{toEulerZYX}{}
 Return the Euler angles of a rotation matrix. The order is ZYX.
+\end{methoddesc}
+
+\begin{methoddesc}{fromToRotation}{_from, to}
+Returns a rotation matrix that rotates one vector into another.
+The generated rotation matrix will rotate the vector \var{_from} into the
+vector \var{to}. \var{_from} and \var{to} must be unit vectors!
+
+This method is based on the code from:
+
+Tomas M\"oller and John Hughes\\
+{\em Efficiently Building a Matrix to Rotate One Vector to Another}\\
+Journal of Graphics Tools, 4(4):1-4, 1999\\
+\url{http://www.acm.org/jgt/papers/MollerHughes99/}
+
+This is a static method.
 \end{methoddesc}

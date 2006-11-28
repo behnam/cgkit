@@ -21,14 +21,22 @@ Make the bounding box empty.
 Return \code{True} if the bounding box is empty.
 \end{methoddesc}
 
-\begin{methoddesc}{getBounds}{}
+\begin{methoddesc}{getBounds}{[dir]}
 Return the minimum and maximum bound. The bounds are returned as
-\class{vec3} objects.
+\class{vec3} objects. The optional vec3 argument \var{dir} specifies
+which corners are actually returned. When viewed along a ray with
+the given direction the minimum bound always comes before the maximum
+bound.
 \end{methoddesc}
 
 \begin{methoddesc}{setBounds}{b1, b2}
 Set new bounds for the bounding box. The rectangle given
 by \var{b1} and \var{b2} defines the new bounding box.
+\end{methoddesc}
+
+\begin{methoddesc}{center}{}
+Return the center of the bounding box (i.e. 0.5*(bmin+bmax)).
+The null vector is returned if the bounding box is empty.
 \end{methoddesc}
 
 \begin{methoddesc}{addPoint}{p}
@@ -44,4 +52,9 @@ the box.
 Returns a transformed bounding box. The transformation is given by \var{M}
 which must be a \class{mat4}. The result will still be axis aligned, so the
 volume will not be preserved.
+\end{methoddesc}
+
+\begin{methoddesc}{clamp}{p}
+Clamp the point \var{p} so that it lies within the bounding box.
+Each axis is clamped against the corresponding bounding box interval.
 \end{methoddesc}

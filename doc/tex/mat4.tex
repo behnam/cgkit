@@ -121,7 +121,7 @@ If you set the optional argument \var{rowmajor} to
 \end{methoddesc}
 
 \begin{methoddesc}{identity}{}
-Returns the identity matrix. 
+Returns the identity matrix. This is a static method. 
 \end{methoddesc}
 
 \begin{methoddesc}{transpose}{}
@@ -147,6 +147,7 @@ Returns a translation transformation. The translation vector t must be a
 0 & 0 & 0 & 1 
 \end{array} \right) \]
 
+This is a static method. 
 \end{methoddesc}
 
 \begin{methoddesc}{scaling}{s}
@@ -159,11 +160,14 @@ s.x & 0 & 0 & 0\\
 0 & 0 & s.z & 0\\
 0 & 0 & 0 & 1\\
 \end{array} \right) \]
+
+This is a static method. 
 \end{methoddesc}
 
 \begin{methoddesc}{rotation}{angle, axis}
 Returns a rotation transformation. The angle must be given in radians,
-\var{axis} has to be a 3-sequence (e.g. a \class{vec3}).
+\var{axis} has to be a 3-sequence (e.g. a \class{vec3}).\\
+This is a static method. 
 \end{methoddesc}
 
 \begin{methoddesc}{translate}{t}
@@ -184,7 +188,8 @@ must be given in radians, axis has to be a 3-sequence (e.g. a \class{vec3}).
 \begin{methoddesc}{frustum}{left, right, bottom, top, near, far}
 Returns a matrix that represents a perspective depth
 transformation. This method is equivalent to the OpenGL command
-\cfunction{glFrustum()}.
+\cfunction{glFrustum()}.\\
+This is a static method. 
 
 \note{If you want to use this transformation in RenderMan, keep in
 mind that the RenderMan camera is looking in the positive z direction
@@ -195,12 +200,14 @@ whereas the OpenGL camera is looking in the negative direction.}
 Similarly to \method{frustum()} this method returns a perspective
 transformation, the only difference is the meaning of the input
 parameters. The method is equivalent to the OpenGL command
-\cfunction{gluPerspective()}.
+\cfunction{gluPerspective()}.\\
+This is a static method. 
 \end{methoddesc}
 
 \begin{methoddesc}{orthographic}{left, right, bottom, top, near, far}
 Returns a matrix that represents an orthographic transformation. This
-method is equivalent to the OpenGL command \cfunction{glOrtho()}.
+method is equivalent to the OpenGL command \cfunction{glOrtho()}.\\
+This is a static method. 
 \end{methoddesc}
 
 \begin{methoddesc}{lookAt}{pos, target, up=(0,0,1)}
@@ -215,6 +222,8 @@ have to be oriented towards a particular point. Or you can use it to
 position the camera in the virtual world. In this case you have to
 take the inverse of this transformation as viewport transformation (to
 convert world space coordinates into camera space coordinates).
+
+This is a static method. 
 \end{methoddesc}
 
 \begin{methoddesc}{ortho}{}

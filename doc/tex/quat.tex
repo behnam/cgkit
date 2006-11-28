@@ -124,6 +124,13 @@ Returns the exponential of \var{self}. \\
 New in version 1.1.
 \end{methoddesc}
 
+\begin{methoddesc}{rotateVec}{v}
+Return the rotated vector \var{v}. The quaternion must be a unit quaternion.
+This operation is equivalent to turning \var{v} into a quat, computing
+\code{self*v*self.conjugate()} and turning the result back into a vec3.\\
+New in version 2.0.
+\end{methoddesc}
+
 %----------------------------------------
 {\bf Related functions}
 

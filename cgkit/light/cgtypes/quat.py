@@ -483,7 +483,8 @@ class quat:
         This operation is equivalent to turning v into a quat, computing
         self*v*self.conjugate() and turning the result back into a vec3.
         """
-        
+
+        v = _vec3(v)
         ww = self.w*self.w
         xx = self.x*self.x
         yy = self.y*self.y

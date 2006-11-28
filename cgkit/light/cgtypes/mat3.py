@@ -726,7 +726,7 @@ class mat3:
 
         return (x,y,z)
 
-    def fromToRotation(self, _from, to):
+    def fromToRotation(_from, to):
         """Returns a rotation matrix that rotates one vector into another.
 
         The generated rotation matrix will rotate the vector _from into

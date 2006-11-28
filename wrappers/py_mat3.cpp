@@ -296,7 +296,7 @@ void class_mat3()
     .def("toEulerXZY", toEulerXZY)
     .def("toEulerYXZ", toEulerYXZ)
     .def("toEulerZYX", toEulerZYX)
-    .def("fromToRotation", fromToRotation, (arg("from"), arg("to")))
+    .def("fromToRotation", fromToRotation, (arg("_from"), arg("to")))
     .staticmethod("fromToRotation")
     .def_pickle(mat3_pickle_suite())
   ;

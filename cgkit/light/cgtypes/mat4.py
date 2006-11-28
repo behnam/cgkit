@@ -539,9 +539,10 @@ class mat4:
 
     def translation(t):
         """Return translation matrix."""
-        return mat4(1.0, 0.0, 0.0, t.x,
-                    0.0, 1.0, 0.0, t.y,
-                    0.0, 0.0, 1.0, t.z,
+        tx,ty,tz = t
+        return mat4(1.0, 0.0, 0.0, tx,
+                    0.0, 1.0, 0.0, ty,
+                    0.0, 0.0, 1.0, tz,
                     0.0, 0.0, 0.0, 1.0)
     translation = staticmethod(translation)
 
@@ -645,7 +646,7 @@ class mat4:
         left   = bottom * aspect
         right  = top * aspect
 
-        return self.frustum(left, right, bottom, top, near, far)
+        return mat4.frustum(left, right, bottom, top, near, far)
     perspective = staticmethod(perspective)
 
     def orthographic(left, right, bottom, top, near, far):
@@ -657,7 +658,7 @@ class mat4:
         
         r_l = float(right-left)
         t_b = float(top-bottom)
-        f_n = float(farval-nearval)
+        f_n = float(far-near)
   
         if r_l<=_epsilon:
             raise ValueError, "right-value must be greater than left-value";
@@ -668,7 +669,7 @@ class mat4:
 
         return mat4(2.0/r_l, 0.0, 0.0, -(right+left)/r_l,
                     0.0, 2.0/t_b, 0.0, -(top+bottom)/t_b,
-                    0.0, 0.0, -2.0/f_n, -(farval+nearval)/f_n,
+                    0.0, 0.0, -2.0/f_n, -(far+near)/f_n,
                     0.0, 0.0, 0.0, 1.0)
     orthographic = staticmethod(orthographic)
 
@@ -676,7 +677,7 @@ class mat4:
         """Look from pos to target.
 
         The resulting transformation moves the origin to pos and
-        rotates so that The z-axis points to target. The y-axis is
+        rotates so that the z-axis points to target. The y-axis is
         as close as possible to the up vector.
         """
         pos = _vec3(pos)
@@ -695,11 +696,10 @@ class mat4:
 
         right = up.cross(dir).normalize()
 
-        self.mlist=[right.x, up.x, dir.x, pos.x,
+        return mat4(right.x, up.x, dir.x, pos.x,
                     right.y, up.y, dir.y, pos.y,
                     right.z, up.z, dir.z, pos.z,
-                    0.0, 0.0, 0.0, 1.0]
-        return self
+                    0.0, 0.0, 0.0, 1.0)
     lookAt = staticmethod(lookAt)
 
     def ortho(self):

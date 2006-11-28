@@ -277,6 +277,21 @@ class TestQuat(unittest.TestCase):
         self.assertEqual(squad(0.5,a,b,c,d), sq)
 
     ######################################################################
+    def testRotateVec(self):
+        """Test quat.rotateVec()
+        """
+        s = math.sqrt(2)/2.0
+        q = quat(0.25*math.pi, (1,0,0))
+        v = vec3(0,1,0)
+        self.assertEqual(q.rotateVec(v), vec3(0,s,s))
+
+        m = mat3.rotation(0.25*math.pi, (1,0,0))
+        self.assertEqual(q.rotateVec(tuple(v)), m*v)
+
+        m = q.toMat3()
+        self.assertEqual(q.rotateVec(v), m*v)
+
+    ######################################################################
     def testPickle(self):
         fname = "delme_pickle.dat"
         

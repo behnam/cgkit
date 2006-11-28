@@ -479,12 +479,28 @@ class TestMat4(unittest.TestCase):
             pass
 
     ######################################################################
+    def testTranslation(self):
+        M = mat4().translation(vec3(1,2,3))
+        self.assertEqual(M, mat4(1,0,0,1, 0,1,0,2, 0,0,1,3, 0,0,0,1))
+
+        M = mat4.translation((1,2,3))
+        self.assertEqual(M, mat4(1,0,0,1, 0,1,0,2, 0,0,1,3, 0,0,0,1))
+
+    ######################################################################
     def testTranslate(self):
         M = mat4(1).translate(vec3(1,2,3))
         self.assertEqual(M, mat4(1,0,0,1, 0,1,0,2, 0,0,1,3, 0,0,0,1))
 
         M = mat4(1).translate((1,2,3))
         self.assertEqual(M, mat4(1,0,0,1, 0,1,0,2, 0,0,1,3, 0,0,0,1))
+
+    ######################################################################
+    def testScaling(self):
+        M = mat4().scaling(vec3(2,3,-2))
+        self.assertEqual(M, mat4(2,0,0,0, 0,3,0,0, 0,0,-2,0, 0,0,0,1))
+
+        M = mat4.scaling((2,3,-2))
+        self.assertEqual(M, mat4(2,0,0,0, 0,3,0,0, 0,0,-2,0, 0,0,0,1))
 
     ######################################################################
     def testScale(self):
@@ -495,13 +511,20 @@ class TestMat4(unittest.TestCase):
         self.assertEqual(M, mat4(2,0,0,0, 0,3,0,0, 0,0,-2,0, 0,0,0,1))
 
     ######################################################################
+    def testRotation(self):
+        M = mat4().rotation(math.pi/2, vec3(0,0,1))
+        self.assertEqual(M, mat4(0,-1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,1))
+
+        M = mat4.rotation(math.pi/2, (0,0,1))
+        self.assertEqual(M, mat4(0,-1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,1))
+
+    ######################################################################
     def testRotate(self):
         M = mat4(1).rotate(math.pi/2, vec3(0,0,1))
         self.assertEqual(M, mat4(0,-1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,1))
 
         M = mat4(1).rotate(math.pi/2, (0,0,1))
         self.assertEqual(M, mat4(0,-1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,1))
-
 
     ######################################################################
     def testOrtho(self):
@@ -514,6 +537,42 @@ class TestMat4(unittest.TestCase):
         a = vec3(b1*b2, b2*b3, b1*b3)
         self.failUnless(a==vec3(0,0,0),
                         "mat4 ortho falsch")
+
+    ######################################################################
+    def testFrustum(self):
+        M = mat4().frustum(-1,1,-1,1,-1,1)
+        self.assertEqual(M, mat4(-1,0,0,0, 0,-1,0,0, 0,0,0,1, 0,0,-1,0))
+
+        M = mat4.frustum(-1,1,-1,1,-1,1)
+        self.assertEqual(M, mat4(-1,0,0,0, 0,-1,0,0, 0,0,0,1, 0,0,-1,0))
+
+    ######################################################################
+    def testPerspective(self):
+        eps = setEpsilon(1E-10)
+
+        M = mat4().perspective(45, 1.333, -1, 1)
+        self.assertEqual(M, mat4(1.81111295002,0,0,0, 0,2.41421356237,0,0, 0,0,0,1, 0,0,-1,0))
+
+        M = mat4.perspective(45, 1.333, -1, 1)
+        self.assertEqual(M, mat4(1.81111295002,0,0,0, 0,2.41421356237,0,0, 0,0,0,1, 0,0,-1,0))
+
+        setEpsilon(eps)
+
+    ######################################################################
+    def testOrthographic(self):
+        M = mat4().orthographic(-1,1,-1,1,-1,1)
+        self.assertEqual(M, mat4(1,0,0,0, 0,1,0,0, 0,0,-1,0, 0,0,0,1))
+
+        M = mat4.orthographic(-1,1,-1,1,-1,1)
+        self.assertEqual(M, mat4(1,0,0,0, 0,1,0,0, 0,0,-1,0, 0,0,0,1))
+
+    ######################################################################
+    def testLookAt(self):
+        M = mat4().lookAt(vec3(1,2,3), vec3(1,2,3+1), up=vec3(0,1,0))
+        self.assertEqual(M, mat4(1,0,0,1, 0,1,0,2, 0,0,1,3, 0,0,0,1))
+
+        M = mat4.lookAt((1,2,3), (1,2,3+1), (0,1,0))
+        self.assertEqual(M, mat4(1,0,0,1, 0,1,0,2, 0,0,1,3, 0,0,0,1))
 
     ######################################################################
     def testDecompose(self):

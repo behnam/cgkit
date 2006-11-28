@@ -386,6 +386,38 @@ class TestVec4(unittest.TestCase):
             pass
 
     ######################################################################
+    def testMinMax(self):
+        a = vec4(1,-2,0.5,0.6)
+        self.assertEqual(a.min(), -2)
+        self.assertEqual(a.max(), 1)
+        self.assertEqual(a.minIndex(), 1)
+        self.assertEqual(a.maxIndex(), 0)
+        self.assertEqual(a.minAbs(), 0.5)
+        self.assertEqual(a.maxAbs(), 2)
+        self.assertEqual(a.minAbsIndex(), 2)
+        self.assertEqual(a.maxAbsIndex(), 1)
+
+        a = vec4(0.6,1,-2,0.5)
+        self.assertEqual(a.min(), -2)
+        self.assertEqual(a.max(), 1)
+        self.assertEqual(a.minIndex(), 2)
+        self.assertEqual(a.maxIndex(), 1)
+        self.assertEqual(a.minAbs(), 0.5)
+        self.assertEqual(a.maxAbs(), 2)
+        self.assertEqual(a.minAbsIndex(), 3)
+        self.assertEqual(a.maxAbsIndex(), 2)
+
+        a = vec4(0.5,0.6,1,-2)
+        self.assertEqual(a.min(), -2)
+        self.assertEqual(a.max(), 1)
+        self.assertEqual(a.minIndex(), 3)
+        self.assertEqual(a.maxIndex(), 2)
+        self.assertEqual(a.minAbs(), 0.5)
+        self.assertEqual(a.maxAbs(), 2)
+        self.assertEqual(a.minAbsIndex(), 0)
+        self.assertEqual(a.maxAbsIndex(), 3)
+
+    ######################################################################
     def testPickle(self):
         fname = "delme_pickle.dat"
         

@@ -374,16 +374,13 @@ class TestVec3(unittest.TestCase):
         b = vec3(2,0,0)
 
         c = a.angle(b)
-        self.failUnless(c==math.pi/2,
-                        "falsches angle() (1): %s"%str(c))
+        self.assertEqual(c, math.pi/2)
 
-        c = b.angle(a)
-        self.failUnless(c==math.pi/2,
-                        "falsches angle() (2): %s"%str(c))
+        c = b.angle(tuple(a))
+        self.assertEqual(c, math.pi/2)
 
         c = a.angle(a)
-        self.failUnless(c==0.0,
-                        "falsches angle() (3): %s"%str(c))
+        self.assertEqual(c, 0.0)
 
         a = vec3(1,0,0)
         b = vec3(1,1,0)
@@ -406,8 +403,10 @@ class TestVec3(unittest.TestCase):
         n = vec3(0,1,0)
 
         c = a.reflect(n)
-        self.failUnless(c==vec3(1,1,0),
-                        "falsches reflect(): %s"%str(c))
+        self.assertEqual(c, vec3(1,1,0))
+
+        c = a.reflect((0,1,0))
+        self.assertEqual(c, vec3(1,1,0))
 
     ######################################################################
     def testRefract(self):
@@ -415,8 +414,10 @@ class TestVec3(unittest.TestCase):
         n = vec3(0,1,0)
 
         c = a.refract(n,1.5)
-        self.failUnless(c==vec3(1.5,-1,0),
-                        "falsches refract(): %s"%str(c))
+        self.assertEqual(c, vec3(1.5,-1,0))
+
+        c = a.refract((0,1,0),1.5)
+        self.assertEqual(c, vec3(1.5,-1,0))
 
     ######################################################################
     def testOrtho(self):
@@ -425,6 +426,39 @@ class TestVec3(unittest.TestCase):
         c = a.ortho()
         self.failUnless(a*c==0.0,
                         "falsches ortho(): %s"%str(c))
+
+    ######################################################################
+    def testMinMax(self):
+        a = vec3(1,-2,0.5)
+        self.assertEqual(a.min(), -2)
+        self.assertEqual(a.max(), 1)
+        self.assertEqual(a.minIndex(), 1)
+        self.assertEqual(a.maxIndex(), 0)
+        self.assertEqual(a.minAbs(), 0.5)
+        self.assertEqual(a.maxAbs(), 2)
+        self.assertEqual(a.minAbsIndex(), 2)
+        self.assertEqual(a.maxAbsIndex(), 1)
+
+        a = vec3(0.5,1,-2)
+        self.assertEqual(a.min(), -2)
+        self.assertEqual(a.max(), 1)
+        self.assertEqual(a.minIndex(), 2)
+        self.assertEqual(a.maxIndex(), 1)
+        self.assertEqual(a.minAbs(), 0.5)
+        self.assertEqual(a.maxAbs(), 2)
+        self.assertEqual(a.minAbsIndex(), 0)
+        self.assertEqual(a.maxAbsIndex(), 2)
+
+        a = vec3(-2,0.5,1)
+        self.assertEqual(a.min(), -2)
+        self.assertEqual(a.max(), 1)
+        self.assertEqual(a.minIndex(), 0)
+        self.assertEqual(a.maxIndex(), 2)
+        self.assertEqual(a.minAbs(), 0.5)
+        self.assertEqual(a.maxAbs(), 2)
+        self.assertEqual(a.minAbsIndex(), 1)
+        self.assertEqual(a.maxAbsIndex(), 0)
+
 
     ######################################################################
     def testPickle(self):

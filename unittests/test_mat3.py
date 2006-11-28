@@ -441,6 +441,16 @@ class TestMat3(unittest.TestCase):
         except ZeroDivisionError:
             pass
 
+    ######################################################################
+    def testScaling(self):
+        M = mat3().scaling(vec3(2,3,-2))
+        self.assertEqual(M, mat3(2,0,0, 0,3,0, 0,0,-2))
+
+        M = mat3.scaling(vec3(2,3,-2))
+        self.assertEqual(M, mat3(2,0,0, 0,3,0, 0,0,-2))
+
+        M = mat3.scaling((2,3,-2))
+        self.assertEqual(M, mat3(2,0,0, 0,3,0, 0,0,-2))
 
     ######################################################################
     def testScale(self):
@@ -451,13 +461,20 @@ class TestMat3(unittest.TestCase):
         self.assertEqual(M, mat3(2,0,0, 0,3,0, 0,0,-2))
 
     ######################################################################
+    def testRotation(self):
+        M = mat3().rotation(math.pi/2, vec3(0,0,1))
+        self.assertEqual(M, mat3(0,-1,0, 1,0,0, 0,0,1))
+
+        M = mat3.rotation(math.pi/2, (0,0,1))
+        self.assertEqual(M, mat3(0,-1,0, 1,0,0, 0,0,1))
+
+    ######################################################################
     def testRotate(self):
         M = mat3(1).rotate(math.pi/2, vec3(0,0,1))
         self.assertEqual(M, mat3(0,-1,0, 1,0,0, 0,0,1))
 
         M = mat3(1).rotate(math.pi/2, (0,0,1))
         self.assertEqual(M, mat3(0,-1,0, 1,0,0, 0,0,1))
-
 
     ######################################################################
     def testOrtho(self):
@@ -484,6 +501,28 @@ class TestMat3(unittest.TestCase):
         N=N*R
         N=N.scale(s)
         self.failUnless(N==M, "mat3 decompose: Ergebnis falsch")
+
+    ######################################################################
+    def testFromToRotation(self):
+        R = mat3.fromToRotation((1,0,0), (0,1,0))
+        self.assertEqual(R.determinant(), 1.0)
+        self.assertEqual(R, mat3(0,-1,0, 1,0,0, 0,0,1))
+
+        R = mat3.fromToRotation(vec3(1,0,0), vec3(0,1,0))
+        self.assertEqual(R.determinant(), 1.0)
+        self.assertEqual(R, mat3(0,-1,0, 1,0,0, 0,0,1))
+
+        a = vec3(1,1,0).normalize()
+        b = vec3(-1,0.5,2).normalize()
+        R = mat3.fromToRotation(a, b)
+        self.assertAlmostEqual(R.determinant(), 1.0, 8)
+        self.assertEqual(R*a, b)
+
+        a = vec3(1,1,0).normalize()
+        b = vec3(1,1,0.000001).normalize()
+        R = mat3.fromToRotation(a, b)
+        self.assertAlmostEqual(R.determinant(), 1.0, 8)
+        self.assertEqual(R*a, b)
 
     ######################################################################
     def testPickle(self):

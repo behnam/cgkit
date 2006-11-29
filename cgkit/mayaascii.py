@@ -34,7 +34,7 @@
 # ***** END LICENSE BLOCK *****
 # $Id: mayaascii.py,v 1.10 2005/06/15 19:18:46 mbaas Exp $
 
-import simplecpp
+import sys, simplecpp
 
 # The keywords that may be used for the value True
 _true_keywords = ["true", "on", "yes"]
@@ -156,6 +156,11 @@ class NurbsSurface:
 # Attribute
 class Attribute:
     """This class stores an attribute (i.e. the name and its value).
+
+    An Attribute object is initialized with the arguments that were passed
+    to the onSetAttr() callback of the reader class. The main purpose
+    of an Attribute object is to convert the value into an appropriate
+    Python value.
     """
     
     def __init__(self, attr, vals, opts):
@@ -223,7 +228,13 @@ class Attribute:
         # Convert the values..
         convertername = "convert"+type[0].upper()+type[1:]
         f = getattr(self, convertername)
-        vs = f()
+        try:
+            vs = f()
+        except ValueError, e:
+            print >>sys.stderr, e
+            # Try a string conversion when no type was specified...
+            if type==None and convertername!="convertString":
+                vs = self.convertString()
         if n==None:
             return vs
         if len(vs)!=n:
@@ -672,6 +683,39 @@ class Node:
 # MAReader
 class MAReader:
     """Low level MA (Maya ASCII) reader.
+
+    The MAReader class reads Maya ASCII files and calls handler
+    methods which have to be implemented in a derived class. The
+    content of the file is actually a subset of the Maya Embedded
+    Language (MEL) which is the scripting language implemented inside
+    Maya. The MAReader parses the file, breaks down the content of the
+    file in commands and their arguments and options (expressions are
+    not evaluated). Each MEL command will then trigger a callback
+    method that has to execute the command. These callback methods
+    have to be implemented in a derived class.
+
+    There are 11 MEL commands that can appear in a Maya ASCII file: 
+
+    - file 
+    - requires 
+    - fileInfo 
+    - currentUnit 
+    - createNode 
+    - setAttr 
+    - addAttr 
+    - connectAttr 
+    - disconnectAttr 
+    - parent 
+    - select
+
+    Each command has a number of arguments and can also take
+    options. The callback methods receive the arguments as regular
+    arguments to the method and the options as an additional argument
+    opts which is a dictionary containing the options that were
+    specified in the file. The key is the long name of the option
+    (without leading dash) and the value is a list of strings
+    containing the option values. The number of values and how they
+    have to be interpreted depend on the actual option.
     """
     
     def __init__(self):
@@ -832,14 +876,18 @@ class MAReader:
 
 
     def read(self, f):
-        """Read a MA file.
+        """Read a MA file and invoke the callbacks.
 
-        f is a file like object.
+        f is a file-like object.
         """
         self.begin()
+        self._filename = getattr(f, "name", "?")
         self._linenr = 0
+        # A flag that indicates if a new MEL command is about to begin
         self.new_cmd = True
+        # The name of the current MEL command
         self.cmd = None
+        # The arguments of the current MEL command
         self.args = None
 
         cpp = MAPreProcessor(self.lineHandler)
@@ -858,52 +906,65 @@ class MAReader:
         
 
     def begin(self):
+        """Callback that is invoked before the file is read."""
         pass
 
     def end(self):
+        """Callback that is invoked after the file was read."""
         pass
 
     def onFile(self, filename, opts):
+        """Callback for the 'file' MEL command."""
         pass
 #        print "file", filename, opts
 
     def onRequires(self, product, version):
+        """Callback for the 'requires' MEL command."""
         pass
 #        print "requires",product, version
 
     def onFileInfo(self, keyword, value, opts):
+        """Callback for the 'fileInfo' MEL command."""
         pass
 #        print "fileInfo",keyword, value
 
     def onCurrentUnit(self, opts):
+        """Callback for the 'currentUnit' MEL command."""
         pass
 #        print "currentUnit",opts
 
     def onCreateNode(self, nodetype, opts):
+        """Callback for the 'createNode' MEL command."""
         pass
 #        print "createNode", nodetype, opts
 
     def onSetAttr(self, attr, vals, opts):
+        """Callback for the 'setAttr' MEL command."""
         pass
 #        print "setAttr %s = %s %s"%(attr, vals, opts)
 
     def onConnectAttr(self, srcattr, dstattr, opts):
+        """Callback for the 'connectAttr' MEL command."""
         pass
 #        print "connectAttr %s %s %s"%(srcattr, dstattr, opts)
 
     def onDisconnectAttr(self, srcattr, dstattr, opts):
+        """Callback for the 'disconnectAttr' MEL command."""
         pass
 #        print "disconnectAttr %s %s %s"%(srcattr, dstattr, opts)
 
     def onAddAttr(self, opts):
+        """Callback for the 'addAttr' MEL command."""
         pass
 #        print "addAttr", opts
 
     def onParent(self, objects, parent, opts):
+        """Callback for the 'parent' MEL command."""
         pass
 #        print "parent",objects,parent,opts
 
     def onSelect(self, objects, opts):
+        """Callback for the 'select' MEL command."""
         pass
 #        print "select",objects,opts
 
@@ -911,6 +972,8 @@ class MAReader:
     # onCommand
     def onCommand(self, cmd, args):
         """Generic command callback.
+
+        This callback invokes the "per command" callbacks.
         """
 #        print "**",cmd, args
         # setAttr
@@ -977,6 +1040,9 @@ class MAReader:
                                      self.file_opt_def,
                                      self.file_name_dict)
             self.onFile(args[0], opts)
+        # unknown
+        else:
+            print >>sys.stderr, "WARNING: %s, line %d: Unknown MEL command: '%s'"%(self._filename, self._linenr, cmd)
 
 
     # getOpt
@@ -1022,18 +1088,20 @@ class MAReader:
 
         return args, opts
 
-            
-
     # processCommands
     def processCommands(self, s):
         """Process one or more commands.
 
         s is a string that contains one line of MEL code (may be several
-        commands). This method splits the arguments and calls onCommand()
+        commands or only a partial command that is continued in the next
+        line). This method splits the arguments and calls onCommand()
         for every command found.
         """
+        # Split the command into tokens...
         a,n = self.splitCommand(s)
         if a!=[]:
+            # Does a new command begin? then set the command name
+            # and the args, otherwise just append to the existing args
             if self.new_cmd:
                 self.cmd = a[0]
                 self.args = a[1:]
@@ -1046,7 +1114,8 @@ class MAReader:
                 self.new_cmd = False
         else:
             # The command is finished, so execute it
-            self.onCommand(self.cmd, self.args)
+            if self.cmd!=None:
+                self.onCommand(self.cmd, self.args)
             self.new_cmd = True
             self.cmd = None
             self.args = []
@@ -1056,11 +1125,26 @@ class MAReader:
     def splitCommand(self, s):
         """Split a command into its arguments.
 
-        Returns a list of string and the position of the ';' (or -1).
+        This is an extended version of the string split() method. It
+        splits (using whitespace as separator) but takes quoted strings
+        and ';' into account.
+        Returns a list of strings and the position of the ';'
+        that terminated the first command (or -1).
+        The quotes around strings are removed.
+
+        'setAttr -k off ".v";' -> (["setAttr", "-k", "off", ".v"], 19)
         """
+        # Search for a quoted string
         b,e = self.findString(s)
+        # Search for the first semicolon (which might be the true command
+        # separator or not)
+        n = s.find(";")
+        # Was a semicolon before the first string? Then the string belongs
+        # to a subsequent command, so ignore it for now
+        if n!=-1 and n<b:
+            b = e = None
+        # No string found?
         if b==None:
-            n = s.find(";")
             if n==-1:
                 return s.split(), -1
             else:
@@ -1071,7 +1155,7 @@ class MAReader:
             else:
                 s2,n = self.splitCommand(s[e+1:])
                 if n!=-1:
-                    n+=e+1
+                    n += e+1
                 return s[:b].split() + [s[b+1:e]] + s2, n
 
     # findString
@@ -1080,6 +1164,11 @@ class MAReader:
 
         The return value is a 2-tuple (begin, end) with the indices
         of the opening and closing apostrophes (can also be None).
+
+        'foo'             -> (None, None)
+        'a="foo"'         -> (2, 6)
+        'a="foo'          -> (2, None)
+        'a="foo \" spam"' -> (2,14)
         """
         offset = 0
         while 1:

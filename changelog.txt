@@ -7,6 +7,11 @@ New features:
 
 Bug fixes/enhancements:
 
+- mayaascii: When several MEL commands were in the same line it could happen
+  that they were not properly distinguished. Added some more doc-strings and
+  issue a warning when an unknown MEL command is encountered. 
+  When no type information was passed to Attribute.getValue() it falls
+  back to string conversion when the initially guessed type this fail.
 - asfamcimport: Updates because the mat3.fromEuler*() methods are now static.
 - euleradapter: Updates because the mat3.fromEuler*() methods are now static.
 - BoundingBox: New method center() that returns the center of the box.

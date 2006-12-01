@@ -34,7 +34,7 @@
 # ***** END LICENSE BLOCK *****
 # $Id: mayaascii.py,v 1.10 2005/06/15 19:18:46 mbaas Exp $
 
-import sys, simplecpp
+import sys, types, simplecpp
 
 # The keywords that may be used for the value True
 _true_keywords = ["true", "on", "yes"]
@@ -171,6 +171,12 @@ class Attribute:
         self._attr = attr
         self._vals = vals
         self._opts = opts
+
+    def __str__(self):
+        val = str(self._vals)
+        if len(val)>10:
+            val = val[:10]+"..."
+        return "<Attribute %s %s %s>"%(self._attr, val, self._opts)
 
     # getBaseName
     def getBaseName(self):
@@ -497,12 +503,37 @@ class MultiAttrStorage:
 
 # Node
 class Node:
-    """Node.
+    """A generic Maya node class.
+
+    This is a helper class which may be used in a concrete implementation
+    of the MAReader class to represent Maya nodes.
+
+    This class does not implement the actual functionality of a
+    particular Maya node, it just tracks attribute changes and
+    connections which can later be retrieved once the entire file was
+    read. So this class can be used for all Maya nodes in a file. 
     """
+    
     def __init__(self, nodetype, opts):
+        """Constructor.
+
+        nodetype and opts are the arguments of the onCreateNode()
+        callback of the MAReader class.
+        """
+
+        # Do some type checking...
+        if not isinstance(nodetype, types.StringTypes):
+            raise ValueError, "Argument 'nodetype' must be a string."
+        if type(opts)!=dict:
+            raise ValueError, "Argument 'opts' must be a dict."
+
+        # A string containing the node type
         self.nodetype = nodetype
+        # The options dictionary
         self.opts = opts
-        # Attribute values. Key: base name / Value: List of Attribute objects
+        
+        # Attribute values.
+        # Key: Attribute base name / Value: List of Attribute objects
         self._setattr = {}
 
         # If True, accessing attributes will automatically create a new
@@ -522,8 +553,8 @@ class Node:
         raise AttributeError, name
 
     # getName
-    def getName(self):
-        """Return the node name or None.
+    def getName(self, default=None):
+        """Return the node name or the provided default value.
         """
         return self.opts.get("name", [None])[0]
 
@@ -533,13 +564,14 @@ class Node:
         """
         return self.opts.get("parent", [None])[0]
 
-
     # setAttr
     def setAttr(self, attr, vals, opts):
         """Store the attribute value.
 
         The arguments are the same than the arguments of the onSetAttr()
-        callback.
+        callback in the MAReader class.
+        The final Python value can be retrieved with the getAttrValue()
+        method.
         """
         # Is this setattr call only used to "declare" the size of an array?
         # then ignore the call
@@ -558,13 +590,14 @@ class Node:
         pass
 
     # addInConnection
-    def addInConnection(self, localattr, node, attr):
+    def addInConnection(self, localattr, nodename, attrname):
         """Add an 'in' connection.
 
         'in' = node.attr is connected to localattr
-        node is a Node object and attr the full attribute name.
+        nodename is the name of a Node object and attrname the full
+        attribute name.
         """
-        self.in_connections[localattr] = (node, attr)
+        self.in_connections[localattr] = (nodename, attrname)
 
     # addutConnection
     def addOutConnection(self, localattr, node, nodename, attrname):
@@ -574,6 +607,8 @@ class Node:
         node is a Node object, nodename the name of the node and attrname
         the full attribute name.
         """
+        if not isinstance(node, Node):
+            raise ValueError, "Argument 'node' must be a Node instance."
         if self.out_connections.has_key(localattr):
             self.out_connections[localattr].append((node, nodename, attrname))
         else:
@@ -590,9 +625,19 @@ class Node:
         The return value is either a normal Python type (int, float, sequence)
         or a MultiAttrStorage object in cases where the setAttr command
         contained the index operator.
+        When no attribute with the given long or short name could be
+        found the provided default value is returned.
+
+        This method will only return a value other than the default
+        value when the \method{setAttr()} was called with the corresponding
+        attribute.
         """
+        # 'Execute' the stored setAttr commands for the long name and
+        # the short name. This will store the value as an attribute
+        # of self.
         self._executeAttrs(lname, type, n)
         self._executeAttrs(sname, type, n)
+        # Check if the long name is available, otherwise try the short name...
         if hasattr(self, lname):
             return getattr(self, lname)
         return getattr(self, sname, default)
@@ -626,17 +671,18 @@ class Node:
     def getOutAttr(self, localattr_long, localattr_short, dstnodetype):
         """Check if a local attribute is connected to a particular type of node.
 
-        Returns a tuple (node, attrname) where node is the NodeData object
+        Returns a tuple (node, attrname) where node is the Node object
         of the destination node and attrname the name of the destination
         attribute. If there is no connection with a node of type dstnodetype,
         the method returns (None,None).
+        If the attribute is connected to more than one node with the
+        given type or to several attributes of the same node then only
+        the first connection encountered is returned.
         """
-        cs = self.out_connections.get(localattr_long, None)
-        if cs==None:
-            cs = self.out_connections.get(localattr_short, None)
-            if cs==None:
-                return None,None
-            
+        cs = self.getOutNodes(localattr_long, localattr_short)
+
+        # Search the connections for one that goes to a node with
+        # the specified type...
         for node,nodename,attrname in cs:
             if node.nodetype==dstnodetype:
                 return node, attrname
@@ -878,11 +924,11 @@ class MAReader:
     def read(self, f):
         """Read a MA file and invoke the callbacks.
 
-        f is a file-like object.
+        f is a file-like object or the name of a file.
         """
         self.begin()
-        self._filename = getattr(f, "name", "?")
-        self._linenr = 0
+        self.filename = getattr(f, "name", "?")
+        self.linenr = 0
         # A flag that indicates if a new MEL command is about to begin
         self.new_cmd = True
         # The name of the current MEL command
@@ -899,7 +945,7 @@ class MAReader:
         self.end()
 
     def lineHandler(self, s):
-        self._linenr += 1
+        self.linenr += 1
         z = s.strip()
         if z!="":
             self.processCommands(z)
@@ -1042,7 +1088,7 @@ class MAReader:
             self.onFile(args[0], opts)
         # unknown
         else:
-            print >>sys.stderr, "WARNING: %s, line %d: Unknown MEL command: '%s'"%(self._filename, self._linenr, cmd)
+            print >>sys.stderr, "WARNING: %s, line %d: Unknown MEL command: '%s'"%(self.filename, self.linenr, cmd)
 
 
     # getOpt
@@ -1078,7 +1124,7 @@ class MAReader:
                 optname = name_dict.get(a[1:], a[1:])
                 # Check if the option is known
                 if optname not in opt_def:
-                    raise SyntaxError, "Unknown option in line %d: %s"%(self._linenr, optname)
+                    raise SyntaxError, "Unknown option in line %d: %s"%(self.linenr, optname)
                 # Get the number of arguments
                 numargs, filter = opt_def[optname]
                 opts[optname] = arglist[i:i+numargs]
@@ -1170,6 +1216,7 @@ class MAReader:
         'a="foo'          -> (2, None)
         'a="foo \" spam"' -> (2,14)
         """
+        #'
         offset = 0
         while 1:
             # Search the beginning of a string
@@ -1187,4 +1234,82 @@ class MAReader:
                     return n1,n2
                 else:
                     start = n2+1
+
+# DefaultMAReader
+class DefaultMAReader(MAReader):
+    """Default MA reader implementation.
+    """
+
+    def read(self, f):
+        # A dict with imported Node objects
+        # Key: Node name / Value: Node object
+        self.nodes = {}
+        # A list with all Node objects
+        self.nodelist = []
+        
+        # The currently active Node
+        # (changes with every createNode or select command)
+        self.currentnode = None
+
+        MAReader.read(self, f)
+
+    def onCreateNode(self, nodetype, opts):
+        """Create a new node and make it current.
+        """
+        node = Node(nodetype, opts)
+        # The constant default name will override a previous node
+        # without name. But this doesn't matter as the node cannot
+        # be addressed by name in the file anyway.
+        nodename = node.getName("MayaNode")
+        self.nodes[nodename] = node
+        self.nodelist.append(node)
+        self.currentnode = node
+
+    def onSelect(self, objects, opts):
+        """dummy implementation"""
+        print >>sys.stderr, "mayaascii: Warning: DefaultMAReader.onSelect() is not yet implemented!"
+        self.currentnode = None
+
+    def onSetAttr(self, attr, vals, opts):
+        """Set an attribute."""
+        if self.currentnode==None:
+            return
+
+        if attr[0]!=".":
+            print >>sys.stderr, "mayaascii: Warning: DefaultMAReader.onSetAttr(): The attribute refers to a different object than the current object. This is not yet supported."
+
+        self.currentnode.setAttr(attr, vals, opts)
+
+    def onAddAttr(self, opts):
+        """Add a dynamic attribute."""
+        if self.currentnode==None:
+            return
+
+        self.currentnode.addAttr(opts)
+
+    def onConnectAttr(self, srcattr, dstattr, opts):
+        """Make a connection.
+        """
+
+        # Split into object name and attribute name
+        a = srcattr.split(".")
+        snode = a[0]
+        sattr = a[1]
+        b = dstattr.split(".")
+        dnode = b[0]
+        dattr = b[1]
+        
+        sn = self.nodes.get(snode, None)
+        dn = self.nodes.get(dnode, None)
+        if sn!=None:
+            if dn==None:
+                print >>sys.stderr, 'WARNING: %s, %d: connectAttr "%s" "%s"'%(self.filename, self.linenr, srcattr, dstattr)
+                print >>sys.stderr, ' Node "%s" not found. The connection is ignored.'%dnode
+            else:
+                sn.addOutConnection(sattr, dn, dnode, dattr)
+        if dn!=None:
+            dn.addInConnection(dattr, snode, sattr)
+            
+
+
 

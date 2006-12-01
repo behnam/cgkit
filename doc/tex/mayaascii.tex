@@ -58,9 +58,19 @@ actual option.
   Creates an instance of the reader.
 \end{classdesc}
 
+\begin{memberdesc}{filename}
+The file name (if it could be obtained). This may be used for generating
+warning or error messages.
+\end{memberdesc}
+
+\begin{memberdesc}{linenr}
+The current line number. This may be used for generating warning or error
+messages.
+\end{memberdesc}
+
 \begin{methoddesc}{read}{f}
-Read the content of a file. \var{f} must be a file like object that
-can be used to read the content of the file.
+Read the content of a file. \var{f} is either a file like object that
+can be used to read the content of the file or the name of a file.
 \end{methoddesc}
 
 \begin{methoddesc}{begin}{}
@@ -130,13 +140,33 @@ containing the node names.
 %----------------------------------------------------------------
 \subsection{Node class}
 
+The \class{Node} class is a helper class which may be used in a
+concrete implementation of the \class{MAReader} class to represent 
+Maya nodes.
+
+This class does not implement the actual functionality of a particular
+Maya node, it just tracks attribute changes and connections which can
+later be retrieved once the entire file was read. So this class can be
+used for all Maya nodes in a file.
+
 \begin{classdesc}{Node}{nodetype, opts}
   \var{nodetype} and \var{opts} are the arguments of the 
   \method{onCreateNode()} callback of the \class{MAReader} class.
 \end{classdesc}
 
-\begin{methoddesc}{getName}{}
-Return the name of the node or \code{None} if no name was specified.
+\begin{memberdesc}{nodetype}
+This is a string containing the type of the node (this is the value
+that was passed to the constructor).
+\end{memberdesc}
+
+\begin{memberdesc}{opts}
+This is the option dictionary that was passed to the constructor
+(i.e. that is used to create the node).
+\end{memberdesc}
+
+\begin{methoddesc}{getName}{default=None}
+Return the name of the node or the provided default value if no name 
+was specified.
 \end{methoddesc}
 
 \begin{methoddesc}{getParentName}{}
@@ -147,6 +177,20 @@ Return the name of the parent node or \code{None} if no parent was specified.
 \var{attr}, \var{vals} and \var{opts} are the arguments of the 
 \method{onSetAttr()} callback of the \class{MAReader} class. The Python
 value of an attribute can be obtained by calling \method{getAttrValue()}.
+The final Python value can be retrieved with the \method{getAttrValue()}
+ method.
+\end{methoddesc}
+
+\begin{methoddesc}{getAttrValue}{lname, sname, type, n=1, default=None}
+Get the Python value of an attribute.
+\var{lname} is the long name, \var{sname} the short name. \var{type}
+is the required type and \var{n} the required number of elements 
+(see the \method{Attribute.getValue()} method in section \ref{AttributeGetValue} for more information on the type). 
+\var{type} and \var{n} may be None.
+The return value is either a normal Python type (int, float, sequence)
+or a \class{MultiAttrStorage} object in cases where the \code{setAttr}
+command contained the index operator. When no attribute with the given long
+or short name could be found the provided default value is returned.
 \end{methoddesc}
 
 \begin{methoddesc}{addAttr}{opts}
@@ -154,19 +198,47 @@ value of an attribute can be obtained by calling \method{getAttrValue()}.
 the \class{MAReader} class.
 \end{methoddesc}
 
-\begin{methoddesc}{addInConnection}{localattr, node, attrname}
+\begin{methoddesc}{addInConnection}{localattr, nodename, attrname}
+Specify an incoming connection.
+\var{nodename} is the name of a node and \var{attrname} the full 
+attribute name.
 \end{methoddesc}
 
 \begin{methoddesc}{addOutConnection}{localattr, node, nodename, attrname}
+Specify an outgoing connection.
+\var{node} is a \class{Node} object, \var{nodename} the name of the 
+node and \var{attrname} the full attribute name.
 \end{methoddesc}
 
-\begin{methoddesc}{getAttrValue}{lname, sname, type, n=1, default=None}
+\begin{methoddesc}{getInNode}{localattr_long, localattr_short}
+Return the node and attribute that serves as input for the local
+attribute with long name \var{localattr_long} and short name
+\var{localattr_short}. The return value is a 2-tuple (\var{nodename},
+\var{attrname}) that specifies the input connection for the 
+local attribute. (\code{None}, \var{None}) is returned if there is 
+no connection.
 \end{methoddesc}
 
-\begin{methoddesc}{getInNode}{lname, sname}
+\begin{methoddesc}{getOutNodes}{localattr_long, localattr_short}
+Return the nodes and attributes that the specified local attribute
+connects to. \var{localattr_long} is the long name of the local
+attribute and \var{localattr_short} its short name.
+The return value is a list of 3-tuples (\var{node}, \var{nodename}, 
+\var{attrname}) that specify the output connections for the
+local attribute. The tuple contains the values that were previously
+added with \method{addOutConnection()}.
 \end{methoddesc}
 
 \begin{methoddesc}{getOutAttr}{lname, sname, dstnodetype}
+Check if a local attribute is connected to a particular type of node.
+Returns a tuple (\var{node}, \var{attrname}) where \var{node} is the
+\class{Node} object of the destination node and \var{attrname} the name of 
+the destination attribute. If there is no connection with a node of
+type \var{dstnodetype}, the method returns (\code{None}, \var{None}).
+
+If the attribute is connected to more than one node with the given
+type or to several attributes of the same node then only the first
+connection encountered is returned.
 \end{methoddesc}
 
 %----------------------------------------------------------------
@@ -208,6 +280,7 @@ Return the full attribute specifier.
 \end{methoddesc}
 
 \begin{methoddesc}{getValue}{type=None, n=None}
+\label{AttributeGetValue}
 Return the value of the attribute as an appropriate Python value.
 \var{type} is a string containing the required type of the value.
 If \code{None} is passed, the method tries to retrieve the value from

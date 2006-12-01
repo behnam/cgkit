@@ -5,10 +5,14 @@
 \modulesynopsis{Reading Maya ASCII files}
 
 This module contains the \class{MAReader} class which can be used as a
-base class for reading Maya ASCII files. The class reads the file
+base class for reading Maya ASCII (*.ma) files. The class reads the file
 and invokes callback methods with the corresponding data in the
 file. Derived classes have to implement those callback methods and
 process the data as appropriate.
+
+The module also contains a couple of helper classes that may be
+used by a derived reader class to facilitate the processing of the
+data.
 
 %----------------------------------------------------------------
 \subsection{MAReader class}
@@ -168,6 +172,19 @@ the \class{MAReader} class.
 %----------------------------------------------------------------
 \subsection{Attribute class}
 
+The \class{Attribute} class can be used to convert the value of an
+attribute (as specified by the \code{setAttr} MEL command) into an
+appropriate Python value.
+
+An \class{Attribute} object is initialized with the arguments that
+were passed to the \method{onSetAttr()} callback of the reader
+class. The value can be retrieved using the \method{getValue()}
+method. Whenever you have prior knowledge of the node you are 
+currently processing you should pass the expected type of the
+attribute to the \method{getValue()} method to prevent the
+method from having to guess the type in case it is not specified
+in the \code{setAttr} call.
+
 \begin{classdesc}{Attribute}{attr, vals, opts}
 
 \var{attr}, \var{vals} and \var{opts} are the arguments of the 
@@ -191,7 +208,7 @@ Return the full attribute specifier.
 \end{methoddesc}
 
 \begin{methoddesc}{getValue}{type=None, n=None}
-Return the value of the attribute as appropriate Python value.
+Return the value of the attribute as an appropriate Python value.
 \var{type} is a string containing the required type of the value.
 If \code{None} is passed, the method tries to retrieve the value from
 the attribute itself. If it fails, an exception is thrown. The following

@@ -50,14 +50,14 @@ from math import *
                 
 
 # MAImporter
-class MAImporter(mayaascii.MAReader):
+class MAImporter(mayaascii.DefaultMAReader):
     """MA import.
     """
 
     _protocols = ["Import"]
 
     def __init__(self):
-        mayaascii.MAReader.__init__(self)
+        mayaascii.DefaultMAReader.__init__(self)
 
     # extension
     def extension():
@@ -82,16 +82,14 @@ class MAImporter(mayaascii.MAReader):
 
     # begin
     def begin(self):
-        # A dict with imported Node objects
-        self.nodes = {}
-        self.nodelist = []
-        # The currently active Node
-        self.currentnode = None
+        mayaascii.DefaultMAReader.begin(self)
         # A dict with created WorldObjects (key = name)
         self.worldobjects = {}
 
     # end
     def end(self):
+        mayaascii.DefaultMAReader.end(self)
+        
         issued_warnings = {}
         # Process the nodes by calling an appropriate handler method
         # onNode<Type>(node, name, parent) for each node type...
@@ -106,55 +104,6 @@ class MAImporter(mayaascii.MAReader):
                 if n.nodetype not in issued_warnings:
                     print >>sys.stderr, "WARNING: %s nodes are ignored."%n.nodetype
                     issued_warnings[n.nodetype] = 1
-
-
-    ### Low level callbacks:
-
-    def onCreateNode(self, nodetype, opts):
-        """Create a new node and make it current.
-        """
-        node = mayaascii.Node(nodetype, opts)
-        nodename = opts.get("name", ["MayaNode"])[0]
-        self.nodes[nodename] = node
-        self.nodelist.append(node)
-        self.currentnode = node
-
-    def onSelect(self, objects, opts):
-        """dummy implementation"""
-        self.currentnode = None
-
-    def onSetAttr(self, attr, vals, opts):
-        """Set an attribute."""
-        if self.currentnode==None:
-            return
-
-        self.currentnode.setAttr(attr, vals, opts)
-
-    def onAddAttr(self, opts):
-        """Add a dynamic attribute."""
-        if self.currentnode==None:
-            return
-
-        self.currentnode.addAttr(opts)
-
-    def onConnectAttr(self, srcattr, dstattr, opts):
-        """Make a connection.
-        """
-
-        a = srcattr.split(".")
-        snode = a[0]
-        sattr = a[1]
-        b = dstattr.split(".")
-        dnode = b[0]
-        dattr = b[1]
-        
-        sn = self.nodes.get(snode, None)
-        dn = self.nodes.get(dnode, None)
-        if sn!=None:
-            sn.addOutConnection(sattr, dn, dnode, dattr)
-        if dn!=None:
-            dn.addInConnection(dattr, snode, sattr)
-
 
     #################################################
 

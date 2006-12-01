@@ -20,7 +20,7 @@ using namespace support3d;
 //////////////////////////////////////////////////////////////////////
 
 // toList() method (with no argument)
-object toList0(const mat4d* self)
+static object toList0(const mat4d* self)
 {
   list res;
   double array[16];
@@ -31,7 +31,7 @@ object toList0(const mat4d* self)
 }
 
 // toList() method (with 1 argument)
-object toList1(const mat4d* self, bool rowmajor)
+static object toList1(const mat4d* self, bool rowmajor)
 {
   list res;
   double array[16];
@@ -42,13 +42,13 @@ object toList1(const mat4d* self, bool rowmajor)
 }
 
 // identity() method (static)
-mat4d identity()
+static mat4d identity()
 {
   return mat4d(1);
 }
 
 // translation() method (static)
-mat4d translation(const vec3d& t)
+static mat4d translation(const vec3d& t)
 {
   mat4d res;
   res.setTranslation(t);
@@ -56,7 +56,7 @@ mat4d translation(const vec3d& t)
 }
 
 // scaling() method (static)
-mat4d scaling(const vec3d& s)
+static mat4d scaling(const vec3d& s)
 {
   mat4d res;
   res.setScaling(s);
@@ -64,7 +64,7 @@ mat4d scaling(const vec3d& s)
 }
 
 // rotation() method (static)
-mat4d rotation(double angle, const vec3d& axis)
+static mat4d rotation(double angle, const vec3d& axis)
 {
   mat4d res;
   res.setRotation(angle, axis);
@@ -72,7 +72,7 @@ mat4d rotation(double angle, const vec3d& axis)
 }
 
 // orthographic() method (static)
-mat4d orthographic(double left, double right, double bottom, double top, double nearval, double farval)
+static mat4d orthographic(double left, double right, double bottom, double top, double nearval, double farval)
 {
   mat4d res;
   res.setOrthographic(left, right, bottom, top, nearval, farval);
@@ -80,7 +80,7 @@ mat4d orthographic(double left, double right, double bottom, double top, double 
 }
 
 // frustum() method (static)
-mat4d frustum(double left, double right, double bottom, double top, double nearval, double farval)
+static mat4d frustum(double left, double right, double bottom, double top, double nearval, double farval)
 {
   mat4d res;
   res.setFrustum(left, right, bottom, top, nearval, farval);
@@ -88,7 +88,7 @@ mat4d frustum(double left, double right, double bottom, double top, double nearv
 }
 
 // perspective() method (static)
-mat4d perspective(double fovy, double aspect, double nearval, double farval)
+static mat4d perspective(double fovy, double aspect, double nearval, double farval)
 {
   mat4d res;
   res.setPerspective(fovy, aspect, nearval, farval);
@@ -96,7 +96,7 @@ mat4d perspective(double fovy, double aspect, double nearval, double farval)
 }
 
 // lookAt() method  (static)
-mat4d lookAt(const vec3d& pos, const vec3d& target, const vec3d& up=vec3d(0,0,1))
+static mat4d lookAt(const vec3d& pos, const vec3d& target, const vec3d& up=vec3d(0,0,1))
 {
   mat4d res;
   res.setLookAt(pos, target, up);
@@ -107,7 +107,7 @@ BOOST_PYTHON_FUNCTION_OVERLOADS(lookAt_overloads, lookAt, 2, 3)
 
 // decompose() method
 // Returns a tuple (t, rot, scale)
-object decompose(mat4d* self)
+static object decompose(mat4d* self)
 {
   mat4d rot;
   vec3d t, scale;
@@ -115,24 +115,24 @@ object decompose(mat4d* self)
   return make_tuple(t, rot, scale);
 }
 
-boost::python::str repr(mat4d* self)
+static boost::python::str repr(mat4d* self)
 {
   std::ostringstream s;
   s<<*self;
   return boost::python::str(s.str());
 }
 
-mat4d __pos__(mat4d* self)
+static mat4d __pos__(mat4d* self)
 {
   return *self;
 }
 
-int __len__(mat4d* self)
+static int __len__(mat4d* self)
 {
   return 4;
 }
 
-vec4d __getitem__(mat4d* self, int idx)
+static vec4d __getitem__(mat4d* self, int idx)
 {
   if (idx<0 || idx>3)
     throw EPyIndexError("index out of range");
@@ -140,7 +140,7 @@ vec4d __getitem__(mat4d* self, int idx)
   return self->getColumn(idx);
 }
 
-double __getitem_tup__(mat4d* self, tuple tup)
+static double __getitem_tup__(mat4d* self, tuple tup)
 {
   int len = extract<int>(tup.attr("__len__")());
   if (len!=2)
@@ -155,7 +155,7 @@ double __getitem_tup__(mat4d* self, tuple tup)
   return self->at(i,j);
 }
 
-void __setitem__(mat4d* self, int idx, const vec4d& val)
+static void __setitem__(mat4d* self, int idx, const vec4d& val)
 {
   if (idx<0 || idx>3)
     throw EPyIndexError("index out of range");
@@ -163,7 +163,7 @@ void __setitem__(mat4d* self, int idx, const vec4d& val)
   self->setColumn(idx, val);
 }
 
-void __setitem_tup__(mat4d* self, tuple tup, double val)
+static void __setitem_tup__(mat4d* self, tuple tup, double val)
 {
   int len = extract<int>(tup.attr("__len__")());
   if (len!=2)

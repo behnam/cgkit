@@ -116,11 +116,33 @@ class PrimVarAccess
    */
   int mult;
 
+  /**
+     The size of the ArraySlot containing the values.
+
+     This is used for checking the range. The value might be used as
+     a counter (i.e. it may be decreased inside the onFace() or onVertex()
+     methods.
+  */
+  int var_size;
+
+  /**
+     The size of the ArraySlot containing the "faces" values.
+
+     This is used for checking the range. The value might be used as
+     a counter (i.e. it may be decreased inside the onFace() or onVertex()
+     methods.
+  */
+  int varfaces_size;
+
   public:
   PrimVarAccess(GeomObject& geom, std::string varname, VarType vartype, int varmult, std::string varfacesname=std::string(""), bool trimesh_flag=false);
   
   bool onFace(T*& value);
   bool onVertex(int idx, T*& value);
+  
+  private:
+  void initMode(GeomObject& geom, std::string varname, VarType vartype, int varmult, std::string varfacesname, bool trimesh_flag);
+
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -142,49 +164,85 @@ class PrimVarAccess
  */
 template<class T>
 PrimVarAccess<T>::PrimVarAccess(GeomObject& geom, std::string varname, VarType vartype, int varmult, std::string varfacesname, bool trimesh_flag)
-  : mode(0), var_ptr(0), varfaces_ptr(0), mult(varmult)
+  : mode(0), var_ptr(0), varfaces_ptr(0), mult(varmult), 
+    var_size(0), varfaces_size(0)
+{
+  initMode(geom, varname, vartype, varmult, varfacesname, trimesh_flag);
+}
+
+/**
+  Helper method to initialize the class.
+
+  This method is called inside the constructor.
+
+  \param geom Geometry that is currently being processed
+  \param varname The name of the variable that should be read
+  \param vartype The required type of the variable (INT, FLOAT, ...)
+  \param varmult The required multiplicty of the variable
+  \param varfacesname The name of the corresponding "faces" variable
+  \param trimesh_flag Determines whether uniform int[3] faces are allowed
+ */
+template<class T>
+void PrimVarAccess<T>::initMode(GeomObject& geom, std::string varname, VarType vartype, int varmult, std::string varfacesname, bool trimesh_flag)
 {
   PrimVarInfo* info;
 
-  // Check if the variable is available
+  // Default mode: No access
+  mode = 0;
+
+  // Check if the variable is available...
   info = geom.findVariable(varname);
-  if (info!=0)
+  if (info==0)
+    return;
+  
+  // Is the variable of the wrong type or multiplicity?
+  if (info->type!=vartype || info->multiplicity!=varmult)
+    return;
+
+  // Get a pointer to the data...
+  var_ptr = dynamic_cast<ArraySlot<T>* >(info->slot)->dataPtr();
+  if (var_ptr==0)
+    return;
+
+  // Obtain the array size...
+  var_size = info->slot->size();
+
+  // Determine the mode...
+  switch(info->storage)
   {
-    // Is the variable of the correct type and multiplicity?
-    if (info->type==vartype && info->multiplicity==varmult)
-    {
-      var_ptr = dynamic_cast<ArraySlot<T>* >(info->slot)->dataPtr();
-      switch(info->storage)
+    // "constant"?
+    case CONSTANT: if (var_size>0) mode = 1; break;
+    // "uniform"?
+    case UNIFORM: mode = 2; break;
+    // "varying"?
+    case VARYING: mode = 3; break;
+    // "facevarying"?
+    case FACEVARYING: mode = 4; break;
+    // "user"?
+    case USER:
+      if (varfacesname!="")
       {
-       // "constant"?
-       case CONSTANT: mode = 1; break;
-       // "uniform"?
-       case UNIFORM: mode = 2; break;
-       // "varying"?
-       case VARYING: mode = 3; break;
-       // "facevarying"?
-       case FACEVARYING: mode = 4; break;
-       // "user"?
-       case USER:
-	 if (varfacesname!="")
-	 {
-	   // Check if the corresponding "faces" variable is available...
-	   info = geom.findVariable(varfacesname);
-	   if (info!=0 && info->type==INT)
-	   {
-	     varfaces_ptr = dynamic_cast<ArraySlot<int>* >(info->slot)->dataPtr();
-	     if (info->storage==UNIFORM && info->multiplicity==3 && trimesh_flag)
-	     {
-	       mode = 5;
-	     }
-	     else if (info->storage==FACEVARYING && info->multiplicity==1)
-	     {
-	       mode = 5;
-	     }
-	   }
-	 }
+	// Check if the corresponding "faces" variable is available...
+	info = geom.findVariable(varfacesname);
+	if (info==0 || info->type!=INT)
+	  return;
+
+	varfaces_ptr = dynamic_cast<ArraySlot<int>* >(info->slot)->dataPtr();
+	if (varfaces_ptr==0)
+	  return;
+
+	// Obtain the array size...
+	varfaces_size = info->slot->size();
+
+	if (info->storage==UNIFORM && info->multiplicity==3 && trimesh_flag)
+	{
+	  mode = 5;
+	}
+	else if (info->storage==FACEVARYING && info->multiplicity==1)
+	{
+	  mode = 5;
+	}
       }
-    }
   }
 }
 
@@ -197,6 +255,8 @@ PrimVarAccess<T>::PrimVarAccess(GeomObject& geom, std::string varname, VarType v
    It is assumed that faces are processed in order (i.e. the first call
    will return the value for the first face, the second call the value
    for the second face and so on).
+   The method performs range checking and returns false if any index is 
+   out of range.
 
    \param[out] value Variable value for the next face
    \return True if there was a value, otherwise false.
@@ -211,11 +271,14 @@ bool PrimVarAccess<T>::onFace(T*& value)
            return true;
      
    // uniform?
-   case 2: value = var_ptr;
+   case 2: if (var_size==0)
+             return false;
+           var_size--;
+           value = var_ptr;
            var_ptr += mult;
            return true;
 
-  default: return false;
+   default: return false;
   }
 }
 
@@ -227,6 +290,8 @@ bool PrimVarAccess<T>::onFace(T*& value)
   \a value and \c true is returned.
   It is assumed that the vertices are processed in order (unless the storage
   class of the variable is "varying").
+  The method performs range checking and returns false if any index is 
+  out of range.
 
   \param idx This is the index of the vertex (required for "varying" variables)
   \param[out] value Variable value for the next vertex
@@ -239,18 +304,28 @@ bool PrimVarAccess<T>::onVertex(int idx, T*& value)
   switch(mode)
   {
     // varying?
-    case 3: value = var_ptr + mult*idx; 
+    case 3: if (idx>=var_size || idx<0)
+              return false;
+            value = var_ptr + mult*idx; 
             return true;
 
     // facevarying?
-    case 4: value = var_ptr; 
+    case 4: if (var_size==0)
+              return false;
+            var_size--;
+            value = var_ptr; 
             var_ptr += mult; 
             return true;
 
     // user (+uniform int[3] or facevarying faces)?
     // (both cases can be treated identically)
-    case 5: vidx = *varfaces_ptr;
+    case 5: if (varfaces_size==0)
+              return false;
+            varfaces_size--;
+            vidx = *varfaces_ptr;
             varfaces_ptr++;
+	    if (vidx>=var_size || vidx<0)
+	      return false;
             value = var_ptr + mult*vidx;
             return true;
 

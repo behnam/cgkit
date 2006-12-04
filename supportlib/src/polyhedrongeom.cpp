@@ -771,6 +771,9 @@ int PolyhedronGeom::getNumVerts(int poly, int loop) const
  */
 void PolyhedronGeom::setNumPolys(int num)
 { 
+  if (num<0)
+    num=0;
+
   int prevsize = polys.size();
   int i;
 
@@ -811,6 +814,8 @@ void PolyhedronGeom::setNumLoops(int poly, int num)
 { 
   if ((poly<0) || (poly>=getNumPolys()))
       throw EIndexError("Poly index out of range.");
+  if (num<0)
+    num=0;
 
   Poly* polygon = polys[poly];
   // Number of loops before the modification

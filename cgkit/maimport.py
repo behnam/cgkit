@@ -92,31 +92,28 @@ class MAImporter(mayaascii.DefaultMAReader):
         
         issued_warnings = {}
         # Process the nodes by calling an appropriate handler method
-        # onNode<Type>(node, name, parent) for each node type...
-        for n in self.nodelist:
-            handlername = "onNode%s%s"%(n.nodetype[0].upper(), n.nodetype[1:])
+        # onNode<Type>(node) for each node type...
+        for node in self.nodelist:
+            s = node.nodetype
+            handlername = "onNode%s%s"%(s[0].upper(), s[1:])
             handler = getattr(self, handlername, None)
             if handler!=None:
-                name = n.getName()
-                parent = n.getParentName()
-                handler(n, name, parent)
+                handler(node)
             else:
-                if n.nodetype not in issued_warnings:
-                    print >>sys.stderr, "WARNING: %s nodes are ignored."%n.nodetype
-                    issued_warnings[n.nodetype] = 1
+                if node.nodetype not in issued_warnings:
+                    print >>sys.stderr, "WARNING: %s nodes are ignored."%node.nodetype
+                    issued_warnings[node.nodetype] = 1
 
     #################################################
 
     ### High level callbacks:
     
-    # Each node callback takes 3 arguments: node is the Node object of
-    # the currently processed node), name is the node name and parent
-    # the name of the parent or None.
+    # Each node callback takes the current Node object as argument.
     # Whenever a new WorldObject is created, the method has to call
     # the newWorldObject() method to tell the importer about the new object
     # (so that it is known when someone else uses it as parent).
 
-    def ignoreWarning(self, node, name, parent):
+    def ignoreWarning(self, node):
         """(this is just a dummy callback so that no warning is issued)"""
         pass
     onNodeTransform = ignoreWarning
@@ -125,12 +122,10 @@ class MAImporter(mayaascii.DefaultMAReader):
     onNodePolyPlane = ignoreWarning
     onNodeRigidBody = ignoreWarning    
 
-    def onNodePointLight(self, node, name, parent):
+    def onNodePointLight(self, node):
         """PointLight node.
         """
-        parentnode = self.nodes[parent]
-        args = {}
-        self.getWorldObjectArgs(parentnode, args)
+        args = self.fillWorldObjectArgs(node)
         
         cl = vec3(node.getAttrValue("color", "cl", "float3", 1, vec3(1)))
         intensity = node.getAttrValue("intensity", "in", "float", 1, 1.0)
@@ -157,12 +152,10 @@ class MAImporter(mayaascii.DefaultMAReader):
                                         **args)
         self.newWorldObject(lgt, node.getParentName())
 
-    def onNodeSpotLight(self, node, name, parent):
+    def onNodeSpotLight(self, node):
         """SpotLight node.
         """
-        parentnode = self.nodes[parent]
-        args = {}
-        self.getWorldObjectArgs(parentnode, args)
+        args = self.fillWorldObjectArgs(node)
         
         cl = vec3(node.getAttrValue("color", "cl", "float3", 1, vec3(1)))
         intensity = node.getAttrValue("intensity", "in", "float", 1, 1.0)
@@ -198,12 +191,10 @@ class MAImporter(mayaascii.DefaultMAReader):
                                           **args)
         self.newWorldObject(lgt, node.getParentName())
 
-    def onNodeDirectionalLight(self, node, name, parent):
+    def onNodeDirectionalLight(self, node):
         """DirectionalLight node.
         """
-        parentnode = self.nodes[parent]
-        args = {}
-        self.getWorldObjectArgs(parentnode, args)
+        args = self.fillWorldObjectArgs(node)
         
         cl = vec3(node.getAttrValue("color", "cl", "float3", 1, vec3(1)))
         intensity = node.getAttrValue("intensity", "in", "float", 1, 1.0)
@@ -216,11 +207,10 @@ class MAImporter(mayaascii.DefaultMAReader):
                                         **args)
         self.newWorldObject(lgt, node.getParentName())
 
-    def onNodeJoint(self, node, name, parent):
+    def onNodeJoint(self, node):
         """Joint node.
         """
-        args = {}
-        self.getWorldObjectArgs(node, args)
+        args = self.fillWorldObjectArgs(node)
 
         # Compute transform
         t = vec3(node.getAttrValue("translate", "t", "double3", 1, vec3(0)))
@@ -289,22 +279,19 @@ class MAImporter(mayaascii.DefaultMAReader):
         self.newWorldObject(jnt, node.getName())
 
 
-    def onNodeCamera(self, node, name, parent):
+    def onNodeCamera(self, node):
         """Camera node.
         """
-        parentnode = self.nodes[parent]
-        args = {}
-        self.getWorldObjectArgs(parentnode, args)
+        args = self.fillWorldObjectArgs(node)
         self.getCameraArgs(node, args)
         args["transform"] = args["transform"]*mat4(1).rotation(pi, vec3(0,1,0))
         cam = freecamera.FreeCamera(**args)
         self.newWorldObject(cam, node.getParentName())
 
-    def onNodeMesh(self, node, name, parent):
-        parentnode = self.nodes[parent]
-        args = {}
-        self.getWorldObjectArgs(parentnode, args)
-#        print "MESH",name
+    def onNodeMesh(self, node):
+        args = self.fillWorldObjectArgs(node)
+        print args
+        parentnode = node.getParent()
         
         # Check if the mesh is just a regular mesh or if it's created by
         # a "creator" node (cube, sphere, ...). 
@@ -395,27 +382,27 @@ class MAImporter(mayaascii.DefaultMAReader):
 
             self.newWorldObject(polyobj, node.getParentName())
         else:
-            creator = self.nodes.get(n)
+            creator = self.findNode(n)
             meshtype = creator.nodetype
             # Sphere?
             if meshtype=="polySphere":
-                self.createSphere(creator, parentnode, node, args)
+                self.createSphere(node, creator, args)
             # Cube?
             elif meshtype=="polyCube":
-                self.createBox(creator, parentnode, node, args)
+                self.createBox(node, creator, args)
             # Plane?
             elif meshtype=="polyPlane":
-                self.createPlane(creator, parentnode, node, args)
+                self.createPlane(node, creator, args)
 
-    def createSphere(self, creator, parentnode, node, args):
+    def createSphere(self, mesh, creator, args):
         """Creates a true sphere from a polySphere node.
 
+        mesh is the mesh node that takes its input from creator.
         creator is an import Node which must be of type polySphere.
-        parentnode is an import Node of type transform. It's the parent of
-        node which is the actual mesh node.
         args is a dictionary that already contains the basic WorldObject
         arguments that can be passed to the constructor.
         """
+        parentnode = mesh.getParent()
         nod,attr = parentnode.getOutAttr("worldMatrix", "wm", "rigidBody")
         dynamics = (nod!=None)
         r = creator.getAttrValue("radius", "r", "float", 1, 1.0)
@@ -429,17 +416,17 @@ class MAImporter(mayaascii.DefaultMAReader):
         s = quadrics.Sphere(radius=r,
                             segmentsu=segsu, segmentsv=segsv,
                             **args)
-        self.newWorldObject(s, node.getParentName())
+        self.newWorldObject(s, parentnode.getName())
 
-    def createBox(self, creator, parentnode, node, args):
+    def createBox(self, mesh, creator, args):
         """Creates a true box from a polyCube node.
 
+        mesh is the mesh node that takes its input from creator.
         creator is an import Node which must be of type polyCube.
-        parentnode is an import Node of type transform. It's the parent of
-        node which is the actual mesh node.
         args is a dictionary that already contains the basic WorldObject
         arguments that can be passed to the constructor.
         """
+        parentnode = mesh.getParent()
         w = creator.getAttrValue("width", "w", "float", 1, 1.0)
         h = creator.getAttrValue("height", "h", "float", 1, 1.0)
         d = creator.getAttrValue("depth", "d", "float", 1, 1.0)
@@ -470,17 +457,17 @@ class MAImporter(mayaascii.DefaultMAReader):
         b = box.Box(lx=w, ly=d, lz=h,
                     segmentsx=sw, segmentsy=sd, segmentsz=sh,
                     **args)
-        self.newWorldObject(b, node.getParentName())
+        self.newWorldObject(b, parentnode.getName())
 
-    def createPlane(self, creator, parentnode, node, args):
+    def createPlane(self, mesh, creator, args):
         """Creates a true plane from a polyPlane node.
 
+        mesh is the mesh node that takes its input from creator.
         creator is an import Node which must be of type polyPlane.
-        parentnode is an import Node of type transform. It's the parent of
-        node which is the actual mesh node.
         args is a dictionary that already contains the basic WorldObject
         arguments that can be passed to the constructor.
         """
+        parentnode = mesh.getParent()
         w = creator.getAttrValue("width", "w", "float", 1, 1.0)
         h = creator.getAttrValue("height", "h", "float", 1, 1.0)
         sw = creator.getAttrValue("subdivisionWidth", "sw", "int", 1, 1)
@@ -498,7 +485,7 @@ class MAImporter(mayaascii.DefaultMAReader):
         p = plane.Plane(lx=w, ly=h,
                 segmentsx=sw, segmentsy=sh,
                 **args)
-        self.newWorldObject(p, node.getParentName())
+        self.newWorldObject(p, parentnode.getName())
 
 
     def getRigidBodyArgs(self, transform, res):
@@ -558,48 +545,71 @@ class MAImporter(mayaascii.DefaultMAReader):
         res["fstop"] = node.getAttrValue("fStop", "fs", "float", 1, 5.6)
         return res
 
-    # getWorldObjectArgs
-    def getWorldObjectArgs(self, node, res):
-        """Create the argument dict for the WorldObject constructor.
+    # fillWorldObjectArgs
+    def fillWorldObjectArgs(self, node, args=None):
+        """Fill the argument dict for the WorldObject constructor.
 
-        node must contain the data from a Maya transform node. 
+        node must be a Node object containing either the transform node
+        or the shape node (whose parent must then be a transform node).
+        args must be a dictionary which is filled with the arguments
+        for a WorldObject constructor. It can also be None in which case
+        a new dictionary is created and returned.
+        The following attributes are written into args:
+
+        - name: The name of the transform node
+        - parent: The parent WorldObject (or self.root_parent)
+        - transform: The transform matrix (pos rot may come from a rigidBody node)
+
+        The return value is the args dictionary or the newly created dict.
         """
+        # Obtain the transform node -> tnode
+        if node.nodetype in ["transform", "joint"]:
+            tnode = node
+        else:
+            tnode = node.getParent()
+            if tnode==None or tnode.nodetype!="transform":
+                raise ValueError, "transform node not found for node %s."%node.getFullName()
+
+        if args==None:
+            args = {}
 
         # Name
-        res["name"] = node.getName()
+        args["name"] = tnode.getName()
 
         # Parent
-        parentname = node.getParentName()
-        if parentname!=None:
-            parent = self.worldobjects.get(parentname, None)
-            if parent==None:
-                print "WARNING: Parent '%s' not found."%parentname
-                parent = self.root_parent
+        parentnode = tnode.getParent()
+        if parentnode!=None:
+            parentname = parentnode.getFullName()
+            if parentname!=None:
+                parent = self.worldobjects.get(parentname, None)
+                if parent==None:
+                    print "WARNING: Parent '%s' not found."%parentname
+                    parent = self.root_parent
         else:
             parent = self.root_parent
-        res["parent"] = parent
+        args["parent"] = parent
 
         # Check if the world matrix is connected to a rigid body.
         # In this case, the rigid body stores the initial position and
         # orientation
-        rbnode,attr = node.getOutAttr("worldMatrix", "wm", "rigidBody")
+        rbnode,attr = tnode.getOutAttr("worldMatrix", "wm", "rigidBody")
 
         # Compute transform
         if rbnode==None:
-            t = vec3(node.getAttrValue("translate", "t", "double3", 1, vec3(0)))
-            r = vec3(node.getAttrValue("rotate", "r", "double3", 1, vec3(0)))
+            t = vec3(tnode.getAttrValue("translate", "t", "double3", 1, vec3(0)))
+            r = vec3(tnode.getAttrValue("rotate", "r", "double3", 1, vec3(0)))
         else:
             t = vec3(rbnode.getAttrValue("initialPosition", "ip", "double3", 1, vec3(0)))
             r = vec3(rbnode.getAttrValue("initialOrientation", "ior", "double3", 1, vec3(0)))
-        s = vec3(node.getAttrValue("scale", "s", "double3", 1, vec3(1)))
-        sp = vec3(node.getAttrValue("scalePivot", "sp", "double3", 1, vec3(0)))
-        spt = vec3(node.getAttrValue("scalePivotTranslate", "spt", "double3", 1, vec3(0)))
-        sh = vec3(node.getAttrValue("shear", "sh", "double3", 1, vec3(0)))
-        rp = vec3(node.getAttrValue("rotatePivot", "rp", "double3", 1, vec3(0)))
-        rpt = vec3(node.getAttrValue("rotatePivotTranslate", "rpt", "double3", 1, vec3(0)))
-        ra = vec3(node.getAttrValue("rotateAxis", "ra", "double3", 1, vec3(0)))
-        roi = node.getAttrValue("rotationInterpolation", "roi", "int", 1, 1)
-        ro = node.getAttrValue("rotateOrder", "ro", "int", 1, default=0)
+        s = vec3(tnode.getAttrValue("scale", "s", "double3", 1, vec3(1)))
+        sp = vec3(tnode.getAttrValue("scalePivot", "sp", "double3", 1, vec3(0)))
+        spt = vec3(tnode.getAttrValue("scalePivotTranslate", "spt", "double3", 1, vec3(0)))
+        sh = vec3(tnode.getAttrValue("shear", "sh", "double3", 1, vec3(0)))
+        rp = vec3(tnode.getAttrValue("rotatePivot", "rp", "double3", 1, vec3(0)))
+        rpt = vec3(tnode.getAttrValue("rotatePivotTranslate", "rpt", "double3", 1, vec3(0)))
+        ra = vec3(tnode.getAttrValue("rotateAxis", "ra", "double3", 1, vec3(0)))
+        roi = tnode.getAttrValue("rotationInterpolation", "roi", "int", 1, 1)
+        ro = tnode.getAttrValue("rotateOrder", "ro", "int", 1, default=0)
 
         SP = mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, sp.x,sp.y,sp.z,1)
         ST = mat4(1,0,0,0, 0,1,0,0, 0,0,1,0, spt.x,spt.y,spt.z,1)
@@ -635,12 +645,12 @@ class MAImporter(mayaascii.DefaultMAReader):
 
         WT = SP.inverse()*S*SH*SP*ST*RP.inverse()*RA*R*RP*RT*T
         WT = WT.transpose()
-        res["transform"] = WT
+        args["transform"] = WT
 
         # Visibility
-        res["visible"] = node.getAttrValue("visibility", "v", "bool", 1, True)
+        args["visible"] = tnode.getAttrValue("visibility", "v", "bool", 1, True)
         
-        return res
+        return args
 
 
 ######################################################################

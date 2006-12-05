@@ -38,6 +38,49 @@ import sys, types, simplecpp
 
 # The keywords that may be used for the value True
 _true_keywords = ["true", "on", "yes"]
+# and for the value False
+_false_keywords = ["false", "off", "no"]
+
+# splitDAGPath
+def splitDAGPath(path):
+    """Split a Maya DAG path into its components.
+
+    The path is given as a string that may have the form
+    <namespace>:<path> where <path> is a sequence of strings
+    separated by '|'.
+    The return value is a 2-tuple (namespace, names) where namespace
+    is None if the path did not contain a ':'. names is a list of
+    individual path names.
+
+    Examples:
+
+    :time1   ->  ('', ['time1'])
+    |foo|bar ->  (None, ['', 'foo', 'bar'])
+    foo|bar  ->  (None, ['foo', 'bar'])
+    """
+    if not isinstance(path, types.StringTypes):
+        raise ValueError, "string type expected as path argument, got %s"%type(path)
+        
+    namespace = None
+    n = path.find(":")
+    if n!=-1:
+        namespace = path[:n]
+        path = path[n+1:]
+    return namespace, path.split("|")
+
+# stripQuotes
+def stripQuotes(s):
+    """Remove surrounding quotes if there are any.
+
+    The function returns the string without surrounding quotes
+    (i.e. '"foo"' -> 'foo'). If there are no quotes the string
+    is returned unchanged.
+    """
+    if s[0]=='"':
+        return s[1:-1]
+    else:
+        return s
+    
 
 # MAPreProcessor
 class MAPreProcessor(simplecpp.PreProcessor):
@@ -78,6 +121,9 @@ class PolyFace:
         # face colors (list of list of ints)
         # There's a list for each loop (#f + #h)
         self.fc = []
+
+    def __str__(self):
+        return "<PolyFace %s #holes:%d>"%(self.f, len(self.h))
 
     # hasValidTexCoords
     def hasValidTexCoords(self):
@@ -131,6 +177,9 @@ class NurbsCurve:
         # Control vertices
         self.cvs = []
 
+#    def __str__(self):
+#        return "<NurbsCurve>"
+
 # NurbsSurface
 class NurbsSurface:
     """Stores the data of a nurbsSurface value.
@@ -152,6 +201,9 @@ class NurbsSurface:
         self.vknots = []
         # Control vertices
         self.cvs = []
+
+#    def __str__(self):
+#        return "<NurbsSurface>"
 
 # Attribute
 class Attribute:
@@ -213,7 +265,10 @@ class Attribute:
         # Check if the value type was specified in the setAttr call
         valtype = self._opts.get("type", [None])[0]
         if valtype==None and type==None:
-            valtype = "float"
+            if filter(lambda x: x in _true_keywords+_false_keywords, self._vals)!=[]:
+                valtype = "bool"
+            else:
+                valtype = "float"
 
         # Use the real attribute type if no required type was specified
         if type==None:
@@ -241,6 +296,8 @@ class Attribute:
             # Try a string conversion when no type was specified...
             if type==None and convertername!="convertString":
                 vs = self.convertString()
+            else:
+                raise
         if n==None:
             return vs
         if len(vs)!=n:
@@ -465,6 +522,17 @@ class MultiAttrStorage:
     def __init__(self):
         self._array = []
 
+    def __str__(self):
+        namedattrs = filter(lambda x: x[0:1]!="_", self.__dict__.keys())
+        # Not an array but a 'struct' with named attributes...
+        if namedattrs!=[] and self._array==[]:
+            a = []
+            for name in namedattrs:
+                a.append(".%s:%s"%(name, getattr(self, name)))
+            return ", ".join(a)
+        else:
+            return "["+", ".join(map(lambda x: str(x), self._array))+"]"
+
     def __iter__(self):
         return iter(self._array)
 
@@ -514,23 +582,32 @@ class Node:
     read. So this class can be used for all Maya nodes in a file. 
     """
     
-    def __init__(self, nodetype, opts):
+    def __init__(self, nodetype, opts, parent=None):
         """Constructor.
 
         nodetype and opts are the arguments of the onCreateNode()
         callback of the MAReader class.
+        parent is the parent Node object or None.
         """
 
         # Do some type checking...
         if not isinstance(nodetype, types.StringTypes):
-            raise ValueError, "Argument 'nodetype' must be a string."
+            raise ValueError, "Argument 'nodetype' must be a string, got %s."%(type(nodetype))
         if type(opts)!=dict:
-            raise ValueError, "Argument 'opts' must be a dict."
+            raise ValueError, "Argument 'opts' must be a dict, got %s."%(type(opts))
+        if parent!=None and not isinstance(parent, Node):
+            raise ValueError, "Argument 'parent' must be a Node object or None, got %s."%(type(parent))
 
         # A string containing the node type
         self.nodetype = nodetype
         # The options dictionary
         self.opts = opts
+
+        # Parent Node object
+        self._parent = None
+
+        # Children Node objects
+        self._children = []
         
         # Attribute values.
         # Key: Attribute base name / Value: List of Attribute objects
@@ -545,6 +622,12 @@ class Node:
         # Key: Local attribute / Value: List of (node, nodename, attrname) tuples
         self.out_connections = {}
 
+        # Set the parent
+        self.setParent(parent)
+
+    def __str__(self):
+        return '<Node "%s">'%self.getFullName()
+
     def __getattr__(self, name):
         if self._create_attributes:
             ma = MultiAttrStorage()
@@ -553,16 +636,57 @@ class Node:
         raise AttributeError, name
 
     # getName
-    def getName(self, default=None):
-        """Return the node name or the provided default value.
+    def getName(self):
+        """Return the node name.
+
+        If no node name was specified during the creation of the object,
+        the dummy name 'MayaNode' is returned.
         """
-        return self.opts.get("name", [None])[0]
+        return self.opts.get("name", ["MayaNode"])[0]
+
+    # getFullName
+    def getFullName(self):
+        """Return the full node name.
+        """
+        name = self.getName()
+        if self._parent==None:
+            return "|%s"%name
+        else:
+            return "%s|%s"%(self._parent.getFullName(), name)
 
     # getParentName
     def getParentName(self):
         """Return the parent's node name or None.
         """
-        return self.opts.get("parent", [None])[0]
+        if self._parent==None:
+            return None
+        else:
+            return self._parent.getFullName()
+
+    # getParent
+    def getParent(self):
+        """Return the parent Node object or None.
+        """
+        return self._parent
+
+    # setParent
+    def setParent(self, parent):
+        """Reparent the Node object.
+        """
+        # Remove self from the previous parent's children list...
+        if self._parent!=None:
+            self._parent._children.remove(self)
+
+        # Set the new parent...
+        self._parent = parent
+        if parent!=None:
+            parent._children.append(self)
+
+    # iterChildren
+    def iterChildren(self):
+        """Return an iterator that yields all children Node objects.
+        """
+        return iter(self._children)
 
     # setAttr
     def setAttr(self, attr, vals, opts):
@@ -1176,9 +1300,9 @@ class MAReader:
         and ';' into account.
         Returns a list of strings and the position of the ';'
         that terminated the first command (or -1).
-        The quotes around strings are removed.
+        The quotes around strings are kept.
 
-        'setAttr -k off ".v";' -> (["setAttr", "-k", "off", ".v"], 19)
+        'setAttr -k off ".v";' -> (['setAttr', '-k', 'off', '".v"'], 19)
         """
         # Search for a quoted string
         b,e = self.findString(s)
@@ -1197,12 +1321,12 @@ class MAReader:
                 return s[:n].split(), n
         else:
             if e==None:
-                return s[:b].split() + [s[b:]], -1
+                return s[:b].split() + [s[b:]+'"'], -1
             else:
                 s2,n = self.splitCommand(s[e+1:])
                 if n!=-1:
                     n += e+1
-                return s[:b].split() + [s[b+1:e]] + s2, n
+                return s[:b].split() + [s[b:e+1]] + s2, n
 
     # findString
     def findString(self, s):
@@ -1238,58 +1362,98 @@ class MAReader:
 # DefaultMAReader
 class DefaultMAReader(MAReader):
     """Default MA reader implementation.
+
+    This class creates Node objects, sets attributes and does the
+    connections so that after the file is read the entire dependency
+    graph is available.
+
+    A derived class only has to implement the end() callback and
+    process the graph as desired. All created Node objects are available
+    in the attribute self.nodelist.
     """
 
     def read(self, f):
         # A dict with imported Node objects
-        # Key: Node name / Value: Node object
+        # Key: Node name (without path) / Value: Node object
+        # If the node name is not unique anymore, the value contains None.
         self.nodes = {}
-        # A list with all Node objects
+        
+        # A list with all Node objects (in the same order as they were
+        # encountered in the file)
         self.nodelist = []
         
-        # The currently active Node
+        # The currently active Node object
         # (changes with every createNode or select command)
         self.currentnode = None
 
         MAReader.read(self, f)
 
+    # onCreateNode
     def onCreateNode(self, nodetype, opts):
         """Create a new node and make it current.
         """
-        node = Node(nodetype, opts)
-        # The constant default name will override a previous node
-        # without name. But this doesn't matter as the node cannot
-        # be addressed by name in the file anyway.
-        nodename = node.getName("MayaNode")
-        self.nodes[nodename] = node
-        self.nodelist.append(node)
+        # Remove all quotes...
+        nodetype = stripQuotes(nodetype)
+        for name in opts:
+            opts[name] = map(lambda x: stripQuotes(x), opts[name])
+            
+        node = self.createNode(nodetype, opts)
         self.currentnode = node
 
+    # onSelect
     def onSelect(self, objects, opts):
-        """dummy implementation"""
-        print >>sys.stderr, "mayaascii: Warning: DefaultMAReader.onSelect() is not yet implemented!"
-        self.currentnode = None
+        """Make another node current."""
+        # Remove all quotes...
+        objects = map(lambda x: stripQuotes(x), objects)
+        
+        if opts!={"noExpand":[]}:
+            raise ValueError, "%s, %d: The select command contains unsupported options."%(self.filename, self.linenr)
 
+        if len(objects)==0:
+            raise ValueError, "%s, %d: The select command contains no object name."%(self.filename, self.linenr)
+        if len(objects)!=1:
+            raise ValueError, "%s, %d: The select command contains more than one object."%(self.filename, self.linenr)
+
+        self.currentnode = self.findNode(objects[0], create=True)
+
+    # onSetAttr
     def onSetAttr(self, attr, vals, opts):
         """Set an attribute."""
         if self.currentnode==None:
             return
+
+        # Remove the quotes...
+        attr = stripQuotes(attr)
+        for name in opts:
+            opts[name] = map(lambda x: stripQuotes(x), opts[name])
 
         if attr[0]!=".":
             print >>sys.stderr, "mayaascii: Warning: DefaultMAReader.onSetAttr(): The attribute refers to a different object than the current object. This is not yet supported."
 
         self.currentnode.setAttr(attr, vals, opts)
 
+    # onAddAttr
     def onAddAttr(self, opts):
         """Add a dynamic attribute."""
         if self.currentnode==None:
             return
 
+        # Remove the quotes...
+        for name in opts:
+            opts[name] = map(lambda x: stripQuotes(x), opts[name])
+
         self.currentnode.addAttr(opts)
 
+    # onConnectAttr
     def onConnectAttr(self, srcattr, dstattr, opts):
         """Make a connection.
         """
+
+        # Remove the quotes...
+        srcattr = stripQuotes(srcattr)
+        dstattr = stripQuotes(dstattr)
+        for name in opts:
+            opts[name] = map(lambda x: stripQuotes(x), opts[name])
 
         # Split into object name and attribute name
         a = srcattr.split(".")
@@ -1299,8 +1463,8 @@ class DefaultMAReader(MAReader):
         dnode = b[0]
         dattr = b[1]
         
-        sn = self.nodes.get(snode, None)
-        dn = self.nodes.get(dnode, None)
+        sn = self.findNode(snode, create=True)
+        dn = self.findNode(dnode, create=True)
         if sn!=None:
             if dn==None:
                 print >>sys.stderr, 'WARNING: %s, %d: connectAttr "%s" "%s"'%(self.filename, self.linenr, srcattr, dstattr)
@@ -1309,7 +1473,86 @@ class DefaultMAReader(MAReader):
                 sn.addOutConnection(sattr, dn, dnode, dattr)
         if dn!=None:
             dn.addInConnection(dattr, snode, sattr)
-            
 
 
+    # findNode
+    def findNode(self, path, create=False):
+        """Return the Node object corresponding to a particular path.
 
+        path may also be None in which case None is returned.
+        If create is True, any missing nodes are automatically created.
+
+        (this method doesn't handle namespaces yet)
+        """
+        if path==None:
+            return None
+        
+        namespace,names = splitDAGPath(path)
+        # The current node (and eventually the result)
+        node = None
+        # Iterate over all names from 'top' to 'bottom'...
+        for name in names:
+            # An empty name? Then start from the beginning
+            if name=="":
+                node = None
+            else:
+                if node==None:
+                    node = self.nodes.get(name)
+                    if node==None:
+                        if create:
+                            node = self.createNode("<unknown>", {"name":[name]})
+                        else:
+                            raise KeyError, "Node %s not found (%s is missing)"%(path, name)
+                else:
+                    for cn in node.iterChildren():
+                        if name==cn.getName():
+                            node = cn
+                            break
+                    else:
+                        if create:
+                            node = self.createNode("<unknown>", {"name":[name], "parent":[node.getFullName()]})
+                        else:
+                            raise KeyError, "Node %s not found (%s is missing)"%(path, name)
+        return node
+
+    # createNode
+    def createNode(self, nodetype, opts):
+        """Create a new node and return it.
+        """
+        parentname = opts.get("parent", [None])[0]
+        parent = self.findNode(parentname)
+        node = Node(nodetype, opts, parent=parent)
+        # The constant default name (if there was no name set in the file)
+        # will override a previous node without name. But this doesn't
+        # matter as the node cannot be addressed by name in the file anyway.
+        nodename = node.getName()
+        self.nodes[nodename] = node
+        self.nodelist.append(node)
+        return node
+        
+
+
+######################################################################
+
+if __name__=="__main__":
+
+    class TestReader(DefaultMAReader):
+
+        def end(self):
+            for node in self.nodelist:
+                print '%-30s %-20s parent:%s'%('"'+node.getFullName()+'"', node.nodetype, node.getParentName())
+                for attrname in node._setattr:
+                    try:
+                        val = node.getAttrValue(attrname, attrname, None, None)
+                    except:
+                        val = "<error retrieving value, need more type information>"
+                    val = str(val)
+                    if len(val)>60:
+                        val = val[:60]+"..."
+                    print "  %s = %s"%(attrname, val)
+                
+
+
+    maname = sys.argv[1]
+    rd = TestReader()
+    rd.read(maname)

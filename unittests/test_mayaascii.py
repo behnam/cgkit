@@ -23,14 +23,15 @@ class TestMayaAscii(unittest.TestCase):
         """
 
         rd = mayaascii.MAReader()
-        self.assertEqual(rd.splitCommand('setAttr -k off ".v";'), (["setAttr", "-k", "off", ".v"],19))
-        self.assertEqual(rd.splitCommand('setAttr -k off ".v"'), (["setAttr", "-k", "off", ".v"],-1))
+        self.assertEqual(rd.splitCommand('setAttr -k off ".v";'), (["setAttr", "-k", "off", '".v"'],19))
+        self.assertEqual(rd.splitCommand('setAttr -k off ".v"'), (["setAttr", "-k", "off", '".v"'],-1))
         self.assertEqual(rd.splitCommand('select -ne :defaultShaderList1;'), (["select", "-ne", ":defaultShaderList1"], 30))
         self.assertEqual(rd.splitCommand('select -ne :defaultShaderList1;setAttr -k off ".v"'), (["select", "-ne", ":defaultShaderList1"], 30))
         self.assertEqual(rd.splitCommand('select -ne :defaultShaderList1;setAttr -k off ".v'), (["select", "-ne", ":defaultShaderList1"], 30))
-        self.assertEqual(rd.splitCommand('setAttr -k off ".v";select -ne :defaultShaderList1;'), (["setAttr", "-k", "off", ".v"],19))
-        self.assertEqual(rd.splitCommand('setAttr "-k off" foo ".v";select -ne :defaultShaderList1;'), (["setAttr", "-k off", "foo", ".v"],25))
-        self.assertEqual(rd.splitCommand('setAttr "foo spam"'), (["setAttr", "foo spam"],-1))
+        self.assertEqual(rd.splitCommand('setAttr -k off ".v";select -ne :defaultShaderList1;'), (["setAttr", "-k", "off", '".v"'],19))
+        self.assertEqual(rd.splitCommand('setAttr "-k off" foo ".v";select -ne :defaultShaderList1;'), (["setAttr", '"-k off"', "foo", '".v"'],25))
+        self.assertEqual(rd.splitCommand('setAttr "foo spam"'), (["setAttr", '"foo spam"'],-1))
+        self.assertEqual(rd.splitCommand('setAttr "foo spam'), (["setAttr", '"foo spam"'],-1))
 
 
 ######################################################################

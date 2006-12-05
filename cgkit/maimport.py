@@ -97,8 +97,8 @@ class MAImporter(mayaascii.DefaultMAReader):
             handlername = "onNode%s%s"%(n.nodetype[0].upper(), n.nodetype[1:])
             handler = getattr(self, handlername, None)
             if handler!=None:
-                name = n.opts.get("name", [None])[0]
-                parent = n.opts.get("parent", [None])[0]
+                name = n.getName()
+                parent = n.getParentName()
                 handler(n, name, parent)
             else:
                 if n.nodetype not in issued_warnings:

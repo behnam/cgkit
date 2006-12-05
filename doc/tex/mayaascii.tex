@@ -14,6 +14,21 @@ The module also contains a couple of helper classes that may be
 used by a derived reader class to facilitate the processing of the
 data.
 
+\begin{funcdesc}{splitDAGPath}{path}
+Split a Maya DAG path into its components. The path is given as a
+string that may have the form <namespace>:<path> where <path> is a
+sequence of strings separated by '|'.  The return value is a 2-tuple
+(\var{namespace}, \var{names}) where \var{namespace} is \code{None} 
+if the path did not contain a ':' character. \var{names} is a list 
+of individual path names.
+\end{funcdesc}
+
+\begin{funcdesc}{stripQuotes}{s}
+Remove surrounding quotes if there are any. The function returns the
+string \var{s} without surrounding quotes (i.e. \code{"foo" -> foo}). 
+If there are no quotes the string is returned unchanged.
+\end{funcdesc}
+
 %----------------------------------------------------------------
 \subsection{MAReader class}
 
@@ -138,6 +153,30 @@ containing the node names.
 \end{methoddesc}
 
 %----------------------------------------------------------------
+\subsection{DefaultMAReader class}
+
+This class is derived from the \class{MAReader} class and implements 
+the callback methods which build the graph in memory using the helper
+classes (\class{Node}, etc.). You may derive from this class and only
+implement the \method{end()} callback to process the graph. All nodes
+of the graph can be found in the \member{nodelist} attribute.
+
+\begin{classdesc}{DefaultMAReader}{}
+  Creates an instance of the reader.
+\end{classdesc}
+
+\begin{memberdesc}{nodelist}
+This list will contain all \class{Node} objects that have been created.
+The order is the same as they have been encountered in the file.
+\end{memberdesc}
+
+\begin{methoddesc}{findNode}{path, create=False}
+Return the \class{Node} object corresponding to a particular path.
+\var{path} may also be \code{None} in which case \class{None} is returned.
+If \var{create} is \code{True}, any missing node is automatically created.
+\end{methoddesc}
+
+%----------------------------------------------------------------
 \subsection{Node class}
 
 The \class{Node} class is a helper class which may be used in a
@@ -149,9 +188,11 @@ Maya node, it just tracks attribute changes and connections which can
 later be retrieved once the entire file was read. So this class can be
 used for all Maya nodes in a file.
 
-\begin{classdesc}{Node}{nodetype, opts}
+\begin{classdesc}{Node}{nodetype, opts, parent=None}
   \var{nodetype} and \var{opts} are the arguments of the 
   \method{onCreateNode()} callback of the \class{MAReader} class.
+  \var{parent} is either None or another \class{Node} object that will 
+  be the parent of the node.
 \end{classdesc}
 
 \begin{memberdesc}{nodetype}
@@ -164,13 +205,26 @@ This is the option dictionary that was passed to the constructor
 (i.e. that is used to create the node).
 \end{memberdesc}
 
-\begin{methoddesc}{getName}{default=None}
-Return the name of the node or the provided default value if no name 
-was specified.
+\begin{methoddesc}{getName}{}
+Return the name of the node. If no node name was specified during the
+creation of the object, the dummy name 'MayaNode' is returned.
 \end{methoddesc}
 
 \begin{methoddesc}{getParentName}{}
 Return the name of the parent node or \code{None} if no parent was specified.
+\end{methoddesc}
+
+\begin{methoddesc}{getParent}{}
+Return the parent \class{Node} object.
+\end{methoddesc}
+
+\begin{methoddesc}{setParent}{parent}
+\var{parent} is either \code{None} to remove the node from its parent
+or it is another \class{Node} object that will be the new parent.
+\end{methoddesc}
+
+\begin{methoddesc}{iterChildren}{}
+Return an iterator that yields all children \class{Node} objects.
 \end{methoddesc}
 
 \begin{methoddesc}{setAttr}{attr, vals, opts}

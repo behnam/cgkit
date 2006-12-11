@@ -355,8 +355,9 @@ class Render(Tool):
 
 ######################################################################
 
-render = Render()
-try:
-    render.run()
-except RenderException, e:
-    print e
+if __name__=="__main__":
+    render = Render()
+    try:
+        render.run()
+    except RenderException, e:
+        print e

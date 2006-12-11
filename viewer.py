@@ -662,7 +662,8 @@ class Viewer(Tool):
 
 ######################################################################
 
-viewer = Viewer()
-viewer.run()
+if __name__=="__main__":
+    viewer = Viewer()
+    viewer.run()
 
 

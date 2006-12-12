@@ -236,6 +236,10 @@ void PrimVarAccess<T>::initMode(GeomObject& geom, std::string varname, VarType v
 
 	if (info->storage==UNIFORM && info->multiplicity==3 && trimesh_flag)
 	{
+	  // Multiply the varfaces size with 3 because of its multiplicity
+	  // (i.e. there are 3 times more elements in the array than 
+	  // reported by the size)
+	  varfaces_size *= 3;
 	  mode = 5;
 	}
 	else if (info->storage==FACEVARYING && info->multiplicity==1)

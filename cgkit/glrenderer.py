@@ -68,6 +68,8 @@ class GLRenderInstance(_core.GLRenderInstance):
         
         scene = getScene()
         vpx,vpy,width,height = self.getViewport()
+        if self.stereo_mode==1:
+            width /= 2
 
         glSelectBuffer(50)
         glRenderMode(GL_SELECT)

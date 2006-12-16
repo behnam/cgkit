@@ -7,6 +7,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- GLRenderInstance: Bugfix: Picking in vsplit stereo mode can now 
+  correctly be done on the left image.
 - mayaascii: When several MEL commands were in the same line it could happen
   that they were not properly distinguished. Added some more doc-strings and
   issue a warning when an unknown MEL command is encountered. 

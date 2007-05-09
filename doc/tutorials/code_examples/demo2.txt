@@ -1,7 +1,7 @@
 Sharing material definitions
 ============================
 
-:Author: Matthias Baas (baas@ira.uka.de)
+:Author: Matthias Baas (mbaas@users.sourceforge.net)
 :Date:  2004/12/20
 
 Here is another almost minimal scene where a material is defined

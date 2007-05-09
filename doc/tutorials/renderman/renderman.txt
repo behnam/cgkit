@@ -1,7 +1,7 @@
 cgkit tutorial: Rendering with RenderMan
 ========================================
 
-:Author: Matthias Baas (baas@ira.uka.de)
+:Author: Matthias Baas (mbaas@users.sourceforge.net)
 :Date:  2004/11/24
 
 .. contents::

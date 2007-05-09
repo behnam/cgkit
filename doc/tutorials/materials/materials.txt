@@ -1,7 +1,7 @@
 cgkit tutorial: Materials
 =========================
 
-:Author: Matthias Baas (baas@ira.uka.de)
+:Author: Matthias Baas (mbaas@users.sourceforge.net)
 :Date:  2005/04/17
 
 .. contents::

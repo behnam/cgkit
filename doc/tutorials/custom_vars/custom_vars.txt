@@ -1,7 +1,7 @@
 cgkit tutorial: Custom attributes & primitive variables
 =======================================================
 
-:Author: Matthias Baas (baas@ira.uka.de)
+:Author: Matthias Baas (mbaas@users.sourceforge.net)
 :Date:  2004/12/07
 
 .. contents::

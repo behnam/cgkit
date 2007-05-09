@@ -1,7 +1,7 @@
 cgkit tutorial: Baking texture maps
 ===================================
 
-:Author: Matthias Baas (baas@ira.uka.de)
+:Author: Matthias Baas (mbaas@users.sourceforge.net)
 :Date:  2005/06/18
 
 .. contents::

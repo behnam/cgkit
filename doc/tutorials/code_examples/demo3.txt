@@ -1,7 +1,7 @@
 Creating a hierarchy and using expressions
 ==========================================
 
-:Author: Matthias Baas (baas@ira.uka.de)
+:Author: Matthias Baas (mbaas@users.sourceforge.net)
 :Date:  2004/12/20
 
 This script creates a hierarchy of objects so that moving the parent

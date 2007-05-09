@@ -1,7 +1,7 @@
 A minimal scene
 ===============
 
-:Author: Matthias Baas (baas@ira.uka.de)
+:Author: Matthias Baas (mbaas@users.sourceforge.net)
 :Date:  2004/12/20
 
 This is a minimal example of a scene with one camera, two point lights

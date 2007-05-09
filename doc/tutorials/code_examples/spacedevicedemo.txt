@@ -1,7 +1,7 @@
 How to use the spacedevice module
 =================================
 
-:Author: Matthias Baas (baas@ira.uka.de)
+:Author: Matthias Baas (mbaas@users.sourceforge.net)
 :Date:  2005/08/29
 
 This demo demonstrates the usage of the ``SpaceDevice`` object in the

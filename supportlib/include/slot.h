@@ -620,7 +620,7 @@ Slot<T>::~Slot()
   while(dependents.begin()!=dependents.end())
   {
     Dependent* d = *dependents.begin();
-    //    DEBUGINFO1(this, "    0x%p->onControllerDeleted()", d);
+    //    DEBUGINFO1(this, "    %#lx->onControllerDeleted()", d);
     d->onControllerDeleted();
     // Is the dependency still there? Then remove it...
     //    DEBUGINFO(this, "    check");
@@ -729,7 +729,7 @@ ISlot* Slot<T>::getController() const
 template<class T>
 void Slot<T>::setController(ISlot* ctrl)
 {
-  DEBUGINFO1(this, "Slot<T>::setController(0x%p)", ctrl);
+  DEBUGINFO1(this, "Slot<T>::setController(%#lx)", ctrl);
   // Check if this slot can take input connections (but allow setting 0
   // as this can happen during destruction)
   if ((flags & NO_INPUT_CONNECTIONS) && ctrl!=0)
@@ -738,7 +738,7 @@ void Slot<T>::setController(ISlot* ctrl)
   // If the new and old controller are the same, then there's nothing to do
   if (controller==ctrl)
   {
-    DEBUGINFO1(this, "Slot<T>::setController(0x%p) --- end  (new==old)", ctrl);
+    DEBUGINFO1(this, "Slot<T>::setController(%#lx) --- end  (new==old)", ctrl);
     return;
   }
 
@@ -774,13 +774,13 @@ void Slot<T>::setController(ISlot* ctrl)
     ctrl->addDependent(this);
     notifyDependents();
   }
-  DEBUGINFO1(this, "Slot<T>::setController(0x%p) --- end", ctrl);
+  DEBUGINFO1(this, "Slot<T>::setController(%#lx) --- end", ctrl);
 }
 
 template<class T>
 void Slot<T>::addDependent(Dependent* d)
 {
-  DEBUGINFO1(this, "Slot<T>::addDependent(0x%p)", d);
+  DEBUGINFO1(this, "Slot<T>::addDependent(%#lx)", d);
 
   // Do nothing if the dependent was already added before
   if (std::find(dependents.begin(), dependents.end(), d)!=dependents.end())
@@ -793,7 +793,7 @@ void Slot<T>::addDependent(Dependent* d)
 template<class T>
 void Slot<T>::removeDependent(Dependent* d)
 {
-  DEBUGINFO1(this, "Slot<T>::removeDependent(0x%p)", d);
+  DEBUGINFO1(this, "Slot<T>::removeDependent(%#lx)", d);
 
   // Remove the element (it is moved to the back)
   std::vector<Dependent*>::iterator res = std::remove(dependents.begin(), dependents.end(), d);

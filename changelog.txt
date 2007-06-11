@@ -5,8 +5,12 @@ Changes from cgkit-2.0.0alpha7 to cgkit-2.0.0alpha8:
 
 New features:
 
+- New module mayabinary to parse Maya binary scene files
+
 Bug fixes/enhancements:
 
+- Bugfix 1677388: The debug messages that print pointer now use the format
+  string %#lx which should also work on 64Bit systems (thanks to Paul Egan)
 - GLRenderInstance: Bugfix: Picking in vsplit stereo mode can now 
   correctly be done on the left image.
 - mayaascii: When several MEL commands were in the same line it could happen
@@ -47,10 +51,14 @@ Bug fixes/enhancements:
 - Bugfix: The render tool wasn't properly processing facevarying/facevertex
   variables on meshes (the extractUniform() function didn't take these
   storage classes into account).
+- mayaascii: The options of the file command have been completed.
+- mayaascii: The lockNode command is supported.
+- mayaascii: Reading the file can be aborted.
 - mayaascii: The importer was broken because of the previous modification
   of the simplecpp module. This is fixed now.
 - render.py: The Globals section can now contain a parameter output_framebuffer
   that controls whether a framebuffer display is opened or not.
+- simplecpp: Reading a file can be aborted now.
 - simplecpp: Don't use keyword arguments to pass the compare function to
   sort(). This wasn't supported before Python 2.4.
 - ribexport: All RMLightSource instances were using the same shader as the

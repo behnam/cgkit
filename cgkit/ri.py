@@ -210,6 +210,12 @@ RI_OBJECT       = "object"
 
 RI_IDENTIFIER   = "identifier"
 RI_NAME         = "name"
+RI_SHADINGGROUP = "shadinggroup"
+
+RI_IGNORE       = "ignore"
+RI_PRINT        = "print"
+RI_ABORT        = "abort"
+RI_HANDLER      = "handler"
 
 RI_HANDLEID     = "__handleid"
 

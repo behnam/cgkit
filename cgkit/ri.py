@@ -229,6 +229,8 @@ RIE_WARNING     = 1
 RIE_ERROR       = 2
 RIE_SEVERE      = 3
 
+RIE_INCAPABLE   = 11
+
 RIE_NOTOPTIONS  = 25       # Invalid state for options
 RIE_NOTATTRIBS  = 26       # Invalid state for attributes
 RIE_NOTPRIMS    = 27       # Invalid state for primitives
@@ -240,6 +242,36 @@ RIE_INVALIDSEQLEN = 80     # A sequence hasn't had the required length
 RIE_UNDECLARED    = 81     # An undeclared parameter is used
 
 RiLastError     = 0
+
+############################ Types ###################################
+
+RtBoolean = bool
+RtInt = int
+RtFloat = float
+RtString = str
+RtToken = str
+RtVoid = None
+RtPointer = lambda x: x
+
+RtColor = tuple
+RtPoint = tuple
+RtVector = tuple
+RtNormal = tuple
+RtHpoint = tuple
+RtMatrix = tuple
+RtBasis = tuple
+RtBound = tuple
+
+RtObjectHandle = lambda x: x
+RtLightHandle = lambda x: x
+RtContextHandle = lambda x: x
+
+RtFilterFunc = lambda x: x
+RtErrorHandler = lambda x: x
+RtProcSubdivFunc = lambda x: x
+RtProcFreeFunc = lambda x: x
+RtArchiveCallback = lambda x: x
+
 
 ######################################################################
 
@@ -707,7 +739,6 @@ def RiPointsPolygons(nverts, vertids, *paramlist, **keyparams):
     uniform:  #polygons      vertex:  #vertices (*)
 
     (*) max(vertids)+1
-
     """
 
     _ribout.write('PointsPolygons '+_seq2list(nverts)+' '+ \
@@ -729,7 +760,6 @@ def RiPointsGeneralPolygons(nloops, nverts, vertids, *paramlist, **keyparams):
     uniform:  #polygons      vertex:  #vertices (*)
 
     (*) max(vertids)+1
-
     """
 
     _ribout.write('PointsGeneralPolygons '+_seq2list(nloops)+' '+ \
@@ -748,7 +778,7 @@ RiPowerBasis = "power"
 def RiBasis(ubasis, ustep, vbasis, vstep):
     """Set the current basis for the u and v direction.
 
-    ubasis/vbasis can be either one of the predefined basis matrices
+    ubasis/vbasis can either be one of the predefined basis matrices
     RiHermiteBasis, RiCatmullRomBasis, RiBezierBasis, RiBSplineBasis,
     RiPowerBasis or it can be a user defined matrix.
 
@@ -831,7 +861,7 @@ def RiTrimCurve(ncurves, order, knot, min, max, n, u, v, w):
 
     _ribout.write('TrimCurve '+_seq2list(ncurves)+' '+\
                  _seq2list(order)+' '+_seq2list(knot)+' '+\
-                 str(min)+' '+str(max)+' '+_seq2list(n)+' '+ \
+                 _seq2list(min)+' '+_seq2list(max)+' '+_seq2list(n)+' '+ \
                  _seq2list(u)+' '+ \
                  _seq2list(v)+' '+ \
                  _seq2list(w)+'\n')
@@ -1189,11 +1219,17 @@ RiCatmullRomFilter = "catmull-rom"
 def RiPixelFilter(function, xwidth, ywidth):
     """Set a pixel filter function and its width in pixels.
 
- Note: Here you can only use one of the predefined filter functions:
+    Note: Here you can only use one of the predefined filter functions:
     RiGaussianFilter, RiBoxFilter, RiTriangleFilter, RiSincFilter and
     RiCatmullRomFilter.
+    Passing a callable as filter function will issue a warning and ignore
+    the call.
 
     Example: RiPixelFilter(RiGaussianFilter, 2.0, 1.0)"""
+    
+    if callable(function):
+        _error(RIE_INCAPABLE, RIE_WARNING, "Only the standard filters can be stored in a RIB stream.")
+        return
 
     _ribout.write('PixelFilter "'+function+'" '+str(xwidth)+' '+str(ywidth)+'\n')
 
@@ -1366,6 +1402,7 @@ def RiSkew(angle, *vecs):
 # RiPerspective
 def RiPerspective(fov):
     """Concatenate a perspective transformation onto the current transformation.
+    
     Example: RiPerspective(45)"""
 
     _ribout.write('Perspective %s\n'%fov)
@@ -1590,15 +1627,25 @@ def RiReadArchive(filename, callback=None, *ignore):
 def RiProcDelayedReadArchive(): return "DelayedReadArchive"
 def RiProcRunProgram(): return "RunProgram"
 def RiProcDynamicLoad(): return "DynamicLoad"
-def RiProcFree(): pass
+def RiProcFree(data): pass
 
 # RiProcedural
-def RiProcedural(data, bound, subdividefunc, freefunc):
+def RiProcedural(data, bound, subdividefunc, freefunc=None):
     """Declare a procedural model.
 
-    Note: Here you can only use the predefined standard procedurals:
-    RiProcDelayedReadArchive, RiProcRunProgram, RiProcDynamicLoad.
+    subdividefunc and freefunc may either be the standard RenderMan
+    procedurals (RiProcDelayedReadArchive, RiProcRunProgram,
+    RiProcDynamicLoad and RiProcFree) or Python callables.
+    In the former case, data must be a sequence of strings or a single
+    string containing the data for the functions. In the latter case,
+    data may be any Python object which is just passed on to the
+    functions. 
+    freefunc is optional and defaults to None.
 
+    Because this module can only produce RIB, a custom subdivide function is
+    simply called with a detail value of RI_INFINITY to generate all the
+    data at once.
+    
     Example: RiProcedural("mymodel.rib", [-1,1,-1,1,-1,1], \\
                           RiProcDelayedReadArchive, RI_NULL)
                           
@@ -1608,11 +1655,16 @@ def RiProcedural(data, bound, subdividefunc, freefunc):
              RiProcedural(["teapot.so",""],[0,1,0,1,0,1], \\
                           RiProcDynamicLoad, RI_NULL)
     """
-
-    if type(data)==types.StringType:
-        data=[data]
-    _ribout.write('Procedural "'+subdividefunc()+'" '+_seq2list(data)+ \
-                 ' '+_seq2list(bound,6)+"\n")
+    if subdividefunc in [RiProcDelayedReadArchive, RiProcRunProgram, RiProcDynamicLoad]:
+        if type(data)==types.StringType:
+            data=[data]
+        _ribout.write('Procedural "'+subdividefunc()+'" '+_seq2list(data)+ \
+                     ' '+_seq2list(bound,6)+"\n")
+    else:
+        # Call the custom procedure to generate all the data...
+        subdividefunc(data, RI_INFINITY)
+        if freefunc is not None:
+            freefunc(data)
 
 # RiGeometry
 def RiGeometry(type, *paramlist, **keyparams):
@@ -1731,13 +1783,17 @@ def RiMakeTexture(picname, texname, swrap, twrap, filterfunc, swidth, twidth, *p
     swrap and twrap are one of RI_PERIODIC, RI_CLAMP or RI_BLACK.
     filterfunc has to be one of the predefined filter functions:
     RiGaussianFilter, RiBoxFilter, RiTriangleFilter, RiSincFilter or
-    RiCatmullRomFilter.
-    swidth and twidth give the support of the filter.
+    RiCatmullRomFilter (otherwise a warning is issued and the call is ignored).
+    swidth and twidth define the support of the filter.
 
     Example: RiMakeTexture("img.tif", "tex.tif", RI_PERIODIC, RI_CLAMP, \\
                            RiGaussianFilter, 2,2)
     """
     
+    if callable(filterfunc):
+        _error(RIE_INCAPABLE, RIE_WARNING, "Only the standard filters can be stored in a RIB stream.")
+        return
+
     _ribout.write('MakeTexture "'+picname+'" "'+texname+'" "'+swrap+'" "'+
                   twrap+'" "'+filterfunc+'" '+str(swidth)+' '+str(twidth)+
                   _paramlist2string(paramlist, keyparams)+'\n')
@@ -1748,13 +1804,17 @@ def RiMakeLatLongEnvironment(picname, texname, filterfunc, swidth, twidth, *para
 
     filterfunc has to be one of the predefined filter functions:
     RiGaussianFilter, RiBoxFilter, RiTriangleFilter, RiSincFilter or
-    RiCatmullRomFilter.
-    swidth and twidth give the support of the filter.
+    RiCatmullRomFilter (otherwise a warning is issued and the call is ignored).
+    swidth and twidth define the support of the filter.
 
     Example: RiMakeLatLongEnvironment("img.tif", "tex.tif",
                                       RiGaussianFilter, 2,2)
     """
     
+    if callable(filterfunc):
+        _error(RIE_INCAPABLE, RIE_WARNING, "Only the standard filters can be stored in a RIB stream.")
+        return
+
     _ribout.write('MakeLatLongEnvironment "'+picname+'" "'+texname+'" "'+
                   filterfunc+'" '+str(swidth)+' '+str(twidth)+
                   _paramlist2string(paramlist, keyparams)+'\n')
@@ -1767,14 +1827,18 @@ def RiMakeCubeFaceEnvironment(px,nx,py,ny,pz,nz, texname, fov, filterfunc, swidt
     fov is the field of view that was used to generate the individual images.
     filterfunc has to be one of the predefined filter functions:
     RiGaussianFilter, RiBoxFilter, RiTriangleFilter, RiSincFilter or
-    RiCatmullRomFilter.
-    swidth and twidth give the support of the filter.
+    RiCatmullRomFilter (otherwise a warning is issued and the call is ignored).
+    swidth and twidth define the support of the filter.
 
     Example: RiMakeCubeFaceEnvironment("px.tif","nx.tif","py.tif","ny.tif",
                                        "pz.tif","nz.tif", "tex.tif", 92.0,
                                         RiGaussianFilter, 2,2)
     """
     
+    if callable(filterfunc):
+        _error(RIE_INCAPABLE, RIE_WARNING, "Only the standard filters can be stored in a RIB stream.")
+        return
+
     _ribout.write('MakeCubeFaceEnvironment "'+px+'" "'+nx+'" "'+
                   py+'" "'+ny+'" "'+pz+'" "'+nz+'" "'+ texname+'" '+
                   str(fov)+' "'+filterfunc+'" '+str(swidth)+' '+str(twidth)+
@@ -2059,9 +2123,15 @@ def _flatten(seq):
         # v=string?
         elif vtype==StringType:
             res.append('"%s"'%v)
-        # no scalar or string. Then it's supposed to be a sequence
+        # no scalar or string. Then it might be a sequence...
         else:
-            res+=_flatten(v)
+            # Check if it is really a sequence...
+            try:
+                n = len(v)
+            except:
+                res.append(str(v))
+                continue
+            res += _flatten(v)
     return res
 
 def _seq2list(seq, count=None):

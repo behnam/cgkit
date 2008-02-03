@@ -14,7 +14,7 @@
 # The Original Code is the Python Computer Graphics Kit.
 #
 # The Initial Developer of the Original Code is Matthias Baas.
-# Portions created by the Initial Developer are Copyright (C) 2004
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -71,10 +71,12 @@ def loadRI(libName):
     _createRiConstants(ri)
     _createRiFunctions(ri)
 
-    # Create an alias for every Ri function that has the prefix removed...
+    # Create an alias for every Ri function and RI_ constant that has the prefix removed...
     for name in dir(ri):
         if name.startswith("Ri"):
             setattr(ri, name[2:], getattr(ri, name))
+        elif name.startswith("RI_"):
+            setattr(ri, name[3:], getattr(ri, name))
 
     ri.__class__.RiLastError = property(_getLastError, _setLastError)
     ri.__class__.LastError = property(_getLastError, _setLastError)
@@ -130,6 +132,7 @@ def _createRiTypes(ri):
     ri.RtProcSubdivFunc = CFUNCTYPE(ri.RtVoid,  ri.RtPointer, ri.RtFloat)
     ri.RtProcFreeFunc = CFUNCTYPE(ri.RtVoid,  ri.RtPointer)
     ri.RtArchiveCallback = CFUNCTYPE(ri.RtVoid,  ri.RtToken, c_char_p)   # var args are missing
+    
     
 def _createRiConstants(ri):
     """Create the RenderMan constants.
@@ -342,10 +345,15 @@ def _createRiFunctions(ri):
     ri.RiInterior.argtypes = [RtToken]
     ri.RiLightSource.argtypes = [RtToken]
     ri.RiLightSource.restype = RtLightHandle
-    ri.RiMakeCubeFaceEnvironment.argtypes = [c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, RtFloat, RtFilterFunc, RtFloat, RtFloat]
-    ri.RiMakeLatLongEnvironment.argtypes = [c_char_p, c_char_p, RtFilterFunc, RtFloat, RtFloat]
+    # In the following texture calls the declaration of the filter function is removed
+    # (see RiPixelFilter for more infos)
+#    ri.RiMakeCubeFaceEnvironment.argtypes = [c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, RtFloat, RtFilterFunc, RtFloat, RtFloat]
+    ri.RiMakeCubeFaceEnvironment.argtypes = [c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, c_char_p, RtFloat]
+#    ri.RiMakeLatLongEnvironment.argtypes = [c_char_p, c_char_p, RtFilterFunc, RtFloat, RtFloat]
+    ri.RiMakeLatLongEnvironment.argtypes = [c_char_p, c_char_p]
     ri.RiMakeShadow.argtypes = [c_char_p, c_char_p]
-    ri.RiMakeTexture.argtypes = [c_char_p, c_char_p, RtToken, RtToken, RtFilterFunc, RtFloat, RtFloat]
+#    ri.RiMakeTexture.argtypes = [c_char_p, c_char_p, RtToken, RtToken, RtFilterFunc, RtFloat, RtFloat]
+    ri.RiMakeTexture.argtypes = [c_char_p, c_char_p, RtToken, RtToken]
     ri.RiMatte.argtypes = [RtBoolean]
     ri.RiMotionBegin.argtypes = [RtInt]
     ri.RiMotionEnd.argtypes = []
@@ -373,10 +381,13 @@ def _createRiFunctions(ri):
     ri.RiPointsGeneralPolygons.argtypes = [RtInt, POINTER(RtInt), POINTER(RtInt), POINTER(RtInt)]
     ri.RiPointsPolygons.argtypes = [RtInt, POINTER(RtInt), POINTER(RtInt)]
     ri.RiPolygon.argtypes = [RtInt]
-    ri.RiProcedural.argtypes = [RtPointer, RtBound, RtProcSubdivFunc, RtProcFreeFunc]
+#    ri.RiProcedural.argtypes = [RtPointer, RtBound, RtProcSubdivFunc, RtProcFreeFunc]
+    ri.RiProcedural.argtypes = [RtPointer, RtBound]
     ri.RiProjection.argtypes = [RtToken]
     ri.RiQuantize.argtypes = [RtToken, RtInt, RtInt, RtInt, RtFloat]
-    ri.RiReadArchive.argtypes = [RtToken, RtArchiveCallback]
+    # When the second argument is set to RtArchiveCallback then it is not possible to pass None
+#    ri.RiReadArchive.argtypes = [RtToken, RtArchiveCallback]
+    ri.RiReadArchive.argtypes = [RtToken]
     ri.RiRelativeDetail.argtypes = [RtFloat]
     ri.RiReverseOrientation.argtypes = []
     ri.RiRotate.argtypes = [RtFloat, RtFloat, RtFloat, RtFloat]

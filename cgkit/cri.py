@@ -41,17 +41,29 @@
 # -------------------------------------------------------------
 # $Id: ri.py,v 1.4 2006/02/14 19:29:39 mbaas Exp $
 
-import ctypes, types, re
-import _cri
-from _cri import importRINames
+import types, re
 import ri
 from cgtypes import vec3
+try:
+    import ctypes
+    _has_ctypes = True
+except ImportError:
+    # If importing ctypes fails (which should only happen on older Python versions)
+    # the loadRI() function can still be used to load the standard ri module
+    # (and get the shortened function names without the "Ri" prefix).
+    _has_ctypes = False
+    
+if _has_ctypes:
+    import _cri
+    from _cri import importRINames
+
 try:
     import numpy
     from numpy.ctypeslib import ndpointer
     _has_numpy = True
 except ImportError:
     _has_numpy = False
+    
 
 def loadRI(libName):
     """Load a RenderMan library and return a module-like handle to it.
@@ -70,6 +82,8 @@ def loadRI(libName):
     if libName is None or libName=="":
         _ri = ri
     else: 
+        if not _has_ctypes:
+            raise ImportError("The ctypes module is not available. Please upgrade to a newer Python version (2.5 or newer) or install ctypes separately.")
         _ri = _cri.loadRI(libName)
         _ri = _RenderManAPI(_ri)
     
@@ -233,6 +247,7 @@ class _RenderManAPI:
     
         Example: RiAttribute("displacementbound", "sphere", 0.5)
         """
+        a = self._createCParamList(paramlist, keyparams)
         self._ri.RiAttribute(name, *self._createCParamList(paramlist, keyparams))
         
     def RiAttributeBegin(self):
@@ -1410,17 +1425,8 @@ class _RenderManAPI:
         and convert sequence values.
         Appends None (RI_NULL) to the parameter list.
         """
-        res = list(paramlist)
-        # Check if the number of values is uneven (this is only allowed when
-        # the last value is None (RI_NULL) in which case this last value is ignored)
-        if (len(res)%2==1):
-           if res[-1] is None:
-               res = res[:-1]
-           else:
-               raise ValueError, "The parameter list must contain an even number of values" 
-
-        # Append the params from the keyparams dict to the parameter list
-        map(lambda param: res.extend(param), keyparams.iteritems())
+        # Combine the paramlist and keyparams values...
+        res = ri._merge_paramlist(paramlist, keyparams)
     
         # Check if the values need conversion...
         for i in range(0, len(res), 2):
@@ -1456,6 +1462,8 @@ class _RenderManAPI:
                 ctype = self._ri.RtFloat 
 
             # Check if the value is a sequence. If not, turn it into a list...
+            if isinstance(res[i+1], basestring):
+                res[i+1] = [res[i+1]]
             try:
                 n = len(res[i+1])
             except:

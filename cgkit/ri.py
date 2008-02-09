@@ -979,7 +979,7 @@ def RiColorSamples(nRGB, RGBn):
         _error(RIE_CONSISTENCY, RIE_ERROR,
                "The number of values in the transformation matrices must be a multiple of 3.")
         
-    _colorsamples = len(nRGB)/3
+    _colorsamples = len(_flatten(nRGB))/3
     _ribout.write('ColorSamples '+_seq2list(nRGB)+' '+_seq2list(RGBn)+'\n')
 
 # RiColor
@@ -1494,17 +1494,22 @@ def RiLightSource(name, *paramlist, **keyparams):
     """
     global _lighthandle
 
-    keyparams = _paramlist2dict(paramlist, keyparams)
+    paramlist = _merge_paramlist(paramlist, keyparams)
+    lshandle = None
+    for i in range(0, len(paramlist), 2):
+        token = paramlist[i]
+        if token==RI_HANDLEID:
+            lshandle = str(paramlist[i+1])
+            paramlist = paramlist[:i]+paramlist[i+2:]
+            break
 
     # Check if the user provided a handle id...
-    if RI_HANDLEID in keyparams:
-        lshandle = str(keyparams[RI_HANDLEID])
-        del keyparams[RI_HANDLEID]
-        _ribout.write('LightSource "%s" "%s"%s\n'%(name, lshandle, _paramlist2string((), keyparams)))
-    else:
-        _lighthandle+=1
+    if lshandle is None:
+        _lighthandle += 1
         lshandle = _lighthandle
-        _ribout.write('LightSource "%s" %d%s\n'%(name, lshandle, _paramlist2string((), keyparams)))
+        _ribout.write('LightSource "%s" %d%s\n'%(name, lshandle, _paramlist2string(paramlist, {})))
+    else:
+        _ribout.write('LightSource "%s" "%s"%s\n'%(name, lshandle, _paramlist2string(paramlist, {})))
         
     return lshandle
 
@@ -2192,6 +2197,26 @@ def _paramlist2lut(paramlist, keyparams):
 
     return keyparams
     
+def _merge_paramlist(paramlist, keyparams):
+    """Merge a paramlist tuple and keyparams dict into one single list.
+    """
+    if len(paramlist)==1 and type(paramlist[0])==types.DictType:
+        keyparams = paramlist[0]
+        paramlist = ()
+
+    res = list(paramlist)
+    # Check if the number of values is uneven (this is only allowed when
+    # the last value is None (RI_NULL) in which case this last value is ignored)
+    if (len(res)%2==1):
+       if res[-1] is None:
+           res = res[:-1]
+       else:
+           raise ValueError, "The parameter list must contain an even number of values" 
+
+    # Append the params from the keyparams dict to the parameter list
+    map(lambda param: res.extend(param), keyparams.iteritems())
+    return res
+    
 
 def _paramlist2string(paramlist, keyparams={}):
     """Convert the paramlist into a string representation.
@@ -2208,15 +2233,12 @@ def _paramlist2string(paramlist, keyparams={}):
 
     global _declarations
 
-    # Add the paramlist tuple to the keyword argument dict
-    keyparams = _paramlist2dict(paramlist, keyparams)
-#    for i in range(len(paramlist)/2):
-#        token = paramlist[i*2]
-#        value = paramlist[i*2+1]
-#        keyparams[token]=value
+    paramlist = _merge_paramlist(paramlist, keyparams)
 
     res=""
-    for token in keyparams.keys():
+    for i in range(0, len(paramlist), 2):
+        token = paramlist[i].strip()
+        value = paramlist[i+1]
         # Extract the name of the token (without inline declaration
         # if there is one)
         f = token.split(" ")
@@ -2227,8 +2249,6 @@ def _paramlist2string(paramlist, keyparams={}):
             _error(RIE_UNDECLARED,RIE_ERROR,'Parameter "'+tokname+
                    '" is not declared.')
         
-        # Token value
-        value = keyparams[token]
         # Check if the value is a sequence (if it returns an iterator)
         isseq=0
         try:

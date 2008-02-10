@@ -34,6 +34,10 @@ env.Append(CPPPATH = ["include"])
 if sys.platform=="win32":
   env.Append(CCFLAGS = ["/GX", "/GR", "/MD", "/W3"])
   env.Append(CPPDEFINES = ["WIN32", "_LIB"])
+elif sys.platform=="darwin":
+  env.Append(CCFLAGS = ["-arch", "i386", "-arch", "ppc"])
+  env.Append(CPPPATH = ["/opt/local/include"])
+  env.Append(CCFLAGS = ["-fPIC"])
 else:
   env.Append(CPPPATH = ["/opt/local/include"])
   env.Append(CCFLAGS = ["-fPIC"])

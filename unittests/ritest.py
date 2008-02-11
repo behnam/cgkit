@@ -1,10 +1,16 @@
 # Test the Ri interface
 
+import sys
 from cgkit import ri
 from cgkit import cri
 from cgkit.cgtypes import *
 import ctypes
-import numpy
+try:
+    import numpy
+    has_numpy = True
+except ImportError:
+    print >>sys.stderr, "Warning: numpy module not found. Skipping numpy test in ritest.py."
+    has_numpy = False
 
 def normalizeRIB(inFile, outFile):
     """Helper function to normalize a RIB file.
@@ -67,7 +73,11 @@ def quadrics(ri):
     ri.RiTranslate(1,0,0)
     ri.RiParaboloid(0.5,0.2,0.7, 360, "varying color Cs", [(1,0,0),(0,1,0),(0,0,1),(1,1,0)])
     ri.RiTranslate(1,0,0)
-    ri.RiDisk(0,0.5,360, "varying color Cs", numpy.array([(1,0,0),(0,1,0),(0,0,1),(1,1,0)], dtype=numpy.float32))
+    if has_numpy:
+        Cs = numpy.array([(1,0,0),(0,1,0),(0,0,1),(1,1,0)], dtype=numpy.float32)
+    else:
+        Cs = [(1,0,0),(0,1,0),(0,0,1),(1,1,0)]
+    ri.RiDisk(0,0.5,360, "varying color Cs", Cs)
     ri.RiTranslate(1,0,0)
     ri.RiTorus(0.45,0.05,0,360,360, "varying color Cs", [(1,0,0),(0,1,0),(0,0,1),(1,1,0)])
     ri.RiTransformEnd()

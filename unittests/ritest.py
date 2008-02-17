@@ -170,9 +170,6 @@ def main(ri, name, archiveName="include.rib"):
     archiveName: Name of the test archive file
     """
     ri.RiBegin(name)
-    # for Aqsis...
-#    ri.RiDeclare("Ka", "float")
-#    ri.RiDeclare("Kd", "float")
 
     ri.RiArchiveRecord(ri.RI_COMMENT, "Test RIB file %d", 1)
     ri.RiArchiveRecord(ri.RI_STRUCTURE, "Creator $CREATOR")

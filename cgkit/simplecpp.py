@@ -38,17 +38,31 @@ import sys, types, os.path
 
 class Context:
     """This class carries information about a particular source file.
+    
+    Each #include command produces a new context that gets pushed
+    onto the stack.
     """
     def __init__(self, filehandle):
         # The file handle (file-like object)
         self.filehandle = filehandle
-        # The current line number (i.e. the line number of the next read line)
+        # The current line number (i.e. the line number of the next line read)
         self.linenr = 1
+        # The line number where the current (continued) line started.
+        # This is only different from self.linenr when lines were continued
+        # with a backslash at the end of a line. In this case start_linenr
+        # is the line number where the long line began and linenr is the
+        # last line number of the long line.
+        self.start_linenr = 1
         # The file name
         self.filename = getattr(filehandle, "name", "<?>")
         
+        # This is basically a stack that contains the evaluated conditions
+        # of the #if, #ifdef, etc. commands
         self.condition_list = []
         # Flag that specifies whether a line should be ignored or not
+        # (because it is inside an #ifdef ... #endif block, for example).
+        # If this flag is False there is still be output generated, but
+        # it's just an empty string)
         self.output_line = True
         
 
@@ -98,7 +112,10 @@ class PreProcessor:
         self.includedirs = []
         if includedirs!=None:
             self.includedirs.extend(includedirs)
-
+           
+        # This flag can be used to abort the preprocessor
+        self.abort_flag = False
+        
     def __call__(self, source, errstream=None):
         """Preprocess a file or a file-like object.
 
@@ -153,6 +170,8 @@ class PreProcessor:
             stripped = out.strip()
             # Preprocessor directive?
             if stripped[:1]=="#":
+                # Invoke the appropriate directive handler method...
+                # (i.e. onInclude(), onIfdef(), ...) 
                 s = stripped[1:].strip()
                 a = s.split()
                 directive = a[0].lower()
@@ -161,10 +180,11 @@ class PreProcessor:
                 handler = getattr(self, handlername, None)
                 if handler!=None:
                     handler(directive, arg)
+            # no preprocessor directive but regular code...
             else:
                 out = ""
                 for s in intervals:
-                    # Do substitutions if it's not a string
+                    # Do macro substitutions if it's not a string
                     if s[0:]!='"':
                         for name,value in self.substitution_list:
                             s = s.replace(name, value)
@@ -174,16 +194,37 @@ class PreProcessor:
                     self.output(out)
                 else:
                     self.output("")
+                    
+            # Should preprocessing be aborted?
+            if self.abort_flag:
+                break
             
             self.context.linenr += 1
+            self.context.start_linenr = self.context.linenr
             linebuffer = ""
             
         self.popContext()
 
     def output(self, s):
-        """This method is called for every output line.
+        """This method is called for every (extended) output line.
+        
+        Lines that were split using '\' at the end of the line are
+        reported as one single line.
         """
         self.output_buffer.append(s)
+            
+    def abort(self):
+        """Tell the preprocessor to abort operation.
+        
+        This method can be called by a derived class in the output()
+        handler method.
+        """
+        self.abort_flag = True
+        
+    # Directive handler methods:
+    # Each method takes the lowercase directive name as input and
+    # the argument string (which is everything following the directive)
+    # Example: #include <spam.h> -> directive: "include"  arg: "<spam.h>"
             
     def onInclude(self, directive, arg):
         """Handle #include directives.
@@ -334,7 +375,6 @@ class PreProcessor:
 
         return None
         
-
     def iterStringIntervals(self, s):
         """Iterate over the separate 'intervals' in the given string.
         

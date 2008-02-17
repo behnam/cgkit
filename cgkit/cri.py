@@ -1308,7 +1308,7 @@ class _RenderManAPI:
         points = (len(points)*self._ri.RtPoint)(*map(lambda p: tuple(p), points))
         n = len(points)
         res = self._ri.RiTransformPoints(fromspace, tospace, n, points)
-        if res is None:
+        if res==0:
             return None
         
         return map(lambda p: vec3(p), points)
@@ -1492,6 +1492,7 @@ class _RenderManAPI:
                  ri.RI_DISTANCE:"float",
                  ri.RI_FOV:"float",
                  ri.RI_FROM:"point",
+                 ri.RI_HANDLEID:"string",
                  ri.RI_INTENSITY:"float",
                  ri.RI_KA:"uniform float",
                  ri.RI_KD:"uniform float",

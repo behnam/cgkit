@@ -200,6 +200,7 @@ def _createRiTokens(ri):
               ("RI_FOV", "fov"),
               ("RI_FRAMEBUFFER", "framebuffer"),
               ("RI_FROM", "from"),
+              ("RI_HANDLEID", "__handleid"),
               ("RI_HANDLER", "handler"),
               ("RI_HIDDEN", "hidden"),
               ("RI_IDENTIFIER", "identifier"),
@@ -409,7 +410,6 @@ def _createRiFunctions(ri):
     ri.RiTransformBegin.argtypes = []
     ri.RiTransformEnd.argtypes = []
     ri.RiTransformPoints.argtypes = [RtToken, RtToken, RtInt, POINTER(RtPoint)]
-    ri.RiTransformPoints.restype = POINTER(RtPoint)
     ri.RiTranslate.argtypes = [RtFloat, RtFloat, RtFloat]
     ri.RiTrimCurve.argtypes = [RtInt, POINTER(RtInt), POINTER(RtInt), POINTER(RtFloat), POINTER(RtFloat), POINTER(RtFloat), POINTER(RtInt), POINTER(RtFloat), POINTER(RtFloat), POINTER(RtFloat)]
     ri.RiWorldBegin.argtypes = []

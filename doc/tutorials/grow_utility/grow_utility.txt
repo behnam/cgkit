@@ -35,7 +35,7 @@ with the following content:
 .. code-block:: Python
    :source-file: proc.py
 
-The name of function must be identical to the file name. This function
+The name of the function must be identical to the file name. This function
 simply creates a sphere of radius 0.02 at the generated position.
 
 Finally, we have to tell the grow utility what exactly to do. There
@@ -90,7 +90,7 @@ the spheres:
         RiSphere(r,-r,r,360)
         RiTransformEnd()
 
-The name of procedure must be specified in the Globlas() section using
+The name of the procedure must be specified in the Globals() section using
 the ``proc`` argument. The file where the grow utility is looking
 for the function must have the same name than the function plus
 the ``.py`` suffix. The function will be called with a number of

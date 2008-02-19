@@ -290,7 +290,6 @@ class MAImporter(mayaascii.DefaultMAReader):
 
     def onNodeMesh(self, node):
         args = self.fillWorldObjectArgs(node)
-        print args
         parentnode = node.getParent()
         
         # Check if the mesh is just a regular mesh or if it's created by

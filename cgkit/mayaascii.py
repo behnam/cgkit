@@ -94,7 +94,9 @@ class MAPreProcessor(simplecpp.PreProcessor):
     def output(self, s):
         # Ignore the preprocessor lines
         if s[0:1]!="#":
-            self.linehandler(s)
+            continue_flag = self.linehandler(s)
+            if not continue_flag:
+                self.abort()
 
 # PolyFace
 class PolyFace:
@@ -220,7 +222,7 @@ class Attribute:
 
         attr, vals and opts are the parameters of the onSetAttr() callback.
         """
-        self._attr = attr
+        self._attr = stripQuotes(attr)
         self._vals = vals
         self._opts = opts
 
@@ -864,7 +866,7 @@ class MAReader:
     method that has to execute the command. These callback methods
     have to be implemented in a derived class.
 
-    There are 11 MEL commands that can appear in a Maya ASCII file: 
+    There are 12 MEL commands that can appear in a Maya ASCII file: 
 
     - file 
     - requires 
@@ -877,6 +879,7 @@ class MAReader:
     - disconnectAttr 
     - parent 
     - select
+    - lockNode
 
     Each command has a number of arguments and can also take
     options. The callback methods receive the arguments as regular
@@ -886,6 +889,13 @@ class MAReader:
     (without leading dash) and the value is a list of strings
     containing the option values. The number of values and how they
     have to be interpreted depend on the actual option.
+    
+    The callbacks may access a few instance variables that carry
+    further information:
+    
+    - filename: The name of the ma file
+    - cmd_start_linenr: The line number where the current command began
+    - cmd_end_linenr: The line number where the current command ended 
     """
     
     def __init__(self):
@@ -1037,30 +1047,118 @@ class MAReader:
                                  "enumName" : (1, None) }
 
         # file options (incomplete)
-        self.file_name_dict = { "r":"reference",
+        self.file_name_dict = { "bls":"buildLoadSettings",
+                                "c":"command",
+                                "dns":"defaultNamespace",
+                                "dr":"deferReference",
+                                "f":"force",
+                                "fr":"flushReference",
+                                "gl":"groupLocator",
+                                "gn":"groupName",
+                                "gr":"groupReference",
+                                "ir":"importReference",
+                                "lck":"lockReference",
+                                "lf":"lockFile",
+                                "lrd":"loadReferenceDepth",
+                                "lad":"loadAllDeferred",
+                                "lar":"loadAllReferences",
+                                "lnr":"loadNoReferences",
+                                "lr":"loadReference",
+                                "ls":"loadSettings",
+                                "pr":"preserveReferences",
+                                "new":"newFile",
+                                "o":"open",
+                                "op":"options",
+                                "pmt":"prompt",
+                                "r":"reference",
+                                "ra":"renameAll",
+                                "rdi":"referenceDepthInfo",
+                                "rfn":"referenceNode",
                                 "rpr":"renamingPrefix",
-                                "ns":"namespace" }
-        self.file_opt_def = { "reference" : (0, None),
+                                "shd":"sharedNodes",
+                                "sns":"swapNamespace",
+                                "srf":"sharedReferenceFile",
+                                "str":"strict",
+                                "ns":"namespace",
+                                # The following flags are not documented in the Maya docs
+                                "pm":"proxyManager",
+                                "pt":"proxyTag",
+                                "ap":"activeProxy" }
+        
+        self.file_opt_def = { "buildLoadSettings" : (0, None), 
+                              "command" : (1, None),
+                              "defaultNamespace" : (0, None),
+                              "deferReference" : (1, None),
+                              "force" : (0, None),
+                              "flushReference" : (1, None),
+                              "groupLocator" : (0, None),
+                              "groupName" : (1, None),
+                              "groupReference" : (0, None),
+                              "importReference" : (0, None),
+                              "lockReference" : (0, None),
+                              "lockFile" : (1, None),
+                              "loadReferenceDepth" : (1, None),
+                              "loadAllDeferred" : (1, None),
+                              "loadAllReferences" : (0, None),
+                              "loadNoReferences" : (0, None),
+                              "loadReference" : (1, None),
+                              "loadSettings" : (1, None),
+                              "preserveReferences" : (0, None),
+                              "newFile" : (0, None),
+                              "open" : (0, None),
+                              "options" : (1, None),
+                              "prompt" : (1, None),
+                              "reference" : (0, None),
+                              "renameAll" : (1, None),
+                              "referenceDepthInfo" : (1, None),
+                              "referenceNode" : (1, None),
                               "renamingPrefix" : (1, None),
-                              "namespace" : (1, None) }
+                              "sharedNodes" : (1, None),
+                              "swapNamespace" : (2, None),
+                              "sharedReferenceFile" : (0, None),
+                              "strict" : (1, None),
+                              "namespace" : (1, None),
+                              "proxyManager" : (1, None),
+                              "proxyTag" : (1, None),
+                              "activeProxy" : (0, None) }
 
-
+        # lockNode options
+        self.lockNode_name_dict = { "l":"lock",
+                                    "ic":"ignoreComponents" }
+        self.lockNode_opt_def = { "lock" : (1, None),
+                                  "ignoreComponents" : (0, None) }
+        
+    # Provide linenr as an alias for cmd_start_linenr
+    @property
+    def linenr(self):
+        return self.cmd_start_linenr
+    
     def read(self, f):
         """Read a MA file and invoke the callbacks.
 
         f is a file-like object or the name of a file.
         """
         self.begin()
-        self.filename = getattr(f, "name", "?")
-        self.linenr = 0
+        if isinstance(f, types.StringTypes):
+            self.filename = f
+        else:
+            self.filename = getattr(f, "name", "?")
         # A flag that indicates if a new MEL command is about to begin
         self.new_cmd = True
         # The name of the current MEL command
         self.cmd = None
         # The arguments of the current MEL command
         self.args = None
+        # This flag specifies whether reading the file should continue or not
+        self.continue_flag = True
 
+        # The line number where the current MEL command began
+        self.cmd_start_linenr = None
+        # The line number where the current MEL command ended
+        self.cmd_end_linenr = None
+        
         cpp = MAPreProcessor(self.lineHandler)
+        self.cpp = cpp
         # Read the file and invoke the lineHandler for each line...
         cpp(f)
        
@@ -1069,11 +1167,19 @@ class MAReader:
         self.end()
 
     def lineHandler(self, s):
-        self.linenr += 1
+#        self.linenr += 1
         z = s.strip()
         if z!="":
             self.processCommands(z)
+        return self.continue_flag
+    
+    def abort(self):
+        """Stop reading the MA file.
         
+        This method can be called by a callback method to abort
+        reading the file.
+        """
+        self.continue_flag = False
 
     def begin(self):
         """Callback that is invoked before the file is read."""
@@ -1138,12 +1244,29 @@ class MAReader:
         pass
 #        print "select",objects,opts
 
+    def onLockNode(self, objects, opts):
+        """Callback for the 'lockNode' MEL command.
+        
+        objects is a list of objects (which may be empty).
+        """
+        pass
+#        print "lockNode",objects,opts
 
     # onCommand
     def onCommand(self, cmd, args):
         """Generic command callback.
 
         This callback invokes the "per command" callbacks.
+        
+        cmd is the MEL command name and args is a list of strings
+        that are the arguments of the command. The arguments have
+        been split into their individual tokens. Quotes around
+        quoted tokens are still present.
+        
+        Example:
+        
+        The MEL command setAttr -k off ".v"; would be passed in
+        as onCommand('setAttr', ['-k', 'off', '"v"'])
         """
 #        print "**",cmd, args
         # setAttr
@@ -1210,9 +1333,15 @@ class MAReader:
                                      self.file_opt_def,
                                      self.file_name_dict)
             self.onFile(args[0], opts)
+        # lockNode
+        elif cmd=="lockNode":
+            args, opts = self.getOpt(args,
+                                     self.lockNode_opt_def,
+                                     self.lockNode_name_dict)
+            self.onLockNode(args, opts)
         # unknown
         else:
-            print >>sys.stderr, "WARNING: %s, line %d: Unknown MEL command: '%s'"%(self.filename, self.linenr, cmd)
+            print >>sys.stderr, "WARNING: %s, line %d: Unknown MEL command: '%s'"%(self.filename, self.cmd_start_linenr, cmd)
 
 
     # getOpt
@@ -1227,7 +1356,9 @@ class MAReader:
         The return value is a 2-tuple (args, opts) where args is a list
         of arguments and opts is a dictionary containing the options.
         The key is the long name of the option (without leading dash)
-        and the value is a list of values.
+        and the value is a list of values. Any existing quotes around
+        a value is removed (only around the option values, not around
+        the args!).
         """
 
         args = []
@@ -1235,26 +1366,33 @@ class MAReader:
         
         i=0
         while i<len(arglist):
-            a = arglist[i]
+            arg = arglist[i]
             i += 1
             try:
-                float(a)
+                float(arg)
                 is_number = True
             except:
                 is_number = False
             # Option?
-            if a[0]=="-" and not is_number:
+            a = stripQuotes(arg)
+            if a[0:1]=="-" and not is_number:
                 # Convert short names into long names...
                 optname = name_dict.get(a[1:], a[1:])
                 # Check if the option is known
                 if optname not in opt_def:
-                    raise SyntaxError, "Unknown option in line %d: %s"%(self.linenr, optname)
+                    raise SyntaxError, "Unknown option in line %d: %s"%(self.cmd_start_linenr, optname)
                 # Get the number of arguments
                 numargs, filter = opt_def[optname]
-                opts[optname] = arglist[i:i+numargs]
+                optvals = [stripQuotes(x) for x in arglist[i:i+numargs]]
+                # Did the same option already appear? So this is a multi-use flag.
+                # Then extend the current list with the new values
+                if optname in opts:
+                    opts[optname].extend(optvals)
+                else:
+                    opts[optname] = optvals
                 i += numargs
             else:
-                args.append(a)
+                args.append(arg)
 
         return args, opts
 
@@ -1275,6 +1413,8 @@ class MAReader:
             if self.new_cmd:
                 self.cmd = a[0]
                 self.args = a[1:]
+                # Store the line number where the command began
+                self.cmd_start_linenr = self.cpp.context.start_linenr
             else:
                 self.args += a
 
@@ -1285,6 +1425,8 @@ class MAReader:
         else:
             # The command is finished, so execute it
             if self.cmd!=None:
+                # Store the line number where the command ended
+                self.cmd_end_linenr = self.cpp.context.linenr
                 self.onCommand(self.cmd, self.args)
             self.new_cmd = True
             self.cmd = None
@@ -1394,8 +1536,8 @@ class DefaultMAReader(MAReader):
         """
         # Remove all quotes...
         nodetype = stripQuotes(nodetype)
-        for name in opts:
-            opts[name] = map(lambda x: stripQuotes(x), opts[name])
+#        for name in opts:
+#            opts[name] = map(lambda x: stripQuotes(x), opts[name])
             
         node = self.createNode(nodetype, opts)
         self.currentnode = node
@@ -1424,8 +1566,8 @@ class DefaultMAReader(MAReader):
 
         # Remove the quotes...
         attr = stripQuotes(attr)
-        for name in opts:
-            opts[name] = map(lambda x: stripQuotes(x), opts[name])
+#        for name in opts:
+#            opts[name] = map(lambda x: stripQuotes(x), opts[name])
 
         if attr[0]!=".":
             print >>sys.stderr, "mayaascii: Warning: DefaultMAReader.onSetAttr(): The attribute refers to a different object than the current object. This is not yet supported."
@@ -1439,8 +1581,8 @@ class DefaultMAReader(MAReader):
             return
 
         # Remove the quotes...
-        for name in opts:
-            opts[name] = map(lambda x: stripQuotes(x), opts[name])
+#        for name in opts:
+#            opts[name] = map(lambda x: stripQuotes(x), opts[name])
 
         self.currentnode.addAttr(opts)
 
@@ -1452,8 +1594,8 @@ class DefaultMAReader(MAReader):
         # Remove the quotes...
         srcattr = stripQuotes(srcattr)
         dstattr = stripQuotes(dstattr)
-        for name in opts:
-            opts[name] = map(lambda x: stripQuotes(x), opts[name])
+#        for name in opts:
+#            opts[name] = map(lambda x: stripQuotes(x), opts[name])
 
         # Split into object name and attribute name
         a = srcattr.split(".")

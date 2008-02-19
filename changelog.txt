@@ -5,10 +5,24 @@ Changes from cgkit-2.0.0alpha7 to cgkit-2.0.0alpha8:
 
 New features:
 
+- New module "cri" that accesses a RenderMan API directly by loading
+  a shared library that must implement the API (this shared library has
+  to be provided by the renderer you are using).
 - New module mayabinary to parse Maya binary scene files
 
 Bug fixes/enhancements:
 
+- ri: RiPixelFilter() now also accepts a callable as filter function but
+  will issue a warning and ignore the call.
+- ri: RiProcedural() now also accepts a Python function as subdiv function.
+  This will simply be called with a detail value of RI_INFINITY.
+- ri: Parameter lists can now also contain numpy (or other) arrays (this
+  does't increase performance though).
+- ri: Added the RenderMan type symbols to the module.
+- ri: Bugfix: RiColorSamples() was setting an invalid number of samples
+- ri: Bugfix: The RiTrimCurve() function was broken (due to a typo in the spec).
+- ri: Parameter lists that are given using positional arguments will now have
+  the same order in the RIB as they have in the source code.
 - Bugfix 1677388: The debug messages that print pointer now use the format
   string %#lx which should also work on 64Bit systems (thanks to Paul Egan)
 - GLRenderInstance: Bugfix: Picking in vsplit stereo mode can now 

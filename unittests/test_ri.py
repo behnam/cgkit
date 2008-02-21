@@ -71,6 +71,8 @@ class TestRi(unittest.TestCase):
         reflines = file(refFileName, "rt").readlines()
         linenr = 0
         for line,refline in zip(lines, reflines):
+            line = line.rstrip()
+            refline = refline.rstrip()
             linenr += 1
             self.assertEqual(line, refline, "Mismatch in line %d: '%s' != '%s'"%(linenr, line.strip()[:30], refline.strip()[:30]))
             

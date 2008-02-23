@@ -190,9 +190,13 @@ class MBReader:
         
         This method reads all chunks sequentially and invokes appropriate
         callback methods. 
+        file is a file-like object or the name of a file.
         """
-        
-        self._fileName = getattr(file, "name", "?")
+        if isinstance(file, basestring):
+            self._fileName = file
+            file = open(file, "rb")
+        else:
+            self._fileName = getattr(file, "name", "?")
         
         # Check if this actually is a Maya file
         # (and that it starts with a group tag)
@@ -335,13 +339,13 @@ if __name__=="__main__":
     
     class MBDumper(MBReader):
         def onBeginGroup(self, chunk):
-            print "BEGIN", chunk
+            print "GRP BEGIN", chunk
         
         def onEndGroup(self, chunk):
-            print "END", chunk
+            print "GRP END  ", chunk
         
         def onDataChunk(self, chunk):
-            print chunk
+            print "CHUNK    ",chunk
             
     rd = MBDumper()
     rd.read(open(sys.argv[1], "rb"))

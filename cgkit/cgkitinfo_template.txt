@@ -36,7 +36,7 @@
 """This module contains version information about cgkit.
 """
 
-version_info = (2,0,0,"alpha7cvs")
+version_info = (2,0,0,"alpha8cvs")
 
 # The following line is replaced by the setup script 
 version = "x.y.z (###)"

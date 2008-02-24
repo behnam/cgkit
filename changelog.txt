@@ -17,7 +17,8 @@ Bug fixes/enhancements:
 - ri: RiProcedural() now also accepts a Python function as subdiv function.
   This will simply be called with a detail value of RI_INFINITY.
 - ri: Parameter lists can now also contain numpy (or other) arrays (this
-  does't increase performance though).
+  doesn't increase performance though (whereas it does when the cri module
+  is used)).
 - ri: Added the RenderMan type symbols to the module.
 - ri: Bugfix: RiColorSamples() was setting an invalid number of samples
 - ri: Bugfix: The RiTrimCurve() function was broken (due to a typo in the spec).
@@ -27,11 +28,6 @@ Bug fixes/enhancements:
   string %#lx which should also work on 64Bit systems (thanks to Paul Egan)
 - GLRenderInstance: Bugfix: Picking in vsplit stereo mode can now 
   correctly be done on the left image.
-- mayaascii: When several MEL commands were in the same line it could happen
-  that they were not properly distinguished. Added some more doc-strings and
-  issue a warning when an unknown MEL command is encountered. 
-  When no type information was passed to Attribute.getValue() it falls
-  back to string conversion when the initially guessed type this fail.
 - asfamcimport: Updates because the mat3.fromEuler*() methods are now static.
 - euleradapter: Updates because the mat3.fromEuler*() methods are now static.
 - BoundingBox: New method center() that returns the center of the box.
@@ -65,6 +61,11 @@ Bug fixes/enhancements:
 - Bugfix: The render tool wasn't properly processing facevarying/facevertex
   variables on meshes (the extractUniform() function didn't take these
   storage classes into account).
+- mayaascii: When several MEL commands were in the same line it could happen
+  that they were not properly distinguished. Added some more doc-strings and
+  issue a warning when an unknown MEL command is encountered. 
+  When no type information was passed to Attribute.getValue() it falls
+  back to string conversion when the initially guessed type this fail.
 - mayaascii: The options of the file command have been completed.
 - mayaascii: The lockNode command is supported.
 - mayaascii: Reading the file can be aborted.

@@ -4,7 +4,7 @@ import sys
 from cgkit import ri
 from cgkit import cri
 from cgkit.cgtypes import *
-import ctypes
+
 try:
     import numpy
     has_numpy = True

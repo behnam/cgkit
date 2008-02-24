@@ -597,7 +597,7 @@ setup(name = PACKAGE_NAME,
       version = "2.0.0alpha7cvs",
       description = "Python Computer Graphics Kit",
       author = "Matthias Baas",
-      author_email = "baas@ira.uka.de",
+      author_email = "mbaas@users.sourceforge.net",
       url = "http://cgkit.sourceforge.net",
       license = "MPL/GPL/LGPL",
 

@@ -42,7 +42,7 @@ are not evaluated). Each MEL command will then trigger a callback
 method that has to execute the command.  These callback methods have
 to be implemented in a derived class.
 
-There are 11 MEL commands that can appear in a Maya ASCII 
+There are 12 MEL commands that can appear in a Maya ASCII 
 file\footnote{Actually, there could appear any MEL command, but at least
 Maya will only export files containing the above commands.}:
 
@@ -58,6 +58,7 @@ Maya will only export files containing the above commands.}:
 \item {\tt disconnectAttr}
 \item {\tt parent}
 \item {\tt select}
+\item {\tt lockNode}
 \end{itemize}
 
 Each command has a number of arguments and can also take options. The
@@ -82,6 +83,11 @@ warning or error messages.
 The current line number. This may be used for generating warning or error
 messages.
 \end{memberdesc}
+
+\begin{methoddesc}{abort}{}
+Aborts reading the current file.
+This method can be called in handler methods to abort reading the file.
+\end{methoddesc}
 
 \begin{methoddesc}{read}{f}
 Read the content of a file. \var{f} is either a file like object that
@@ -150,6 +156,11 @@ and \var{parent} the name of the parent.
 \begin{methoddesc}{onSelect}{objects, opts}
 Select a node from a referenced file. \var{objects} is a list of strings
 containing the node names.
+\end{methoddesc}
+
+\begin{methoddesc}{onLockNode}{objects, opts}
+Lock/unlock a node. \var{objects} is a list of strings containing the node
+names (the list may be empty).
 \end{methoddesc}
 
 %----------------------------------------------------------------

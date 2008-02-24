@@ -1,21 +1,21 @@
 \section{\module{ri} ---
-         RenderMan binding}
+         Generic RenderMan binding to produce RIB}
 
 \declaremodule{extension}{cgkit.ri}
-\modulesynopsis{RenderMan binding}
+\modulesynopsis{Generic RenderMan binding to produce RIB}
 
 The RenderMan\textsuperscript{\textregistered} interface is an API
 that is used to communicate a 3D scene description (which includes 3D
 geometry, light sources, a camera description, etc) to a renderer
 which will produce a 2D image of that scene. The API itself is
-independent of a particular renderer and can be used for a whole bunch
-of renderers, where each could use entirely different rendering
-algorithms. There are some excellent renderers freely available, such
+independent of a particular renderer and can be used for any renderer
+that adheres to the RenderMan standard.
+There are some excellent renderers freely available, such
 as \ulink{3Delight}{http://www.3delight.com/} or the Open Source renderer 
-\ulink{Aqsis}{http://www.aqsis.com/} or
+\ulink{Aqsis}{http://aqsis.sourceforge.net/} or
 \ulink{Pixie}{http://pixie.sourceforge.net/}. On the
 commercial side, the most popular renderers are Pixar's
-\ulink{Photorealistic RenderMan}{http://www.pixar.com/} (PRMan), 
+\ulink{Photorealistic RenderMan}{http://renderman.pixar.com/} (PRMan), 
 \ulink{RenderDotC}{http://www.dotcsw.com/} and 
 \ulink{AIR}{http://www.sitexgraphics.com/}. 
 The RenderMan interface was
@@ -28,6 +28,10 @@ binding. The binding was written to be compliant to v3.2 of Pixar's
 RenderMan Interface specification. However, it also supports some
 newer features such as string handles for light sources or object
 instances.
+
+There is another RenderMan module called \refmodule[cgkit.cri]{cri} that
+interfaces a renderer directly. Almost everything that is said in this section
+applies to the \module{cri} module as well.
 
 \subsection{Using the API}
 
@@ -71,6 +75,11 @@ is supposed to be an external program that reads RIB from stdin.
 The program is launched and the RIB stream is piped into it.
 \end{itemize}
 
+Note: When using the \module{cri} module you first have to load a library
+and invoke the functions on the returned handle (see the section on the
+\refmodule[cgkit.cri]{cri} module for more information about that). The
+interpretation of the argument to \function{RiBegin()} is then dependent on the
+renderer you are using.
 %-----------
 \subsection{Online documentation}
 
@@ -119,10 +128,12 @@ there are some minor differences you should know about.
 
 {\bf Types}
 
-In this binding typing is not as strict as in the C API. The type names
-RtBoolean, RtInt, RtFloat, etc. don't exist in this API, you just use
-the corresponding Python types (for booleans the module defines the
-constants \code{RI_TRUE} and \code{RI_FALSE}).
+In this binding typing is not as strict as in the C API. For compatibility
+reasons, the RenderMan types (RtBoolean, RtInt, RtFloat, etc.) do exist
+but they are just aliases to the corresponding built-in Python types and
+you never have to use them explicitly.
+In the ctypes-based \module{cri} module, the types refer to the respective
+ctypes types and you may want to use them occasionally to construct arrays.
 
 Wherever the API expects vector types (RtPoint, RtMatrix, RtBound,
 RtBasis) you can use any value that can be interpreted as a sequence
@@ -187,6 +198,7 @@ RiSurface("plastic", {"kd":0.6, "ks":0.4})
 \end{verbatim}
 
 This is useful if you generate the parameter list on the fly in your program.
+
 \end{itemize}
 
 {\bf Arrays}
@@ -228,17 +240,32 @@ RiTransformPoints()
 RiTrimCurve()
 \end{verbatim}
 
+When using the \module{cri} module it is particularly advantageous to pass
+arrays as ctypes arrays or numpy arrays. In this case, no data conversion is
+required which makes the function call considerably faster (particularly for
+large amounts of data).
+
+\begin{verbatim}
+# Creating a ctypes array of floats
+points = (12*RtFloat)(0,1,0, 0,1,1, 0,0,1, 0,0,0)
+
+# Creating a numpy array of floats
+points = numpy.array([0,1,0, 0,1,1, 0,0,1, 0,0,0], dtype=numpy.float32)
+\end{verbatim}
+
 {\bf User defined functions}
 
-Some RenderMan functions allow to take user defined functions as input
-which will be used during rendering. Since this implementation only
-outputs RIB streams it is not possible to use your own functions in
-these cases, instead you always have to use one of the predefined
-functions.
+Some RenderMan functions may take user defined functions as input
+which will be used during rendering. When using the \module{cri} module to
+link to an actual RenderMan library you can use Python functions in
+addition to the standard functions. However, in the case of the
+generic (\module{ri}) module, you can only use the predefined
+standard functions.
  
 {\em Filter functions}
 
-It is not possible to use your own filter functions, you have to use
+It is not possible to use your own filter functions in combination
+with the \module{ri} module, you have to use
 one of the predefined filters:
 
 \begin{itemize}
@@ -290,10 +317,11 @@ RiRotate(45, axis)
 
 {\bf Empty stubs}
 
-All the functions do what they are supposed to do (well, hopefully ;)
-except for the function RiTransformPoints(). This function is defined
-but it does nothing, it is only an empty stub (since the module only
-outputs RIB and does not maintain transformation matrices).
+In the \module{ri} module, the function RiTransformPoints() always
+returns None and never transforms points (as the module just outputs
+RIB and does not maintain transformations matrices).
+In the \module{cri} module, on the other hand, the function is available
+and can be used to transform points.
 
 %-----------
 \subsection{Implementation specific options}

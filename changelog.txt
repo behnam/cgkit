@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Changes from cgkit-2.0.0alpha8 to cgkit-2.0.0alpha9:
+
+Bug fixes/enhancements:
+
+- ri/cri: Passing unicode strings in a parameter list has caused an exception.
+
+----------------------------------------------------------------------
 Changes from cgkit-2.0.0alpha7 to cgkit-2.0.0alpha8:
 
 New features:

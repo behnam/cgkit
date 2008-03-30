@@ -2116,7 +2116,6 @@ def _flatten(seq):
     """
     res = []
     ScalarTypes = [types.IntType, types.LongType, types.FloatType]
-    StringType = types.StringType
     for v in seq:
         vtype = type(v)
         # v=scalar?
@@ -2126,7 +2125,7 @@ def _flatten(seq):
         elif isinstance(v, _vec3):
             res.extend([str(v.x), str(v.y), str(v.z)])
         # v=string?
-        elif vtype==StringType:
+        elif isinstance(v, basestring):
             res.append('"%s"'%v)
         # no scalar or string. Then it might be a sequence...
         else:
@@ -2256,7 +2255,7 @@ def _paramlist2string(paramlist, keyparams={}):
         except:
             pass
         # Convert value into the appropriate string representation
-        if type(value)==types.StringType:
+        if isinstance(value, basestring):
             value='["'+value+'"]'
 #        elif type(value)==types.ListType or type(value)==types.TupleType:
         elif isseq:

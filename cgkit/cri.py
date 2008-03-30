@@ -1402,7 +1402,7 @@ class _RenderManAPI:
         """Return a list of the individual items in a (possibly nested) sequence.
         """
         res = []
-        ScalarTypes = [types.IntType, types.LongType, types.FloatType, types.StringType]
+        ScalarTypes = [types.IntType, types.LongType, types.FloatType, types.StringType, types.UnicodeType]
         for v in seq:
             vtype = type(v)
             # v=scalar?

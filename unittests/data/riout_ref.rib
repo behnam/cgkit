@@ -4,6 +4,7 @@ ErrorHandler "abort"
 ErrorHandler "print"
 ErrorHandler "ignore"
 Option "searchpath" "shader" [ "&:shaders" ]
+Option "render" "string bucketorder" [ "horizontal" ]
 Format 800.0 600.0 1.0
 Display "out.tif" "framebuffer" "rgba" "integer [ 2.0 ] origin" [ 10.0 10.0 ]
 CropWindow 0.25 0.75 0.1 0.9

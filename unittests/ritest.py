@@ -179,6 +179,7 @@ def main(ri, name, archiveName="include.rib"):
     ri.RiErrorHandler(ri.RiErrorIgnore)
     err = ri.RiLastError
     ri.RiOption("searchpath", "shader", "&:shaders")
+    ri.RiOption("render", "string bucketorder", u"horizontal")
     ri.RiFormat(800, 600, 1.0)
     ri.RiDisplay("out.tif", ri.RI_FRAMEBUFFER, ri.RI_RGBA, "integer[2] origin", [10,10])
     ri.RiCropWindow(0.25, 0.75, 0.1, 0.9)

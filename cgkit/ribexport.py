@@ -46,6 +46,7 @@ from geomobject import *
 from boxgeom import BoxGeom
 from spheregeom import SphereGeom
 from ccylindergeom import CCylinderGeom
+from torusgeom import TorusGeom
 from planegeom import PlaneGeom
 from trimeshgeom import TriMeshGeom
 from polyhedrongeom import PolyhedronGeom
@@ -1326,6 +1327,16 @@ class CCylinderAdapter:
         RiTranslate(0,0,-l2)
         RiSphere(r, -r, 0, 360, st=[0,0, 1,0, 0,v1, 1,v1])
         RiTransformEnd()
+
+class TorusAdapter:
+    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[TorusGeom])
+    
+    def __init__(self, torusgeom, proto):
+        self.geom = torusgeom
+
+    def render(self, matid):
+        if matid==0:
+            RiTorus(self.geom.major, self.geom.minor, 0, 360, 360)
 
 class PlaneAdapter:
     protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[PlaneGeom])

@@ -320,61 +320,62 @@ if not os.path.exists(libcore) and not INSTALL_CGKIT_LIGHT:
 ##### Windows specific stuff #####
 if sys.platform=="win32":
 
-    MACROS += [("WIN32", None)]
-
-    # Boost
-    if BOOST_BASE==None:
-        BOOST_BIN = None
-    else:
-        BOOST_BIN = os.path.join(BOOST_BASE, "libs", "python", "build", "bin-stage")
-        INC_DIRS = [BOOST_BASE]+INC_DIRS
-        LIB_DIRS = [BOOST_BIN] + LIB_DIRS
-
-    if BOOST_DLL!=None:
-        # Search for the Boost DLL
-        boost_dll = findFile(BOOST_DLL, LIB_DIRS)
-        # Add the boost dll as additional file
+    if not INSTALL_CGKIT_LIGHT:
+        MACROS += [("WIN32", None)]
+    
+        # Boost
+        if BOOST_BASE==None:
+            BOOST_BIN = None
+        else:
+            BOOST_BIN = os.path.join(BOOST_BASE, "libs", "python", "build", "bin-stage")
+            INC_DIRS = [BOOST_BASE]+INC_DIRS
+            LIB_DIRS = [BOOST_BIN] + LIB_DIRS
+    
+        if BOOST_DLL!=None:
+            # Search for the Boost DLL
+            boost_dll = findFile(BOOST_DLL, LIB_DIRS)
+            # Add the boost dll as additional file
+            # (it is supposed to go into the root package directory)
+            packageDLL(boost_dll)
+    
+        # OpenGL
+        LIBS += ["opengl32", "glu32"]
+    
+        # Additional compiler options
+        CC_ARGS  += ["/GR", "/Zm700"]
+        # Additional linker options
+        LINK_ARGS += ["/NODEFAULTLIB:LIBCMT"]
+    
+        # Add the stlport dll as additional file
         # (it is supposed to go into the root package directory)
-        packageDLL(boost_dll)
-
-    # OpenGL
-    LIBS += ["opengl32", "glu32"]
-
-    # Additional compiler options
-    CC_ARGS  += ["/GR", "/Zm700"]
-    # Additional linker options
-    LINK_ARGS += ["/NODEFAULTLIB:LIBCMT"]
-
-    # Add the stlport dll as additional file
-    # (it is supposed to go into the root package directory)
-    if USING_STLPORT:
-        if os.path.isabs(STLPORT_DLL):
-            stlport_dll = STLPORT_DLL
-        else:
-            stlport_dll = os.path.join(STLPORT_BASE, "lib", STLPORT_DLL)
-        packageDLL(stlport_dll)
-
-    # Lib3ds
-    if LIB3DS_AVAILABLE:
-        INC_DIRS += [LIB3DS_PATH]
-        LIB_DIRS += [os.path.join(LIB3DS_PATH, "msvc", "Build", "Release")]
-#        LIBS += ["lib3ds-120s"]
-#        MACROS += [("LIB3DS_AVAILABLE", None)]
-
-    # CyberX3D
-    if CYBERX3D_AVAILABLE:
-        INC_DIRS += [os.path.join(CYBERX3D_PATH, "include")]
-        LIB_DIRS += [os.path.join(CYBERX3D_PATH, "lib")]
-        LIB_DIRS += [os.path.join(XERCES_PATH, "lib")]
-	if CYBERX3D_LIB==None:
-	    CYBERX3D_LIB = "CyberX3D"
-	if CYBERX3D_XERCES_LIB==None:
-	    CYBERX3D_XERCES_LIB = "xerces-c_2"
-        LIBS += [CYBERX3D_LIB, CYBERX3D_XERCES_LIB, "gdi32"]
-        if os.path.isabs(CYBERX3D_XERCES_DLL):
-            packageDLL(CYBERX3D_XERCES_DLL)
-        else:
-            packageDLL(os.path.join(XERCES_PATH, "bin", CYBERX3D_XERCES_DLL))
+        if USING_STLPORT:
+            if os.path.isabs(STLPORT_DLL):
+                stlport_dll = STLPORT_DLL
+            else:
+                stlport_dll = os.path.join(STLPORT_BASE, "lib", STLPORT_DLL)
+            packageDLL(stlport_dll)
+    
+        # Lib3ds
+        if LIB3DS_AVAILABLE:
+            INC_DIRS += [LIB3DS_PATH]
+            LIB_DIRS += [os.path.join(LIB3DS_PATH, "msvc", "Build", "Release")]
+#            LIBS += ["lib3ds-120s"]
+#            MACROS += [("LIB3DS_AVAILABLE", None)]
+    
+        # CyberX3D
+        if CYBERX3D_AVAILABLE:
+            INC_DIRS += [os.path.join(CYBERX3D_PATH, "include")]
+            LIB_DIRS += [os.path.join(CYBERX3D_PATH, "lib")]
+            LIB_DIRS += [os.path.join(XERCES_PATH, "lib")]
+    	if CYBERX3D_LIB==None:
+    	    CYBERX3D_LIB = "CyberX3D"
+    	if CYBERX3D_XERCES_LIB==None:
+    	    CYBERX3D_XERCES_LIB = "xerces-c_2"
+            LIBS += [CYBERX3D_LIB, CYBERX3D_XERCES_LIB, "gdi32"]
+            if os.path.isabs(CYBERX3D_XERCES_DLL):
+                packageDLL(CYBERX3D_XERCES_DLL)
+            else:
+                packageDLL(os.path.join(XERCES_PATH, "bin", CYBERX3D_XERCES_DLL))
 
 ##### Mac OS X (Darwin) #####
 elif sys.platform=="darwin":

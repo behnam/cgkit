@@ -5,6 +5,15 @@ Changes from cgkit-2.0.0alpha8 to cgkit-2.0.0alpha9:
 
 Bug fixes/enhancements:
 
+- mat3: The toEuler*() methods were broken. Depending on the angles, they
+  could return invalid values.
+- sl/noise: When only cgkit light was installed, the sl module couldn't be
+  imported because it imports noise which has no pure Python equivalent yet.
+  There is a dummy noise module now in the light version which allows importing
+  the module. An error is only triggered when one of the functions gets called.
+- rply: The sources can now also be compiled using a C++ compiler. Thanks
+  to Chris Foster for the patch!
+- ribexport: Added RenderMan support for the torus geometry.
 - ri/cri: Passing unicode strings in a parameter list has caused an exception.
 
 ----------------------------------------------------------------------

@@ -595,140 +595,32 @@ class mat3:
 
     def toEulerYXZ(self):
         """Return the Euler angles of a rotation matrix."""
-        global _epsilon
-
-        r1 = self.getRow(0)
-        r2 = self.getRow(1)
-        r3 = self.getRow(2)
-        
-        B = -r2.z
-
-        x = math.asin(B)
-
-        A = math.cos(x)
-
-        if (A>_epsilon):
-            y = math.acos(r3.z/A)
-            z = math.acos(r2.y/A)
-        else:
-            z = 0.0
-            y = math.acos(r1.x)
-            
+        y,x,z = self._getRotation(2, True, True, True)
         return (x,y,z)
 
     def toEulerZXY(self):
         """Return the Euler angles of a rotation matrix."""
-        global _epsilon
-
-        r1 = self.getRow(0)
-        r2 = self.getRow(1)
-        r3 = self.getRow(2)
-
-        B = r3.y
-
-        x = math.asin(B)
-
-        A = math.cos(x)
-
-        if (A>_epsilon):
-            y = math.acos(r3.z/A)
-            z = math.acos(r2.y/A)
-        else:
-            z = 0.0
-            y = math.acos(r1.x)
-
+        z,x,y = self._getRotation(1, False, True, True)
         return (x,y,z)
 
     def toEulerZYX(self):
         """Return the Euler angles of a rotation matrix."""
-        global _epsilon
-
-        r1 = self.getRow(0)
-        r2 = self.getRow(1)
-        r3 = self.getRow(2)
-        
-        D = -r3.x
-
-        y = math.asin(D)
-
-        C = math.cos(y)
-
-        if (C>_epsilon):
-            x = math.acos(r3.z/C)
-            z = math.acos(r1.x/C)
-        else:
-            z = 0.0
-            x = math.acos(-r2.y)
-
+        z,y,x = self._getRotation(0, True, True, True)
         return (x,y,z)
 
     def toEulerYZX(self):
         """Return the Euler angles of a rotation matrix."""
-        global _epsilon
-
-        r1 = self.getRow(0)
-        r2 = self.getRow(1)
-        r3 = self.getRow(2)
-        
-        F = r2.x
-
-        z = math.asin(F)
-
-        E = math.cos(z)
-
-        if (E>_epsilon):
-            x = math.acos(r2.y/E)
-            y = math.acos(r1.x/E)
-        else:
-            y = 0.0
-            x = math.asin(r3.y)
-
+        y,z,x = self._getRotation(0, False, True, True)
         return (x,y,z)
 
     def toEulerXZY(self):
         """Return the Euler angles of a rotation matrix."""
-        global _epsilon
-
-        r1 = self.getRow(0)
-        r2 = self.getRow(1)
-        r3 = self.getRow(2)
-        
-        F = -r1.y
-
-        z = math.asin(F)
-
-        E = math.cos(z)
-
-        if (E>_epsilon):
-            x = math.acos(r2.y/E)
-            y = math.acos(r1.x/E)
-        else:
-            y = 0.0
-            x = math.acos(r3.z)
-
+        x,z,y = self._getRotation(1, True, True, True)
         return (x,y,z)
 
     def toEulerXYZ(self):
         """Return the Euler angles of a rotation matrix."""
-        global _epsilon
-
-        r1 = self.getRow(0)
-        r2 = self.getRow(1)
-        r3 = self.getRow(2)
-        
-        D = r1.z
-
-        y = math.asin(D)
-
-        C = math.cos(y)
-
-        if (C>_epsilon):
-            x = math.acos(r3.z/C)
-            z = math.acos(r1.x/C)
-        else:
-            z = 0.0
-            x = math.acos(r2.y)
-
+        x,y,z = self._getRotation(2, False, True, True)
         return (x,y,z)
 
     def fromToRotation(_from, to):
@@ -808,6 +700,94 @@ class mat3:
 
     fromToRotation = staticmethod(fromToRotation)
 
+
+    def _getRotation(self, i, neg, alt, rev):
+        """Get Euler angles in any of the 24 different conventions.
+    
+        The first four argument select a particular convention. The last three
+        output arguments receive the angles. The order of the angles depends
+        on the convention.
+    
+        See http://www.cgafaq.info/wiki/Euler_angles_from_matrix for the
+        algorithm used.
+    
+        i: The index of the first axis (global rotations, s) or last axis (local rotations, r). 0=XZX, 1=YXY, 2=ZYZ
+        neg: If true, the convention contains an odd permutation of the convention defined by i alone (i.e. the middle axis is replaced. For example, XZX -> XYX)
+        alt: If true, the first and last axes are different. Local rotations: The first axis changes. For example, XZX -> YZX
+        rev: If true, the first and last angle are exchanged. This toggles between global/local rotations. In all the concrete getRotation*() functions this is always true because all the functions assume local rotations.
+        """    
+        v = [self[0,i], self[1,i], self[2,i]]
+
+        j,k,h = _eulerIndices(i, neg, alt)
+
+        a = v[h]
+        b = v[k]
+        c,s,r = _eulerGivens(a, b)
+        v[h] = r
+        s1 = c*self[k,j] - s*self[h,j]
+        c1 = c*self[k,k] - s*self[h,k]
+        r1 = math.atan2(s1, c1)
+        r2 = math.atan2(v[j], v[i])
+        r3 = math.atan2(s, c)
+        if alt:
+            r3 = -r3
+        if neg:
+            r1 = -r1
+            r2 = -r2
+            r3 = -r3
+        if rev:
+            tmp = r1
+            r1 = r3
+            r3 = tmp
+        return r1,r2,r3
+
+def _eulerIndices(i, neg, alt):
+    """Helper function for _getRotation()."""
+    next = [1, 2, 0, 1]
+    j = next[i+int(neg)]
+    k = 3-i-j
+    h = next[k+(1^int(neg)^int(alt))]
+    return j,k,h
+
+def _eulerGivens(a, b):
+    """Helper function for _getRotation()."""
+    global _epsilon
+    
+    absa = abs(a)
+    absb = abs(b)
+    # b=0?
+    if absb<=_epsilon:
+        if a>=0:
+            c = 1.0
+        else:
+            c = -1.0
+        return (c, 0.0, absa)
+    # a=0?
+    elif absa<=_epsilon:
+        if b>=0:
+            s = 1.0
+        else:
+            s = -1.0
+        return (0.0, s, absb)
+    # General case
+    else:
+        if absb>absa:
+            t = a/b
+            u = math.sqrt(1.0+t*t)
+            if b<0:
+                u = -u
+            s = 1.0/u
+            c = s*t
+            r = b*u
+        else:
+            t = b/a
+            u = math.sqrt(1.0+t*t)
+            if (a<0):
+                u = -u
+            c = 1.0/u
+            s = c*t
+            r = a*u
+        return c,s,r
 
 ######################################################################
 

@@ -1,10 +1,9 @@
 # Test the mat3 class
 
 import unittest
-#from cgkit.cgtypes import *
 from cgkit.light.cgtypes import *
 import math, os, pickle, cPickle, sys
-from cgkit.sl import radians
+from cgkit.sl import degrees, radians
 
 class TestMat3(unittest.TestCase):
 
@@ -511,25 +510,33 @@ class TestMat3(unittest.TestCase):
         matrix that is composed by 3 individual rotations.
         """
 
-        angle = {"X":radians(20), "Y":radians(30), "Z":radians(40)}
+        angles = [{"X":radians(20), "Y":radians(30), "Z":radians(40)},
+                  {"X":radians(0), "Y":radians(0), "Z":radians(0)},
+                  {"X":radians(350), "Y":radians(0), "Z":radians(0)},
+                  {"X":radians(0), "Y":radians(350), "Z":radians(0)},
+                  {"X":radians(0), "Y":radians(0), "Z":radians(350)},]
         axis = {"X":vec3(1,0,0), "Y":vec3(0,1,0), "Z":vec3(0,0,1)}
 
         for order in ["XYZ", "YZX", "ZXY", "XZY", "YXZ", "ZYX"]:
-            R1 = mat3.rotation(angle[order[0]], axis[order[0]])
-            R2 = mat3.rotation(angle[order[1]], axis[order[1]])
-            R3 = mat3.rotation(angle[order[2]], axis[order[2]])
-            # Each rotation is about the *global* axis, so these rotations
-            # have to be applied just in the opposite order than mentioned
-            # in the fromEuler*() method name.
-            C = R1*R2*R3
-            exec 'E = mat3.fromEuler%s(angle["X"], angle["Y"], angle["Z"])'%order
-            self.assertEqual(E, C)
-
-            exec 'x,y,z = E.toEuler%s()'%order
-            self.assertAlmostEqual(x, angle["X"], 8)
-            self.assertAlmostEqual(y, angle["Y"], 8)
-            self.assertAlmostEqual(z, angle["Z"], 8)
-
+            for angle in angles:
+                R1 = mat3.rotation(angle[order[0]], axis[order[0]])
+                R2 = mat3.rotation(angle[order[1]], axis[order[1]])
+                R3 = mat3.rotation(angle[order[2]], axis[order[2]])
+                # Each rotation is about the *global* axis, so these rotations
+                # have to be applied just in the opposite order than mentioned
+                # in the fromEuler*() method name.
+                C = R1*R2*R3
+                exec 'E = mat3.fromEuler%s(angle["X"], angle["Y"], angle["Z"])'%order
+                self.assertEqual(E, C)
+    
+                exec 'x,y,z = E.toEuler%s()'%order
+                exec 'E2 = mat3.fromEuler%s(x, y, z)'%order
+                if E2!=E:
+#                    print E
+#                    print E2
+                    msg = "The matrix E2 generated from the toEuler() angles doesn't match the original matrix E.\n"
+                    msg += "Original angles: (%s, %s, %s), toEuler angles: (%s, %s, %s)"%(degrees(angle["X"]),degrees(angle["Y"]),degrees(angle["Z"]),degrees(x),degrees(y),degrees(z))
+                    self.fail(msg)
 
     ######################################################################
     def testFromToRotation(self):

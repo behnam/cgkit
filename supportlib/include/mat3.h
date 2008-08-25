@@ -119,6 +119,7 @@ class mat3
   mat3(const mat3<T>& A);
 
   T& at(short i, short j);
+  const T& at(short i, short j) const;
 
   // set_ and get_ methods
   mat3<T>& setIdentity();
@@ -218,6 +219,10 @@ class mat3
   vec3<T> r1;
   vec3<T> r2;
   vec3<T> r3;
+
+  void _getRotation(int i, bool neg, bool alt, bool rev, T& r1, T& r2, T& r3) const;
+  void _eulerIndices(int i, bool neg, bool alt, int &j, int &k, int&h) const;
+  void _eulerGivens(T a, T b, T& c, T& s, T& v) const;
 
   // Constructor with three vectors: Init the rows with those vectors.
   // This constructor is private because its semantics depends
@@ -370,6 +375,29 @@ mat3<T>::mat3(const mat3<T>& A)
  */
 template<class T>
 inline T& mat3<T>::at(short i, short j)
+{
+  switch(i)
+  {
+   case 0: return r1[j];
+   case 1: return r2[j];
+   case 2: return r3[j];
+   default: throw EIndexError();
+  }  
+}
+
+/**
+  Return element [i,j].
+
+  The indices range from 0 to 2. Other values will cause an EIndexError
+  exception to be thrown.
+
+  @param i Row
+  @param j Column
+  @return Reference to element [i,j]
+  @exception EIndexError
+ */
+template<class T>
+inline const T& mat3<T>::at(short i, short j) const
 {
   switch(i)
   {
@@ -1584,6 +1612,123 @@ mat3<T>& mat3<T>::setRotationXYZ(T x, T y, T z)
 }
 
 /**
+  Helper function for the _getRotation() function.
+ */
+template<class T> 
+void mat3<T>::_eulerIndices(int i, bool neg, bool alt, int& j, int& k, int& h) const
+{
+  int next[4] = {1, 2, 0, 1};
+  j = next[i+int(neg)];
+  k = 3-i-j;
+  h = next[k+(1^int(neg)^int(alt))];
+}
+
+/**
+  Helper function for the _getRotation() function.
+ */
+template<class T> 
+void mat3<T>::_eulerGivens(T a, T b, T& c, T& s, T& r) const
+{
+  T absa = xabs(a);
+  T absb = xabs(b);
+  // b=0?
+  if (absb<=vec3<T>::epsilon)
+  {
+    if (a>=0)
+      c = 1.0;
+    else
+      c = -1.0;
+    s = 0.0;
+    r = absa;
+  }
+  // a=0?
+  else if (absa<=vec3<T>::epsilon)
+  {
+    c = 0.0;
+    if (b>=0)
+      s = 1.0;
+    else
+      s = -1.0;
+    r = absb;
+  }
+  // General case
+  else
+  {
+    if (absb>absa)
+    {
+      T t = a/b;
+      T u = sqrt(1.0+t*t);
+      if (b<0)
+	u = -u;
+      s = 1.0/u;
+      c = s*t;
+      r = b*u;
+    }
+    else
+    {
+      T t = b/a;
+      T u = sqrt(1.0+t*t);
+      if (a<0)
+	u = -u;
+      c = 1.0/u;
+      s = c*t;
+      r = a*u;
+    }
+  }
+}
+
+/**
+   Get Euler angles in any of the 24 different conventions.
+
+   The first four argument select a particular convention. The last three
+   output arguments receive the angles. The order of the angles depends
+   on the convention.
+
+   See http://www.cgafaq.info/wiki/Euler_angles_from_matrix for the
+   algorithm used.
+
+   \param  i  The index of the first axis (global rotations, s) or last axis (local rotations, r). 0=XZX, 1=YXY, 2=ZYZ
+   \param  neg  If true, the convention contains an odd permutation of the convention defined by i alone (i.e. the middle axis is replaced. For example, XZX -> XYX)
+   \param  alt  If true, the first and last axes are different. Local rotations: The first axis changes. For example, XZX -> YZX
+   \param  rev  If true, the first and last angle are exchanged. This toggles between global/local rotations. In all the concrete getRotation*() functions this is always true because all the functions assume local rotations.
+   \param[out] r1  Angle around first axis (radians)
+   \param[out] r2  Angle around second axis (radians)
+   \param[out] r3  Angle around third axis (radians)   
+ */
+template<class T> 
+void mat3<T>::_getRotation(int i, bool neg, bool alt, bool rev, T& r1, T& r2, T& r3) const
+{
+  int j, k, h;
+  T v[3] = {at(0,i), at(1,i), at(2,i)};
+
+  _eulerIndices(i, neg, alt, j, k, h);
+
+  T a = v[h];
+  T b = v[k];
+  T c, s;
+  _eulerGivens(a, b, c, s, v[h]);
+  T s1 = c*at(k,j) - s*at(h,j);
+  T c1 = c*at(k,k) - s*at(h,k);
+  r1 = atan2(s1, c1);
+  r2 = atan2(v[j], v[i]);
+  r3 = atan2(s, c);
+  if (alt)
+    r3 = -r3;
+  if (neg)
+  {
+    r1 = -r1;
+    r2 = -r2;
+    r3 = -r3;
+  }
+  if (rev)
+  {
+    T tmp = r1;
+    r1 = r3;
+    r3 = tmp;
+  }
+}
+
+/**
   Get Euler angles (order: yxz).
 
   \param[out] x  Angle around x (radians)
@@ -1593,22 +1738,7 @@ mat3<T>& mat3<T>::setRotationXYZ(T x, T y, T z)
 template<class T> 
 void mat3<T>::getRotationYXZ(T& x, T& y, T& z) const
 {
-  T B = -r2.z;
-
-  x = asin(B);
-
-  T A = cos(x);
-
-  if (A>vec3<T>::epsilon)
-  {
-    y = acos(r3.z/A);
-    z = acos(r2.y/A);
-  }
-  else
-  {
-    z = 0;
-    y = acos(r1.x);
-  }  
+  _getRotation(2, 1, 1, 1, y, x, z);
 }
 
 /**
@@ -1621,22 +1751,7 @@ void mat3<T>::getRotationYXZ(T& x, T& y, T& z) const
 template<class T> 
 void mat3<T>::getRotationZXY(T& x, T& y, T& z) const
 {
-  T B = r3.y;
-
-  x = asin(B);
-
-  T A = cos(x);
-
-  if (A>vec3<T>::epsilon)
-  {
-    y = acos(r3.z/A);
-    z = acos(r2.y/A);
-  }
-  else
-  {
-    z = 0;
-    y = acos(r1.x);
-  }  
+  _getRotation(1, 0, 1, 1, z, x, y);
 }
 
 /**
@@ -1649,22 +1764,7 @@ void mat3<T>::getRotationZXY(T& x, T& y, T& z) const
 template<class T> 
 void mat3<T>::getRotationZYX(T& x, T& y, T& z) const
 {
-  T D = -r3.x;
-
-  y = asin(D);
-
-  T C = cos(y);
-
-  if (C>vec3<T>::epsilon)
-  {
-    x = acos(r3.z/C);
-    z = acos(r1.x/C);
-  }
-  else
-  {
-    z = 0;
-    x = acos(-r2.y);
-  }  
+  _getRotation(0, 1, 1, 1, z, y, x);
 }
 
 /**
@@ -1677,22 +1777,7 @@ void mat3<T>::getRotationZYX(T& x, T& y, T& z) const
 template<class T> 
 void mat3<T>::getRotationYZX(T& x, T& y, T& z) const
 {
-  T F = r2.x;
-
-  z = asin(F);
-
-  T E = cos(z);
-
-  if (E>vec3<T>::epsilon)
-  {
-    x = acos(r2.y/E);
-    y = acos(r1.x/E);
-  }
-  else
-  {
-    y = 0;
-    x = asin(r3.y);
-  }  
+  _getRotation(0, 0, 1, 1, y, z, x);
 }
 
 /**
@@ -1705,22 +1790,7 @@ void mat3<T>::getRotationYZX(T& x, T& y, T& z) const
 template<class T> 
 void mat3<T>::getRotationXZY(T& x, T& y, T& z) const
 {
-  T F = -r1.y;
-
-  z = asin(F);
-
-  T E = cos(z);
-
-  if (E>vec3<T>::epsilon)
-  {
-    x = acos(r2.y/E);
-    y = acos(r1.x/E);
-  }
-  else
-  {
-    y = 0;
-    x = acos(r3.z);
-  }  
+  _getRotation(1, 1, 1, 1, x, z, y);
 }
 
 /**
@@ -1733,22 +1803,7 @@ void mat3<T>::getRotationXZY(T& x, T& y, T& z) const
 template<class T> 
 void mat3<T>::getRotationXYZ(T& x, T& y, T& z) const
 {
-  T D = r1.z;
-
-  y = asin(D);
-
-  T C = cos(y);
-
-  if (C>vec3<T>::epsilon)
-  {
-    x = acos(r3.z/C);
-    z = acos(r1.x/C);
-  }
-  else
-  {
-    z = 0;
-    x = acos(r2.y);
-  }  
+  _getRotation(2, 0, 1, 1, x, y, z);
 }
 
 /**

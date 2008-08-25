@@ -170,6 +170,7 @@ class vec3
   void get_polar(T& r, T& theta, T& phi) const;
 
   T& operator[](int);
+  const T& operator[](int) const;
 
   vec3<T>& operator+=(const vec3<T>& v);
   vec3<T>& operator-=(const vec3<T>& v);
@@ -405,6 +406,27 @@ inline void vec3<T>::get_polar(T& r, T& theta, T& phi) const
 *//*------------------------------------------------------------------------*/
 template<class T>
 T& vec3<T>::operator[](int index)
+{
+  switch (index)
+  {
+   case 0: return x;
+   case 1: return y;
+   case 2: return z;
+   default: throw EIndexError();
+  }
+}
+
+/*-----------------------------operator[]-------------------------------*//**
+  Index operator.
+
+  Return component i. The index is checked.
+
+  @param     index  Component index (0,1 or 2).
+  @return    Component i.
+  @exception EIndexError  Index is out of range.
+*//*------------------------------------------------------------------------*/
+template<class T>
+const T& vec3<T>::operator[](int index) const
 {
   switch (index)
   {

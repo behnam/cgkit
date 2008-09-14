@@ -3,8 +3,14 @@ Changelog
 
 Changes from cgkit-2.0.0alpha8 to cgkit-2.0.0alpha9:
 
+New features:
+
+- New module sloargs to parse compiled RenderMan shaders.
+
 Bug fixes/enhancements:
 
+- slparams: The module can now also retrieve information from compiled shaders
+  (from various renderers).
 - ObjMaterial: Texture maps were rendered with a filter width of 0.01 which
   doesn't make much sense. For now, I set it to 1.0, but this should probably
   be customizable.

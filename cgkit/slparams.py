@@ -52,6 +52,7 @@ Functions:
 import os, os.path, sys, string, StringIO, sltokenize, types
 import cgtypes, math, sl, simplecpp
 import _slparser
+import sloargs
 
 class SLParamsError(Exception):
     pass
@@ -219,12 +220,12 @@ class _SLfilter:
 
 # slparams
 def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None, includedirs=None, defines=None):
-    """Extracts the shader parameters from a Shading Language source file.
+    """Extracts the shader parameters from a RenderMan Shader file.
 
-    The argument slfile is either the name of the shader source file
-    (*.sl) or it is a file-like object that provides the shader
-    sources.  cpp determines how the shader source is preprocessed. It
-    can either be a string containing the name of an external
+    The argument slfile is either the name of a compiled shader, the name of
+    the shader source file (*.sl) or a file-like object that provides the
+    shader sources.  cpp determines how the shader source is preprocessed.
+    It can either be a string containing the name of an external
     preprocessor tool (such as 'cpp') that must take the file name as
     parameter and dump the preprocessed output to stdout or it can be
     a callable that takes slfile and cpperrstream as input and returns
@@ -259,10 +260,16 @@ def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None, includ
     - The default value (always given as a string)
     """
 
-    if slname!=None:
+    if slname is not None:
         slfile = slname
-    if slfile==None:
+    if slfile is None:
         return []
+    
+    # Check if the input file is a string referring to a compiled shader
+    # (suffix != .sl). If so, use the sloargs module to get the shader information
+    if isinstance(slfile, basestring):
+        if os.path.splitext(slfile)[1].lower()!=".sl":
+            return sloargs.slparams(slfile)
 
     # Run the preprocessor on the input file...
     

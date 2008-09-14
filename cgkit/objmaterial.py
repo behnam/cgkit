@@ -241,15 +241,15 @@ Ni %f
         """Returns a list of RenderPass objects."""
         texdefs = []
         if self.map_Ka!=None:
-            texdefs.append((self.map_Ka.filename, "periodic", "periodic", "gaussian", 0.01, 0.01, {}))
+            texdefs.append((self.map_Ka.filename, "periodic", "periodic", "gaussian", 1.0, 1.0, {}))
         if self.map_Kd!=None:
-            texdefs.append((self.map_Kd.filename, "periodic", "periodic", "gaussian", 0.01, 0.01, {}))
+            texdefs.append((self.map_Kd.filename, "periodic", "periodic", "gaussian", 1.0, 1.0, {}))
         if self.map_Ks!=None:
-            texdefs.append((self.map_Ks.filename, "periodic", "periodic", "gaussian", 0.01, 0.01, {}))
+            texdefs.append((self.map_Ks.filename, "periodic", "periodic", "gaussian", 1.0, 1.0, {}))
         if self.map_d!=None:
-            texdefs.append((self.map_d.filename, "periodic", "periodic", "gaussian", 0.01, 0.01, {}))
+            texdefs.append((self.map_d.filename, "periodic", "periodic", "gaussian", 1.0, 1.0, {}))
         if self.map_Bump!=None:
-            texdefs.append((self.map_Bump.filename, "periodic", "periodic", "gaussian", 0.01, 0.01, {}))
+            texdefs.append((self.map_Bump.filename, "periodic", "periodic", "gaussian", 1.0, 1.0, {}))
         
         if texdefs!=[]:
             return [ribexport.TexPass(maps=texdefs)]

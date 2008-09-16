@@ -33,7 +33,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-import sys, os.path
+import sys, os, os.path
 import ctypes
 import ctypes.util
 
@@ -104,13 +104,11 @@ class _SloArgs:
         VISSYMDEF is a ctype Structure object that describes the VISSYMDEF
         struct for this particular renderer.
         """
-        # Try to figure out the location of the lib if the name is not an absolute path...
-        if not os.path.isabs(libName):
-            p = ctypes.util.find_library(libName)
-            if p is not None:
-                libName = p
         
         self._VISSYMDEF = VISSYMDEF
+
+        libName = self._resolveLibraryName(libName)
+        self._libName = libName
         
         # Load the library...
         try:
@@ -121,6 +119,68 @@ class _SloArgs:
             self._declareFunctions(self._sloargs)
         except:
             raise ValueError('Library "%s" does not implement the sloargs interface: %s'%(libName, sys.exc_info()[1]))
+
+    def _rendererLibDir(self):
+        """Return a renderer-specific library path where the sloargs lib is searched for.
+
+        Derived classes should implement this and examine renderer-specific environment
+        variables.
+        """
+        pass
+
+    def _resolveLibraryName(self, libName):
+        """Resolve the given library name.
+
+        If the name is an absolute file name, it is just returned unmodified.
+        Otherwise the method tries to resolve the name and return an absolute
+        path to the library. If no library file could be found, the name
+        is returned unmodified.
+        """
+        if os.path.isabs(libName):
+            return libName
+        
+        # Try to figure out the location of the lib
+        lib = ctypes.util.find_library(libName)
+        if lib is not None:
+            return lib
+
+        # A list of library search paths...
+        searchPaths = []
+
+        # Is there a renderer-specific search path?
+        libDir = self._rendererLibDir()
+        if libDir is not None:
+            searchPaths.append(libDir)
+
+        # Also examine LD_LIBRARY_PATH if we are on Linux
+        if sys.platform.startswith("linux"):
+            libPaths = os.getenv("LD_LIBRARY_PATH")
+            if libPaths is not None:
+                searchPaths.extend(libPaths.split(":"))
+
+        # Check the search paths...
+        for path in searchPaths:
+            lib = os.path.join(path, self._libFileName(libName))
+            if os.path.exists(lib):
+                return lib
+
+        # Nothing found, then just return the original name
+        return libName
+
+    def _libFileName(self, libName):
+        """Extend a base library name to a file name.
+
+        Example:  "foo" -> "libfoo.so"    (Linux)
+                        -> "foo.dll"      (Windows)
+                        -> "libfoo.dylib" (OSX)
+        """
+        if sys.platform.startswith("linux"):
+            return "lib%s.so"%libName
+        elif sys.platform=="darwin":
+            return "lib%s.dylib"%libName
+        elif sys.platform.startswith("win"):
+            return "%s.dll"%libName
+        return libName
 
     def _loadLibrary(self, libName):
         """Load the library providing the sloargs interface.
@@ -169,6 +229,10 @@ class _SloArgs:
         """Read the shader parameters from a given shader.
         """            
         sloargs = self._sloargs
+        
+        # Remove the extension
+        shader = os.path.splitext(shader)[0]
+        
         if sloargs.Slo_SetShader(shader)!=0:
             raise IOError('Failed to open shader "%s"'%shader)
         
@@ -247,10 +311,24 @@ class _SloArgs_PRMan(_SloArgs):
     def __init__(self):
         _SloArgs.__init__(self, libName="prman", VISSYMDEF=_VISSYMDEF_prman)
 
+    def _rendererLibDir(self):
+        base = os.getenv("RMANTREE")
+        if base is not None:
+            return os.path.join(base, "lib")
+        else:
+            return None
+
 
 class _SloArgs_3Delight(_SloArgs):
     def __init__(self):
         _SloArgs.__init__(self, libName="3delight", VISSYMDEF=_VISSYMDEF_3delight)
+
+    def _rendererLibDir(self):
+        base = os.getenv("DELIGHT")
+        if base is not None:
+            return os.path.join(base, "lib")
+        else:
+            return None
 
     def _declareFunctions(self, sloargs):
         _SloArgs._declareFunctions(self, sloargs)

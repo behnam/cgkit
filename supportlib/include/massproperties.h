@@ -14,7 +14,7 @@
 /*
   TODO: - Normal calculation for polygons with more than 3 vertices
         - Error checking for degenerate faces
-	      - Error checking for zero volume (DivisionByZero)
+        - Error checking for zero volume (DivisionByZero)
  */
 
 #ifndef VOLINT_H
@@ -69,6 +69,7 @@ class FaceEnum
 {
   public:
   FaceEnum() {}
+  virtual ~FaceEnum() {}
   virtual bool next(FACE& face) = 0;
 };
 

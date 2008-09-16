@@ -58,6 +58,8 @@ using namespace boost::python;
 class Writer
 {
   public:
+  virtual ~Writer() {}
+
   /**
      Write the data item at position \a idx into the file.
    */

@@ -9,6 +9,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- mayaascii: Bugfix #2119263: The setAttr command wasn't recognizing the 
+  channelBox option (+ some other bugfixes). 
 - slparams: The module can now also retrieve information from compiled shaders
   (from various renderers).
 - ObjMaterial: Texture maps were rendered with a filter width of 0.01 which

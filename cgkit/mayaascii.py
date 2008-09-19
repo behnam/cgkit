@@ -901,20 +901,25 @@ class MAReader:
     def __init__(self):
 
         # createNode options
-        self.createNode_name_dict = { "n":"name", "p":"parent", "s":"shared" }
+        self.createNode_name_dict = { "n":"name", "p":"parent", "s":"shared", "ss":"skipSelect" }
         self.createNode_opt_def = { "name" : (1, None),
                                     "parent" : (1, None),
-                                    "shared" : (0, None) }
+                                    "shared" : (0, None),
+                                    "skipSelect" : (0, None) }
 
         # setAttr options
         self.setAttr_name_dict = { "k":"keyable",
                                    "l":"lock",
+                                   "cb":"channelBox",
+                                   "ca":"caching",
                                    "s":"size",
                                    "typ":"type",
                                    "av":"alteredValue",
                                    "c":"clamp" }
         self.setAttr_opt_def = { "keyable" : (1, None),
                                  "lock" : (1, None),
+                                 "channelBox" : (1, None),
+                                 "caching" : (1, None),
                                  "size" : (1, None),
                                  "type" : (1, None),
                                  "alteredValue" : (0, None),
@@ -947,8 +952,8 @@ class MAReader:
                                      "referenceDest" : (1, None) }
 
         # disconnectAttr options
-        self.fileInfo_name_dict = { "na":"nextAvailable" }
-        self.fileInfo_opt_def = { "nextAvailable" : (0, None)}
+        self.disconnectAttr_name_dict = { "na":"nextAvailable" }
+        self.disconnectAttr_opt_def = { "nextAvailable" : (0, None)}
 
         # parent options
         self.parent_name_dict = { "w":"world",

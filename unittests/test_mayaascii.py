@@ -20,6 +20,10 @@ class TestMayaAscii(unittest.TestCase):
         t = rd.nodelist[0]
 #        print t.getAttrValue("t", "t", "double3")
 
+    def testMELCommands(self):
+        rd = mayaascii.DefaultMAReader()
+        rd.read("data/testmel.ma")
+
     def testMAReader_findString(self):
         """Test the MAReader.findString() method.
         """

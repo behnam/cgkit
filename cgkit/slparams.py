@@ -422,19 +422,26 @@ def convertdefault(paramtuple):
     - normal -> vec3
     - matrix -> mat4
 
-    Arrays will be converted into lists of the corresponding type.    
+    Arrays will be converted into lists of the corresponding type.
     """
     global _local_namespace
     
     typ = paramtuple[2]
     arraylen = paramtuple[3]
     defstr = paramtuple[6]
+    
+    # The default value is not a string? Then it already contains the
+    # converted default value (this is the case when the value was
+    # extracted from a compiled shader).
+    if not isinstance(defstr, basestring):
+        return defstr
 
     # Replace {} with [] so that SL arrays look like Python lists
-    defstr = defstr.replace("{","[").replace("}","]")
+    if arraylen is not None:
+        defstr = defstr.replace("{","[").replace("}","]")
     # If the parameter is not an array, then create an array with one
     # element (to unify further processing). It will be unwrapped in the end
-    if arraylen==None:
+    if arraylen is None:
         defstr = "[%s]"%defstr
     # Evaluate the string to create "raw" Python types (lists and tuples)
     try:
@@ -464,7 +471,7 @@ def convertdefault(paramtuple):
         except:
             return None
 
-    if arraylen==None:
+    if arraylen is None:
         if len(res)==0:
             return None
         else:

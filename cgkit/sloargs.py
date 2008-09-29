@@ -108,7 +108,7 @@ class _SloArgs:
         self._VISSYMDEF = VISSYMDEF
 
         libName = self._resolveLibraryName(libName)
-        self._libName = libName
+        self.libName = libName
         
         # Load the library...
         try:
@@ -119,6 +119,10 @@ class _SloArgs:
             self._declareFunctions(self._sloargs)
         except:
             raise ValueError('Library "%s" does not implement the sloargs interface: %s'%(libName, sys.exc_info()[1]))
+
+    @staticmethod
+    def defaultLibName():
+        raise NotImplementedError("defaultLibName() must be implemented by derived classes")
 
     def _rendererLibDir(self):
         """Return a renderer-specific library path where the sloargs lib is searched for.
@@ -227,13 +231,18 @@ class _SloArgs:
 
     def getShaderInfo(self, shader):
         """Read the shader parameters from a given shader.
-        """            
+        """
         sloargs = self._sloargs
         
+        # Split path and file name
+        shaderPath,shaderFileName = os.path.split(shader)
+        if shaderPath=="":
+            shaderPath = "."
         # Remove the extension
-        shader = os.path.splitext(shader)[0]
+        shader = os.path.splitext(shaderFileName)[0]
         
-        if sloargs.Slo_SetShader(shader)!=0:
+        sloargs.Slo_SetPath(shaderPath)
+        if sloargs.Slo_SetShader(shaderFileName)!=0:
             raise IOError('Failed to open shader "%s"'%shader)
         
         shaderName = sloargs.Slo_GetName()
@@ -268,8 +277,12 @@ class _SloArgs:
             res = []
             for i in range(symdef.arraylen):
                 psd = self._sloargs.Slo_GetArrayArgElement(symdef, i)
-                space = self._getSpace(psd.contents)
-                if space=="":
+                if bool(psd):
+                    space = self._getSpace(psd.contents)
+                    if space=="":
+                        space = None
+                else:
+                    print >>sys.stderr, "Warning: Slo_GetArrayArgElement(%s) returned a NULL pointer"%i
                     space = None
                 res.append(space)
             # Did we only get a list of None objects?
@@ -286,7 +299,11 @@ class _SloArgs:
             res = []
             for i in range(symdef.arraylen):
                 psd = self._sloargs.Slo_GetArrayArgElement(symdef, i)
-                res.append(self._getDefaultVal(psd.contents))
+                if bool(psd):
+                    res.append(self._getDefaultVal(psd.contents))
+                else:
+                    print >>sys.stderr, "Warning: Slo_GetArrayArgElement(%s) returned a NULL pointer"%i
+                    res.append(None)
             return res
         
         typ = self._sloargs.Slo_TypetoStr(symdef.type)
@@ -308,8 +325,12 @@ class _SloArgs:
         
 
 class _SloArgs_PRMan(_SloArgs):
-    def __init__(self):
-        _SloArgs.__init__(self, libName="prman", VISSYMDEF=_VISSYMDEF_prman)
+    def __init__(self, libName):
+        _SloArgs.__init__(self, libName=libName, VISSYMDEF=_VISSYMDEF_prman)
+
+    @staticmethod
+    def defaultLibName():
+        return "prman"
 
     def _rendererLibDir(self):
         base = os.getenv("RMANTREE")
@@ -320,8 +341,12 @@ class _SloArgs_PRMan(_SloArgs):
 
 
 class _SloArgs_3Delight(_SloArgs):
-    def __init__(self):
-        _SloArgs.__init__(self, libName="3delight", VISSYMDEF=_VISSYMDEF_3delight)
+    def __init__(self, libName):
+        _SloArgs.__init__(self, libName=libName, VISSYMDEF=_VISSYMDEF_3delight)
+
+    @staticmethod
+    def defaultLibName():
+        return "3delight"
 
     def _rendererLibDir(self):
         base = os.getenv("DELIGHT")
@@ -342,8 +367,12 @@ class _SloArgs_3Delight(_SloArgs):
     
 
 class _SloArgs_Aqsis(_SloArgs):
-    def __init__(self):
-        _SloArgs.__init__(self, libName="slxargs", VISSYMDEF=_VISSYMDEF_aqsis)
+    def __init__(self, libName):
+        _SloArgs.__init__(self, libName=libName, VISSYMDEF=_VISSYMDEF_aqsis)
+
+    @staticmethod
+    def defaultLibName():
+        return "slxargs"
 
 
 
@@ -383,11 +412,22 @@ class _SloArgs_Pixie(_SloArgs):
     as Pixie has its own interface.
     """
     
-    def __init__(self):
-        _SloArgs.__init__(self, libName="sdr", VISSYMDEF=None)
+    def __init__(self, libName):
+        _SloArgs.__init__(self, libName=libName, VISSYMDEF=None)
         self._shaderType = {0:"surface", 1:"displacement", 2:"volume", 3:"light", 4:"imager"}
         self._container = {0:"constant", 1:"uniform", 2:"varying", 3:"vertex"}
         self._paramType = {0:"float", 1:"vector", 2:"normal", 3:"point", 4:"color", 5:"matrix", 6:"string"}
+
+    @staticmethod
+    def defaultLibName():
+        return "sdr"
+
+    def _rendererLibDir(self):
+        base = os.getenv("PIXIEHOME")
+        if base is not None:
+            return os.path.join(base, "lib")
+        else:
+            return None
 
     def _declareFunctions(self, sloargs):
         # We don't call the inherited method as Pixie's library does not
@@ -404,7 +444,8 @@ class _SloArgs_Pixie(_SloArgs):
             raise IOError('Failed to open shader "%s"'%shader)
         
         try:
-            shaderName = shaderInfo.contents.name
+            # Strip path and extension (as Pixie doesn't return the shader name but the file name)
+            shaderName = os.path.splitext(os.path.split(shaderInfo.contents.name)[1])[0]
             shaderType = self._shaderType.get(shaderInfo.contents.type, "?")
             params = []
             param = shaderInfo.contents.parameters
@@ -423,7 +464,10 @@ class _SloArgs_Pixie(_SloArgs):
                     arrLen = None
                 name = param.name
                 space = param.space
-                if arrLen==None:
+                # Set space to "current" if Pixie didn't return a space name for a type that requires a space
+                if paramType in ["point", "vector", "normal", "color", "matrix"] and space is None:
+                    space = "current"
+                if arrLen is None:
                     defaultVal = self._getDefaultVal(paramType, param.defaultValue)
                 else:
                     defaultVal = []
@@ -460,22 +504,55 @@ _sloArgsClasses = {}
 # Key: Compiled Shader Suffix - Value: SloArgs instance
 _sloArgsInstances = {}
 
+# The names of the libraries that should be used for reading the parameters
+# Key: Compiled Shader Suffix - Value: libName
+_sloLibNames = {}
+
 def registerSloArgs(sloSuffix, sloArgsCls):
     """Register a SloArgs class for a particular renderer.
     
     sloSuffix is the suffix (without dot) that is used for the compiled
     shaders of this renderer. sloArgsCls is the SloArgs class that
-    can read compiled shaders for this renderer.  
+    can read compiled shaders for this renderer.
     """
     global _sloArgsClasses
     
     sloSuffix = sloSuffix.lower()
     _sloArgsClasses[sloSuffix] = sloArgsCls
 
+def getSloLib(sloSuffix):
+    """Return the library name that manages a particular type of compiled shaders.
+    
+    sloSuffix is the suffix of the compiled shaders.
+    The return value is the library name that is used to read the parameters
+    from compiled shaders of the given suffix.
+    """
+    global _sloArgsClasses, _sloArgsInstances
+    
+    sloSuffix = sloSuffix.lower()
+    if sloSuffix in _sloArgsInstances:
+        return _sloArgsInstances[sloSuffix].libName
+    elif sloSuffix in _sloArgsClasses:
+        return _sloArgsClasses[sloSuffix].defaultLibName()
+    else:
+        raise ValueError, "Unknown compiled shader extension: %s"%sloSuffix
+    
+def setSloLib(sloSuffix, libName):
+    """Set the library name that should be used for reading shader parameters.
+    
+    Shaders with the given suffix (case-insensitive) will be handled by
+    the given library. This function has no effect if a shader of the given
+    suffix has already been read. You must call this function at the beginning
+    of your application when slparams() hasn't been called yet.
+    """
+    global _sloLibNames
+    
+    _sloLibNames[sloSuffix.lower()] = libName
+
 def slparams(shader):
     """Read shader parameters.
     """
-    global _sloArgsClasses, _sloArgsInstances
+    global _sloArgsClasses, _sloArgsInstances, _sloLibNames
     
     if not os.path.exists(shader):
         raise IOError('Shader file "%s" does not exist'%shader)
@@ -488,7 +565,8 @@ def slparams(shader):
         sloArgs = _sloArgsInstances[ext]
     elif ext in _sloArgsClasses:
         SloArgs = _sloArgsClasses[ext]
-        sloArgs = SloArgs()
+        libName = _sloLibNames.get(ext, SloArgs.defaultLibName())
+        sloArgs = SloArgs(libName=libName)
         _sloArgsInstances[ext] = sloArgs
     else:
         raise ValueError, "Unknown compiled shader extension: %s"%shader

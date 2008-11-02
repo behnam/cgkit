@@ -49,17 +49,7 @@
 #include "vec3.h"
 #include "boundingbox.h"
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#include "OpenGL/glu.h"
-#else
-#include "GL/gl.h"
-#include "GL/glu.h"
-#endif
+#include "opengl.h"
 
 namespace support3d {
 
@@ -69,12 +59,12 @@ namespace support3d {
   This class is for internal use in conjunction withe the OpenGL
   polygon tesselator. The class is used to allocate small data buffers
   that will store vertex information.
- 
+
   The class allocates larger memory blocks that will be "sliced" into smaller
   buffers. The allocated memory is not freed until the object is destroyed,
   this means once enough memory was allocated, providing small data buffers
   should be fast.
- 
+
   Usage: Before memory buffers are requested, the size of a buffer has to
   be set via setDataSize(). Then new buffers can be requested using
   newDataPtr(). If those pointers aren't required anymore, reset() has
@@ -110,7 +100,7 @@ class DataMemoryManager
 
   This is a simple polyhedron class that can just store and display
   polyhedrons made of general planar concave polygons.
-   
+
  */
 class PolyhedronGeom : public GeomObject
 {
@@ -187,7 +177,7 @@ class PolyhedronGeom : public GeomObject
   // Iterate over the vertex indices of one particular loop
   LoopIterator loopBegin(int poly, int loop);
   LoopIterator loopEnd(int poly, int loop);
- 
+
 
   void onVertsChanged(int start, int end);
   void onVertsResize(int size);

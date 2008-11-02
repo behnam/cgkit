@@ -39,15 +39,7 @@
 #include "glspotlight.h"
 #include "gldistantlight.h"
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
+#include "opengl.h"
 
 // Define those two OpenGL 1.2 constants (that don't come with MSVC6)
 #ifndef GL_LIGHT_MODEL_COLOR_CONTROL
@@ -58,14 +50,14 @@
 
 namespace support3d {
 
-GLRenderInstance::GLRenderInstance() 
+GLRenderInstance::GLRenderInstance()
 : viewx(0), viewy(0), viewwidth(0), viewheight(0),
   projectionmatrix(1), viewmatrix1(1), viewmatrix2(2),
   clearcol(0.5,0.5,0.6,0),
-  left_handed(false), draw_solid(true), draw_bboxes(false), 
+  left_handed(false), draw_solid(true), draw_bboxes(false),
   draw_coordsys(true), draw_orientation(true),
-  smooth_model(true), backface_culling(false), 
-  separate_specular_color(false), polygon_mode(2), 
+  smooth_model(true), backface_culling(false),
+  separate_specular_color(false), polygon_mode(2),
   stereo_mode(0), defaultmat()
 {
 }
@@ -210,7 +202,7 @@ void GLRenderInstance::paint(WorldObject& root)
    case 1: glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); break;
    case 2: glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); break;
   }
-  
+
   // Projection
   glMatrixMode(GL_PROJECTION);
   projectionmatrix.toList(M, false);
@@ -236,7 +228,7 @@ void GLRenderInstance::paint(WorldObject& root)
      drawScene(root, viewmatrix2);
      break;
    case 2:
-     glDrawBuffer(GL_BACK_RIGHT); 
+     glDrawBuffer(GL_BACK_RIGHT);
      // Draw right image
      glClear(GL_DEPTH_BUFFER_BIT);
      drawScene(root, viewmatrix2);
@@ -303,7 +295,7 @@ void GLRenderInstance::drawScene(WorldObject& root, const mat4d& viewmat)
   if (left_handed)
       glScaled(-1,1,1);
 
-  // Default light source 
+  // Default light source
   // (this is overwritten if there's at least one light in the scene)
   GLfloat pos[4] = {0,0,1,0};
   GLfloat diffuse[4] = {1,1,1,1};
@@ -318,7 +310,7 @@ void GLRenderInstance::drawScene(WorldObject& root, const mat4d& viewmat)
   viewmat.toList(M, false);
   glMultMatrixd(M);
 
-  // Apply the light sources 
+  // Apply the light sources
   applyLights(root);
 
   // Draw the scene
@@ -338,7 +330,7 @@ void GLRenderInstance::drawScene(WorldObject& root, const mat4d& viewmat)
   Draw a tree.
 
   \param node Node
-  \param draw_blends If true, only objects that use blending are drawn. Otherwise objects with 
+  \param draw_blends If true, only objects that use blending are drawn. Otherwise objects with
          blending are not drawn.
   \return True if the tree contained one or more objects that use blending
  */
@@ -361,7 +353,7 @@ bool GLRenderInstance::drawNode(WorldObject& node, bool draw_blends)
     boost::shared_ptr<GeomObject> geom = it->second->getGeom();
     if (geom.get()!=0 && (it->second->visible.getValue()))
     {
-      // Render by default if draw_blends is false 
+      // Render by default if draw_blends is false
       render_flag = !draw_blends;
 
       // Set material
@@ -385,7 +377,7 @@ bool GLRenderInstance::drawNode(WorldObject& node, bool draw_blends)
         {
           bmat->applyGL();
         }
- 
+
         if (draw_solid)
         {
           geom->drawGL();

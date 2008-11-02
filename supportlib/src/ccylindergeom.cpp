@@ -37,17 +37,7 @@
 #include "fixedsizeconstraints.h"
 #include <cmath>
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
-
+#include "opengl.h"
 
 namespace support3d {
 
@@ -101,21 +91,21 @@ boost::shared_ptr<SizeConstraintBase> CCylinderGeom::slotSizeConstraint(VarStora
 {
   switch(storage)
   {
-  case UNIFORM:  
+  case UNIFORM:
     return sizeConstraint_one;
   case VARYING:
-  case VERTEX:  
+  case VERTEX:
     return sizeConstraint_four;
   default:
     return sizeConstraint_zero;
-  }  
+  }
 }
 
 /**
   Computes the inertia tensor of the capped cylinder.
 
   The inertia tensor of the cylinder with respect to its local
-  coordinate system L is computed. 
+  coordinate system L is computed.
 
   This method is used for the inertiatensor slot.
 
@@ -127,9 +117,9 @@ void CCylinderGeom::computeInertiaTensor(mat3d& tensor)
   double L = length.getValue();
   double R2 = R*R;
   double L2 = L*L;
-  double Acyl = L+(4.0/3.0)*R;   
+  double Acyl = L+(4.0/3.0)*R;
   double Asph;
-  double a,b;   
+  double a,b;
 
   // l==0 and r==0?
   if (xabs(Acyl)<=vec3d::epsilon)
@@ -185,7 +175,7 @@ void CCylinderGeom::createSilhouette(SORTriangulator::SORVertexList& vlist)
   double rad = radius.getValue();
   double len = length.getValue();
   double len2 = len/2.0;
-  double silhouette_len = 3.1415926535897931*rad+len; 
+  double silhouette_len = 3.1415926535897931*rad+len;
   double cap_len = 1.5707963267948966*rad;
   double v1 = cap_len/silhouette_len;  // v at the end of the lower cap
   double v2 = v1+len/silhouette_len;   // v at the end of the cylinder
@@ -229,7 +219,7 @@ void CCylinderGeom::createSilhouette(SORTriangulator::SORVertexList& vlist)
     SORTriangulator::SORVertex vert(px, py, 1.0, 0.0, v1+v*len/silhouette_len);
     vlist.push_back(vert);
   }
-  
+
   // upper cap
   for(i=1; i<=segsvr; i++)
   {

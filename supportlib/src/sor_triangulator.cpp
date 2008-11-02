@@ -36,22 +36,14 @@
 #include "sor_triangulator.h"
 #include <cmath>
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
+#include "opengl.h"
 
 namespace support3d {
 
 /**
   Draw the surface of revolution using OpenGL.
  */
-void SORTriangulator::drawGL(double startangle, double endangle, 
+void SORTriangulator::drawGL(double startangle, double endangle,
 			     int segmentsu, SORVertexList& vlist)
 {
   int segmentsv = vlist.size()-1;
@@ -75,7 +67,7 @@ void SORTriangulator::drawGL(double startangle, double endangle,
     double c2 = cos(angle2);
 
     glBegin(GL_QUAD_STRIP);
-    u2 = double(i+1)/segmentsu;   // without modulo for the texture coordinate 
+    u2 = double(i+1)/segmentsu;   // without modulo for the texture coordinate
     for(j=0; j<=segmentsv; j++)
     {
       // 1st vertex
@@ -110,7 +102,7 @@ void SORTriangulator::drawGL(double startangle, double endangle,
   \param vlist Vertex list of the silhouette
   \param[out] tm Triangle mesh that receives the result
  */
-void SORTriangulator::convertToTriMesh(double startangle, double endangle, 
+void SORTriangulator::convertToTriMesh(double startangle, double endangle,
 				       int segmentsu,
 				       SORVertexList& vlist, TriMeshGeom& tm)
 {

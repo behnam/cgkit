@@ -39,15 +39,7 @@
 #include "fixedsizeconstraints.h"
 #include <cmath>
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
+#include "opengl.h"
 
 namespace support3d {
 
@@ -96,14 +88,14 @@ boost::shared_ptr<SizeConstraintBase> SphereGeom::slotSizeConstraint(VarStorage 
 {
   switch(storage)
   {
-  case UNIFORM:  
+  case UNIFORM:
     return sizeConstraint_one;
   case VARYING:
-  case VERTEX:  
+  case VERTEX:
     return sizeConstraint_four;
   default:
     return sizeConstraint_zero;
-  }  
+  }
 }
 
 
@@ -111,7 +103,7 @@ boost::shared_ptr<SizeConstraintBase> SphereGeom::slotSizeConstraint(VarStorage 
   Computes the inertia tensor of the sphere.
 
   The inertia tensor of the sphere with respect to its local
-  coordinate system L is computed. 
+  coordinate system L is computed.
 
   This method is used for the inertiatensor slot.
 

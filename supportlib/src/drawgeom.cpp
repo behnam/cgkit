@@ -36,15 +36,7 @@
 #include "drawgeom.h"
 #include "sor_triangulator.h"
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
+#include "opengl.h"
 
 namespace support3d {
 
@@ -90,7 +82,7 @@ void DrawGeom::drawGL()
   vert.set(1, 0, 0, 0, 0);
   vlist.push_back(vert);
   vert.set(0, 1, 0, 0, 0);
-  vlist.push_back(vert); 
+  vlist.push_back(vert);
 
   glPushAttrib(GL_ENABLE_BIT);
   glDisable(GL_LIGHTING);

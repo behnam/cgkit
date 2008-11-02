@@ -37,15 +37,7 @@
 #include "trimeshgeom.h"
 #include "fixedsizeconstraints.h"
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
+#include "opengl.h"
 
 namespace support3d {
 
@@ -93,7 +85,7 @@ void BoxGeom::drawGL()
   double lenz = lz.getValue();
   double lenx2 = lenx/2.0;
   double leny2 = leny/2.0;
-  double lenz2 = lenz/2.0;  
+  double lenz2 = lenz/2.0;
   int segsx = segmentsx.getValue();
   int segsy = segmentsy.getValue();
   int segsz = segmentsz.getValue();
@@ -223,21 +215,21 @@ boost::shared_ptr<SizeConstraintBase> BoxGeom::slotSizeConstraint(VarStorage sto
 {
   switch(storage)
   {
-  case UNIFORM:  
+  case UNIFORM:
     return sizeConstraint_six;
   case VARYING:
-  case VERTEX:  
+  case VERTEX:
     return sizeConstraint_eight;
   default:
     return sizeConstraint_zero;
-  }  
+  }
 }
 
 /**
   Computes the inertia tensor of the box.
 
   The inertia tensor of the sphere with respect to its local
-  coordinate system L is computed. 
+  coordinate system L is computed.
 
   This method is used for the inertiatensor slot.
 
@@ -338,7 +330,7 @@ void BoxGeom::convert(GeomObject* target)
       v.y = (a-1.0)*leny2 + a*leny2;
       tm->verts.setValue(idx, v);
       idx++;
-    }    
+    }
   }
 
   n = (segsx-1)*(segsy-1);
@@ -389,7 +381,7 @@ void BoxGeom::convert(GeomObject* target)
       f[1] = _vertexIndex(i+1, j, segsx, segsy, offset, topoffset);
       f[2] = _vertexIndex(i+1, j+1, segsx, segsy, offset, topoffset);
       tm->faces.setValues(idx, f);
-      idx++;    
+      idx++;
 
       f[0] = _vertexIndex(i+1, j+1, segsx, segsy, offset, topoffset);
       f[1] = _vertexIndex(i, j+1, segsx, segsy, offset, topoffset);
@@ -409,7 +401,7 @@ void BoxGeom::convert(GeomObject* target)
       f[1] = _vertexIndex(i, j+1, segsx, segsy, offset, topoffset);
       f[2] = _vertexIndex(i+1, j+1, segsx, segsy, offset, topoffset);
       tm->faces.setValues(idx, f);
-      idx++;    
+      idx++;
 
       f[0] = _vertexIndex(i+1, j+1, segsx, segsy, offset, topoffset);
       f[1] = _vertexIndex(i+1, j, segsx, segsy, offset, topoffset);

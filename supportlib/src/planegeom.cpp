@@ -37,15 +37,7 @@
 #include "trimeshgeom.h"
 #include "fixedsizeconstraints.h"
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
+#include "opengl.h"
 
 namespace support3d {
 
@@ -86,7 +78,7 @@ void PlaneGeom::drawGL()
     segsx=1;
   if (segsy<1)
     segsy=1;
-  
+
   glNormal3f(0.0f, 0.0f, 1.0f);
   for(int j=0; j<segsy; j++)
   {
@@ -126,14 +118,14 @@ boost::shared_ptr<SizeConstraintBase> PlaneGeom::slotSizeConstraint(VarStorage s
 {
   switch(storage)
   {
-  case UNIFORM:  
+  case UNIFORM:
     return sizeConstraint_one;
   case VARYING:
-  case VERTEX:  
+  case VERTEX:
     return sizeConstraint_four;
   default:
     return sizeConstraint_zero;
-  }  
+  }
 }
 
 /**
@@ -167,7 +159,7 @@ void PlaneGeom::convert(GeomObject* target)
   if (segsy<1)
     segsy=1;
 
-  
+
   // Set number of verts and faces
   tm->deleteAllVariables();
   tm->verts.resize((segsx+1)*(segsy+1));
@@ -188,7 +180,7 @@ void PlaneGeom::convert(GeomObject* target)
       int idx = j*(segsx+1)+i;
       tm->verts.setValue(idx, vec3d(x,y));
       double st[2] = {u,v};
-      stslot->setValues(idx, st);    
+      stslot->setValues(idx, st);
     }
   }
 

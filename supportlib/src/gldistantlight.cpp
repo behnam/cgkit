@@ -36,16 +36,7 @@
 #include "gldistantlight.h"
 
 #include "vec3.h"
-
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
+#include "opengl.h"
 
 namespace support3d {
 
@@ -86,7 +77,7 @@ void GLDistantLight::applyGL(int idx)
   double I = intensity.getValue();
 
   glLightf(glidx, GL_SPOT_CUTOFF, 180.0);
-    
+
   c[2] = -1;
   c[3] = 0;
   glLightfv(glidx, GL_POSITION, c);

@@ -37,15 +37,7 @@
 #include "massproperties.h"
 #include "primvaraccess.h"
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
+#include "opengl.h"
 
 namespace support3d {
 
@@ -56,7 +48,7 @@ TriMeshGeom::TriMeshGeom()
   _cog(), _inertiatensor(), _volume(),
   bb_cache(),
   mass_props_valid(false), bb_cache_valid(true)
-  
+
 {
   _on_verts_event.init(this, &TriMeshGeom::onVertsChanged, &TriMeshGeom::onVertsResize);
   verts.addDependent(&_on_verts_event);
@@ -100,13 +92,13 @@ BoundingBox TriMeshGeom::boundingBox()
       vptr++;
     }
     bb_cache_valid = true;
-  }  
+  }
   return bb_cache;
 }
 
 /**
   Draw the mesh
- 
+
   The primitive variables "N", "st" and "Cs" are taken into account
   during rendering. "N" contains the normals, "st" the texture coordinates
   and "Cs" the colors.
@@ -155,7 +147,7 @@ void TriMeshGeom::drawGL()
     // No normals? Then a face normal has to be calculated...
     if (normals.mode==0)
     {
-      try 
+      try
       {
 	Ng.cross((*b)-(*a), (*c)-(*a));
 	Ng.normalize(Ng);
@@ -247,15 +239,15 @@ boost::shared_ptr<SizeConstraintBase> TriMeshGeom::slotSizeConstraint(VarStorage
 {
   switch(storage)
   {
-  case UNIFORM:  
+  case UNIFORM:
     return uniformSizeConstraint;
   case VARYING:
-  case VERTEX:  
+  case VERTEX:
     return varyingSizeConstraint;
-  case FACEVARYING: 
-  case FACEVERTEX: 
+  case FACEVARYING:
+  case FACEVERTEX:
     return faceVaryingSizeConstraint;
-  default: 
+  default:
     return boost::shared_ptr<SizeConstraintBase>();
   }
 }
@@ -289,7 +281,7 @@ void TriMeshGeom::calcMassProperties()
     v = vertsptr+(*faceptr);
     faceptr++;
     f.setVert(1, v->x, v->y, v->z);
-    
+
     // Get the third vertex...
     v = vertsptr+(*faceptr);
     faceptr++;
@@ -301,7 +293,7 @@ void TriMeshGeom::calcMassProperties()
 
   mp.meshEnd();
 
- 
+
   _cog.set(mp.r[0], mp.r[1], mp.r[2]);
   _inertiatensor.setRow(0, vec3d(mp.J[0][0], mp.J[0][1], mp.J[0][2]));
   _inertiatensor.setRow(1, vec3d(mp.J[1][0], mp.J[1][1], mp.J[1][2]));
@@ -314,14 +306,14 @@ void TriMeshGeom::calcMassProperties()
   Interscet a ray with the mesh.
 
   This method tests a ray with all triangles, so it's not efficient if
-  you have a lot of rays to test. It's meant for only a few rays where 
+  you have a lot of rays to test. It's meant for only a few rays where
   the preprocessing cost wouldn't be amortized.
 
   The ray must be given in the local coordinate system L of the geometry.
 
   The ray-triangle intersection code (non-culling case) is based on:
 
-  Tomas Möller and Ben Trumbore.<br> 
+  Tomas Möller and Ben Trumbore.<br>
   \em Fast, \em minimum \em storage \em ray-triangle \em intersection.<br>
   Journal of graphics tools, 2(1):21-28, 1997<br>
   http://www.acm.org/jgt/papers/MollerTrumbore97/<br>
@@ -358,14 +350,14 @@ bool TriMeshGeom::intersectRay(const vec3d& origin, const vec3d& direction, Inte
 
     // Ray-triangle intersection:
 
-    // find vectors for two edges sharing vert a 
+    // find vectors for two edges sharing vert a
     edge1.sub(*b,*a);
     edge2.sub(*c,*a);
 
     // begin calculating determinant - also used to calculate U parameter
     pvec.cross(direction, edge2);
 
-    // if determinant is near zero, ray lies in plane of triangle 
+    // if determinant is near zero, ray lies in plane of triangle
     det = edge1*pvec;
 
     if (det > -vec3d::epsilon && det < vec3d::epsilon)
@@ -409,24 +401,24 @@ bool TriMeshGeom::intersectRay(const vec3d& origin, const vec3d& direction, Inte
 
 
 void TriMeshGeom::onVertsChanged(int start, int end)
-{ 
+{
   bb_cache_valid = false;
   mass_props_valid = false;
 }
 
 void TriMeshGeom::onVertsResize(int size)
-{ 
+{
   bb_cache_valid = false;
   mass_props_valid = false;
 }
 
 void TriMeshGeom::onFacesChanged(int start, int end)
-{ 
+{
   mass_props_valid = false;
 }
 
 void TriMeshGeom::onFacesResize(int size)
-{ 
+{
   mass_props_valid = false;
 }
 

@@ -35,17 +35,7 @@
 
 #include "glmaterial.h"
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#include <OpenGL/glu.h>
-#else
-#include "GL/gl.h"
-#include <GL/glu.h>
-#endif
+#include "opengl.h"
 
 namespace support3d {
 
@@ -76,7 +66,7 @@ GLTexture::GLTexture()
 /**
   Destructor.
  */
-GLTexture::~GLTexture() 
+GLTexture::~GLTexture()
 {
 }
 
@@ -123,7 +113,7 @@ void GLTexture::applyGL()
   }
 
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
-  GLfloat col[4] = {GLfloat(texenvcolor.x), GLfloat(texenvcolor.y), 
+  GLfloat col[4] = {GLfloat(texenvcolor.x), GLfloat(texenvcolor.y),
                     GLfloat(texenvcolor.z), GLfloat(texenvcolor.w)};
   glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, col);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
@@ -212,7 +202,7 @@ GLMaterial::GLMaterial()
    textures(),
    vertex_shader(),
    fragment_shader()
-{ 
+{
   addSlot("ambient", ambient);
   addSlot("diffuse", diffuse);
   addSlot("specular", specular);
@@ -235,7 +225,7 @@ GLMaterial::GLMaterial(string aname, double adensity)
    textures(),
    vertex_shader(),
    fragment_shader()
-{ 
+{
   addSlot("ambient", ambient);
   addSlot("diffuse", diffuse);
   addSlot("specular", specular);
@@ -259,7 +249,7 @@ void GLMaterial::applyGL()
 {
   GLfloat c[4] = {0,0,0,1};
   GLfloat f;
-  
+
   const vec4d& ac = ambient.getValue();
   c[0] = GLfloat(ac.x);
   c[1] = GLfloat(ac.y);
@@ -348,7 +338,7 @@ void GLMaterial::setNumTextures(int num)
 /**
   Get a stored texture.
 
-  The method returns an empty pointer if the given index \a idx is out 
+  The method returns an empty pointer if the given index \a idx is out
   of range or if there is no texture stored at that position.
 
   \param idx The index of the texture (can be negative to count from the end of the list)
@@ -408,7 +398,7 @@ void GLMaterial::setNumVertexShaders(int num)
 /**
   Get a stored vertex shader object.
 
-  The method returns an empty pointer if the given index \a idx is out 
+  The method returns an empty pointer if the given index \a idx is out
   of range or if there is no shader object stored at that position.
 
   \param idx The index of the shader object (can be negative to count from the end of the list)
@@ -476,7 +466,7 @@ void GLMaterial::setNumFragmentShaders(int num)
 /**
   Get a stored fragment shader object.
 
-  The method returns an empty pointer if the given index \a idx is out 
+  The method returns an empty pointer if the given index \a idx is out
   of range or if there is no shader object stored at that position.
 
   \param idx The index of the shader object (can be negative to count from the end of the list)

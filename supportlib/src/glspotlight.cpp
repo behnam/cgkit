@@ -37,15 +37,7 @@
 
 #include "vec3.h"
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
+#include "opengl.h"
 
 namespace support3d {
 
@@ -108,7 +100,7 @@ void GLSpotLight::applyGL(int idx)
   // Cutoff = 180 => PointLight
   glLightf(glidx, GL_SPOT_CUTOFF, GLfloat(cutoff.getValue()));
   glLightf(glidx, GL_SPOT_EXPONENT, GLfloat(exponent.getValue()));
-    
+
   // Position is always at the origin (which is the local origin)
   glLightfv(glidx, GL_POSITION, c);
 

@@ -39,15 +39,7 @@
 #include "fixedsizeconstraints.h"
 #include <cmath>
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-#if defined(__APPLE__) || defined(MACOSX)
-#include "OpenGL/gl.h"
-#else
-#include "GL/gl.h"
-#endif
+#include "opengl.h"
 
 // Obviously some header on Linux creates stray macros "major" and "minor".
 // Undo this bad habit so it doesn't interfere with the below variables...
@@ -109,21 +101,21 @@ boost::shared_ptr<SizeConstraintBase> TorusGeom::slotSizeConstraint(VarStorage s
 {
   switch(storage)
   {
-  case UNIFORM:  
+  case UNIFORM:
     return sizeConstraint_one;
   case VARYING:
-  case VERTEX:  
+  case VERTEX:
     return sizeConstraint_four;
   default:
     return sizeConstraint_zero;
-  }  
+  }
 }
 
 /**
   Computes the inertia tensor of the torus.
 
   The inertia tensor of the torus with respect to its local
-  coordinate system L is computed. 
+  coordinate system L is computed.
 
   This method is used for the inertiatensor slot.
 

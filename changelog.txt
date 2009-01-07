@@ -24,6 +24,8 @@ Bug fixes/enhancements:
   the module. An error is only triggered when one of the functions gets called.
 - rply: The sources can now also be compiled using a C++ compiler. Thanks
   to Chris Foster for the patch!
+- ribexport: The Frame block now uses the frame number from the timer object
+  (instead of always using 0).
 - ribexport: Added RenderMan support for the torus geometry.
 - ri/cri: Passing unicode strings in a parameter list has caused an exception.
 

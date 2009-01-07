@@ -109,6 +109,7 @@ class RIBExporter:
 
         scene = getScene()
         self.timestep = scene.timer().timestep
+        frameNr = int(round(scene.timer().frame))
         self.bake = bake
 
         # A list with all light sources in the scene
@@ -266,7 +267,7 @@ class RIBExporter:
             if isinstance(rpass, TexPass):
 #                nr+=1
 #                print "\015Pass %d..."%nr,
-                rpass.doPass(0)
+                rpass.doPass(frameNr)
                 rpass._done = True
 
         # Other passes...
@@ -275,7 +276,7 @@ class RIBExporter:
                 continue
 #            nr+=1
 #            print "\015Pass %d..."%nr,
-            rpass.doPass(0)
+            rpass.doPass(frameNr)
             rpass._done = True
 
         RiEnd()
@@ -1531,7 +1532,7 @@ light $SHADERNAME(float intensity = 1.0;
     
   }
 }        
-        """
+"""
 
     def shaderParams(self, passes):
         """Return a dictionary with shader parameters and their values."""
@@ -1589,7 +1590,7 @@ light $SHADERNAME(float intensity = 1.0;
     Cl = att*intensity*color "rgb" (1,1,1);
   }
 }        
-        """
+"""
 
     def shaderParams(self, passes):
         """Return a dictionary with shader parameters and their values."""
@@ -1664,7 +1665,7 @@ light $SHADERNAME(float intensity = 1.0;
     
   }
 }        
-        """
+"""
 
     def shaderParams(self, passes):
         """Return a dictionary with shader parameters and their values."""
@@ -1716,7 +1717,7 @@ light $SHADERNAME(float intensity = 1.0;
     Cl = intensity * color "rgb" (1,1,1);
   }
 }        
-        """
+"""
 
     def shaderParams(self, passes):
         """Return a dictionary with shader parameters and their values."""
@@ -1877,7 +1878,7 @@ surface $SHADERNAME(color ambient = color "rgb" (0.2, 0.2, 0.2);
   }
   BAKE_END
 }        
-        """
+"""
 
     def surfaceShaderParams(self, passes):
         """Return a dictionary with shader parameters and their values."""

@@ -1408,7 +1408,7 @@ class _RenderManAPI:
             # v=scalar?
             if vtype in ScalarTypes:
                 res.append(v)
-            # no stadard scalar or string. Then it might be a sequence..
+            # no standard scalar or string. Then it might be a sequence..
             else:
                 # Check if it is really a sequence...
                 try:

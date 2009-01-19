@@ -43,7 +43,7 @@
 
 import os.path
 from ctypes import *
-import ctypes.util
+import rmanlibutil
 
 def loadRI(libName):
     """Load a RenderMan library and return a module-like handle to it.
@@ -58,10 +58,7 @@ def loadRI(libName):
     """
     
     # Try to figure out the location of the lib if the name is not an absolute path...
-    if not os.path.isabs(libName):
-        p = ctypes.util.find_library(libName)
-        if p is not None:
-            libName = p
+    libName = rmanlibutil.resolveRManLib(libName)
         
     # Load the library...
     ri = cdll.LoadLibrary(libName)

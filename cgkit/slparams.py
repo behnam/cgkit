@@ -52,6 +52,7 @@ Functions:
 import os, os.path, sys, string, StringIO, sltokenize, types
 import cgtypes, math, sl, simplecpp
 import _slparser
+from _slreturntypes import _ShaderInfo, _ShaderParam
 import sloargs
 
 class SLParamsError(Exception):
@@ -144,13 +145,13 @@ class _SLParser(_slparser._SLParserBase):
         if self.arraylen==None:
             if self.space==None:
                 self.space = self.defaultSpace(self.type)
-            self.params.append((self.output, self.detail, self.type, None,
+            self.params.append(_ShaderParam(self.output, self.detail, self.type, None,
                             self.name, self.space, self.default))
         else:
             spaces = self.spaces
             if self.defaultSpace(self.type)==None:
                 spaces = None
-            self.params.append((self.output, self.detail, self.type,
+            self.params.append(_ShaderParam(self.output, self.detail, self.type,
                                self.arraylen, self.name, spaces, self.default))
         self.arraylen = None
         self.name = ""
@@ -245,19 +246,30 @@ def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None, includ
     look for include files. defines is a list of tuples (name, value)
     that specify the predefined symbols to use.
     
-    The function returns a list of 3-tuples, one for each shader found
-    in the file. The tuple contains the type, the name and the
-    parameters of the shader. The parameters are given as a list of
-    7-tuples describing each parameter. The tuple contains the
-    following information (in the given order):
+    The function returns a list of shader info objects. These objects have
+    4 attributes:
+    
+    - type: The type of the shader (surface, displacement, etc.)
+    - name: The name of the shader
+    - params: The shader parameters (see below)
+    - meta: The shader meta data
+     
+    The parameters are given as a list of shader parameter objects
+    describing each parameter. A shader parameter object has the
+    following attributes:
 
-    - The output specifier (either "output" or an empty string)
-    - The storage class ("uniform" or "varying")
-    - The parameter type
-    - The array length or None if the parameter is not an array
-    - The name of the parameter
-    - The space in which a point-like type was defined
-    - The default value (always given as a string)
+    - outputSpec: The output specifier (either "output" or an empty string)
+    - storage: The storage class ("uniform" or "varying")
+    - type: The parameter type
+    - size: The array length or None if the parameter is not an array
+    - name: The name of the parameter
+    - spacE: The space in which a point-like type was defined
+    - default: The default value (always given as a string)
+    
+    For backwards compatibility, the shader info object behaves like a
+    3-tuple (type, name, params). The meta data can only be accessed via name
+    though. The shader parameter objects can also be used like 7-tuples
+    containing the above data (in the order given above).
     """
 
     if slname is not None:
@@ -291,7 +303,9 @@ def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None, includ
 #    return wrap_error_reporter(parser, "definitions")
 
     try:
-        return getattr(parser, "definitions")()
+        lst = getattr(parser, "definitions")()
+        # Turn the 3-tuples into _ShaderInfo objects
+        return map(lambda tup: _ShaderInfo(*tup), lst)
     except _slparser.NoMoreTokens, err:
         raise NoMoreTokens, "No more tokens"
     except _slparser.SyntaxError, err:

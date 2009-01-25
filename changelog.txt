@@ -13,6 +13,9 @@ Bug fixes/enhancements:
   channelBox option (+ some other bugfixes). 
 - slparams: The module can now also retrieve information from compiled shaders
   (from various renderers).
+- slparams: The returned shader info/shader parameters are no tuples anymore
+  but special objects whose attributes hold the return values. For backwards,
+  compatibility, those objects can still be used like tuples.
 - ObjMaterial: Texture maps were rendered with a filter width of 0.01 which
   doesn't make much sense. For now, I set it to 1.0, but this should probably
   be customizable.

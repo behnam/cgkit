@@ -4,6 +4,8 @@
 
 #define arg float Kd = 0.5
 
+#pragma annotation "MyData" "MyValue"
+
 surface testshader(float Ka = 1;
 		   varying vector norm = 0;
 		   float uv[2] = {1,2};  /* comment */

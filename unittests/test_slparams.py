@@ -16,10 +16,11 @@ class TestSlparams(unittest.TestCase):
     def testCompiledShader(self):
         """Test reading params from compiled shaders.
         """
-        renderers = [#("3Delight", "shaderdl", "sdl"),
+        renderers = [("3Delight", "shaderdl", "sdl"),
                      #("Aqsis", "aqsl", "slx"),
                      #("Pixie", "sdrc", "sdr"),
-                     ("PRMan", "shader", "slo")]
+                     #("PRMan", "shader", "slo")
+                     ]
         for data in renderers:
             renderer,shaderCompiler,shaderExt = data
             slcName = "tmp/testshader.%s"%shaderExt
@@ -34,6 +35,11 @@ class TestSlparams(unittest.TestCase):
                 continue
             res = slparams.slparams(slcName)
             self.assertTestShaderParams(res)
+            
+            # Check the meta data (renderer-specific)
+            if renderer=="3Delight":
+                meta = res[0].meta
+                self.assertEqual(meta, {"MyData": "MyValue"})
         
     def assertTestShaderParams(self, shaderInfo):
         """Check the result from slparams().

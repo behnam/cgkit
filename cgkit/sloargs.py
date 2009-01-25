@@ -36,6 +36,10 @@
 import sys, os, os.path
 import ctypes
 import ctypes.util
+from _slreturntypes import _ShaderInfo, _ShaderParam
+import rmanlibutil
+
+#################### ctypes type declarations #######################
 
 class _POINT(ctypes.Structure):
     _fields_ = [("xval", ctypes.c_float),
@@ -84,7 +88,8 @@ class _VISSYMDEF_aqsis(ctypes.Structure):
                 ("arraylen", ctypes.c_int),
                 ("default", _DEFAULTVAL),
                ]
-    
+
+######################## Base class ##############################
 
 class _SloArgs:
     """Provides functionality to read shader parameters using the C sloargs interface.
@@ -107,7 +112,7 @@ class _SloArgs:
         
         self._VISSYMDEF = VISSYMDEF
 
-        libName = self._resolveLibraryName(libName)
+        libName = rmanlibutil.resolveRManLib(libName)
         self.libName = libName
         
         # Load the library...
@@ -123,68 +128,6 @@ class _SloArgs:
     @staticmethod
     def defaultLibName():
         raise NotImplementedError("defaultLibName() must be implemented by derived classes")
-
-    def _rendererLibDir(self):
-        """Return a renderer-specific library path where the sloargs lib is searched for.
-
-        Derived classes should implement this and examine renderer-specific environment
-        variables.
-        """
-        pass
-
-    def _resolveLibraryName(self, libName):
-        """Resolve the given library name.
-
-        If the name is an absolute file name, it is just returned unmodified.
-        Otherwise the method tries to resolve the name and return an absolute
-        path to the library. If no library file could be found, the name
-        is returned unmodified.
-        """
-        if os.path.isabs(libName):
-            return libName
-        
-        # Try to figure out the location of the lib
-        lib = ctypes.util.find_library(libName)
-        if lib is not None:
-            return lib
-
-        # A list of library search paths...
-        searchPaths = []
-
-        # Is there a renderer-specific search path?
-        libDir = self._rendererLibDir()
-        if libDir is not None:
-            searchPaths.append(libDir)
-
-        # Also examine LD_LIBRARY_PATH if we are on Linux
-        if sys.platform.startswith("linux"):
-            libPaths = os.getenv("LD_LIBRARY_PATH")
-            if libPaths is not None:
-                searchPaths.extend(libPaths.split(":"))
-
-        # Check the search paths...
-        for path in searchPaths:
-            lib = os.path.join(path, self._libFileName(libName))
-            if os.path.exists(lib):
-                return lib
-
-        # Nothing found, then just return the original name
-        return libName
-
-    def _libFileName(self, libName):
-        """Extend a base library name to a file name.
-
-        Example:  "foo" -> "libfoo.so"    (Linux)
-                        -> "foo.dll"      (Windows)
-                        -> "libfoo.dylib" (OSX)
-        """
-        if sys.platform.startswith("linux"):
-            return "lib%s.so"%libName
-        elif sys.platform=="darwin":
-            return "lib%s.dylib"%libName
-        elif sys.platform.startswith("win"):
-            return "%s.dll"%libName
-        return libName
 
     def _loadLibrary(self, libName):
         """Load the library providing the sloargs interface.
@@ -228,6 +171,15 @@ class _SloArgs:
         sloargs.Slo_StortoStr.restype = ctypes.c_char_p
         sloargs.Slo_DetailtoStr.argtypes = [ctypes.c_int]
         sloargs.Slo_DetailtoStr.restype = ctypes.c_char_p
+        
+    def _getMetaData(self):
+        """Return the meta data for the current shader.
+        
+        The function is called after Slo_SetShader() but before
+        Slo_EndShader() has been called. The return value should
+        be the meta data for the shader (preferably as a dict).
+        """
+        return None
 
     def getShaderInfo(self, shader):
         """Read the shader parameters from a given shader.
@@ -247,6 +199,7 @@ class _SloArgs:
         
         shaderName = sloargs.Slo_GetName()
         shaderType = sloargs.Slo_TypetoStr(sloargs.Slo_GetType())
+        metaData = self._getMetaData()
         params = []
         numParams = sloargs.Slo_GetNArgs()
         for i in range(1, numParams+1):
@@ -267,10 +220,10 @@ class _SloArgs:
             if space=="":
                 space = None
             defaultVal = self._getDefaultVal(symdef)
-            params.append((output,storage,paramType,arrLen,name,space,defaultVal))
+            params.append(_ShaderParam(output,storage,paramType,arrLen,name,space,defaultVal))
             
         sloargs.Slo_EndShader()
-        return [(shaderType, shaderName, params)]
+        return [_ShaderInfo(type=shaderType, name=shaderName, params=params, meta=metaData)]
         
     def _getSpace(self, symdef):
         if symdef.arraylen>0:
@@ -324,6 +277,8 @@ class _SloArgs:
         return None
         
 
+############################# PRMan ##################################
+
 class _SloArgs_PRMan(_SloArgs):
     def __init__(self, libName):
         _SloArgs.__init__(self, libName=libName, VISSYMDEF=_VISSYMDEF_prman)
@@ -332,13 +287,7 @@ class _SloArgs_PRMan(_SloArgs):
     def defaultLibName():
         return "prman"
 
-    def _rendererLibDir(self):
-        base = os.getenv("RMANTREE")
-        if base is not None:
-            return os.path.join(base, "lib")
-        else:
-            return None
-
+############################# 3Delight ##################################
 
 class _SloArgs_3Delight(_SloArgs):
     def __init__(self, libName):
@@ -347,13 +296,6 @@ class _SloArgs_3Delight(_SloArgs):
     @staticmethod
     def defaultLibName():
         return "3delight"
-
-    def _rendererLibDir(self):
-        base = os.getenv("DELIGHT")
-        if base is not None:
-            return os.path.join(base, "lib")
-        else:
-            return None
 
     def _declareFunctions(self, sloargs):
         _SloArgs._declareFunctions(self, sloargs)
@@ -365,6 +307,20 @@ class _SloArgs_3Delight(_SloArgs):
         sloargs.Slo_GetAnnotationByKey.argtypes = [ctypes.c_char_p]
         sloargs.Slo_GetAnnotationByKey.restype = ctypes.c_char_p
     
+    def _getMetaData(self):
+        res = {}
+        n = self._sloargs.Slo_GetNAnnotations()
+        for i in range(1, n+1):
+            key = self._sloargs.Slo_GetAnnotationKeyById(i)
+            if key is None:
+                continue
+            ann = self._sloargs.Slo_GetAnnotationByKey(key)
+            if ann is None:
+                continue
+            res[key] = ann
+        return res
+
+############################# Aqsis ##################################
 
 class _SloArgs_Aqsis(_SloArgs):
     def __init__(self, libName):
@@ -375,8 +331,7 @@ class _SloArgs_Aqsis(_SloArgs):
         return "slxargs"
 
 
-
-# Pixie
+############################# Pixie ##################################
 
 class _UDefaultVal(ctypes.Union):
     pass
@@ -421,13 +376,6 @@ class _SloArgs_Pixie(_SloArgs):
     @staticmethod
     def defaultLibName():
         return "sdr"
-
-    def _rendererLibDir(self):
-        base = os.getenv("PIXIEHOME")
-        if base is not None:
-            return os.path.join(base, "lib")
-        else:
-            return None
 
     def _declareFunctions(self, sloargs):
         # We don't call the inherited method as Pixie's library does not
@@ -551,6 +499,8 @@ def setSloLib(sloSuffix, libName):
 
 def slparams(shader):
     """Read shader parameters.
+    
+    See slparams.slparams() for more details.
     """
     global _sloArgsClasses, _sloArgsInstances, _sloLibNames
     

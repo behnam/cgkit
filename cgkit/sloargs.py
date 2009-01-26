@@ -290,6 +290,29 @@ class _SloArgs_PRMan(_SloArgs):
     def defaultLibName():
         return "prman"
 
+    def _declareFunctions(self, sloargs):
+        _SloArgs._declareFunctions(self, sloargs)
+        # PRMan-specific functions
+        sloargs.Slo_GetAllMetaData.argtypes = []
+        sloargs.Slo_GetAllMetaData.restype = ctypes.POINTER(ctypes.c_char_p*100)
+
+    def _getMetaData(self):
+        data = self._sloargs.Slo_GetAllMetaData()
+        res = {}
+        i = 0
+        while data.contents[i]!=None:
+            key = data.contents[i]
+            val = data.contents[i+1]
+            res[key] = val
+            i += 2
+
+        # TODO: data needs to be freed
+#        c = ctypes.cdll.LoadLibrary("/lib64/libc.so.6")
+#        c.free.argtypes = [ctypes.c_void_p]
+#        c.free.restype = None
+#        c.free(data)
+        return res
+
 ############################# 3Delight ##################################
 
 class _SloArgs_3Delight(_SloArgs):

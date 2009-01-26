@@ -6,6 +6,11 @@
 
 #pragma annotation "MyData" "MyValue"
 
+/*
+ <meta id="Ks_label">Specular Response</meta>
+ <meta id="Ks_min">0</meta>
+*/
+
 surface testshader(float Ka = 1;
 		   varying vector norm = 0;
 		   float uv[2] = {1,2};  /* comment */

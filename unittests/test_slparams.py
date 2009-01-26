@@ -19,7 +19,7 @@ class TestSlparams(unittest.TestCase):
         renderers = [("3Delight", "shaderdl", "sdl"),
                      #("Aqsis", "aqsl", "slx"),
                      #("Pixie", "sdrc", "sdr"),
-                     #("PRMan", "shader", "slo")
+                     ("PRMan", "shader -C", "slo")
                      ]
         for data in renderers:
             renderer,shaderCompiler,shaderExt = data

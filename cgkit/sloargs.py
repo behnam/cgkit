@@ -192,10 +192,13 @@ class _SloArgs:
             shaderPath = "."
         # Remove the extension
         shader = os.path.splitext(shaderFileName)[0]
-        
+
         sloargs.Slo_SetPath(shaderPath)
+        # Try the shader name with extension first...
         if sloargs.Slo_SetShader(shaderFileName)!=0:
-            raise IOError('Failed to open shader "%s"'%shader)
+            # If the above failed, try the shader name without extension (prman)...
+            if sloargs.Slo_SetShader(shader)!=0:
+                raise IOError('Failed to open shader "%s"'%shader)
         
         shaderName = sloargs.Slo_GetName()
         shaderType = sloargs.Slo_TypetoStr(sloargs.Slo_GetType())

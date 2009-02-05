@@ -41,6 +41,19 @@
 # -------------------------------------------------------------
 # $Id: ri.py,v 1.4 2006/02/14 19:29:39 mbaas Exp $
 
+"""This is the "lower-level" _cri module which is used by the cri module.
+
+This module provides the function loadRI() which loads a shared RenderMan
+library and prepares the returned library handle, so that all RenderMan
+constants, tokens and functions are properly defined.
+
+The ri library returned by loadRI() has to be used like a C library and
+can crash the application if not used properly (like forgetting to terminate
+parameter lists with RI_NULL). This is why this low-level ri library is not
+passed back to the user but instead the cri module provides another wrapper
+layer that allows the library to be used just like the pure Python ri module.
+"""
+
 import os.path
 from ctypes import *
 import rmanlibutil
@@ -95,8 +108,11 @@ def importRINames(ri, ns):
 def _createRiTypes(ri):
     """Create the RenderMan types.
     
-    The types are added as attributes to the ri object. All names
+    ri must be the open ctypes library handle.
+    The RenderMan types are added as attributes to the ri object. All names
     begin with "Rt" (RtInt, RtFloat, ...).
+    
+    This is a helper function for loadRI().
     """
     
     # Base types that are not composed of other RenderMan types...
@@ -134,7 +150,12 @@ def _createRiTypes(ri):
 def _createRiConstants(ri):
     """Create the RenderMan constants.
     
-    The types must already be available on ri.
+    Add the RenderMan constants to the ri object which must be an open
+    ctypes library handle.
+    The types must already be available on ri (i.e. _createRiTypes() must
+    already have been called).
+    
+    This is a helper function for loadRI().
     """
     
     ri.RI_NULL         = None
@@ -162,10 +183,15 @@ def _createRiConstants(ri):
 def _createRiTokens(ri):
     """Create the RenderMan tokens.
     
-    The constants are added as attributes to the ri object. All names
-    begin with "RI_".
+    The RenderMan constants are added as attributes to the ri object which
+    must be an open ctypes library handle. All names begin with "RI_".
+    
+    This is a helper function for loadRI().
     """
 
+    # All the following constants will be added to the ri object.
+    # The items are (Token Name, Default). If a token does not exist in the
+    # library, the default value is used.
     tokens = [("RI_A", "a"),
               ("RI_ABORT", "abort"),
               ("RI_AMBIENTLIGHT", "ambientlight"),
@@ -285,6 +311,12 @@ def _createRiTokens(ri):
 
         
 def _createRiFunctions(ri):
+    """Declare the RenderMan functions.
+    
+    ri must be an open ctypes library handle.
+    
+    This is a helper function for loadRI().
+    """
     # "Import" the types (so that we can write RtInt instead of ri.RtInt)...
     for name in dir(ri):
         if name.startswith("Rt"):

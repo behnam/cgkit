@@ -41,6 +41,9 @@
 # -------------------------------------------------------------
 # $Id: ri.py,v 1.4 2006/02/14 19:29:39 mbaas Exp $
 
+"""High level cri module that can be used pretty much like the cgkit.ri module.
+"""
+
 import types, re
 import ri
 from cgtypes import vec3
@@ -156,7 +159,7 @@ class _RenderManAPI:
     def __init__(self, rimod):
         """Constructor.
         
-        rimod is the unterlying ctypes library handle as returned by _cri.loadRI().
+        rimod is the underlying ctypes library handle as returned by _cri.loadRI().
         """
         self._ri = rimod
         
@@ -203,7 +206,6 @@ class _RenderManAPI:
             
             self._numpyTypes[self._ri.RtInt] = numpy.int_
 
-        
     def _getRiLastError(self):
         return self._ri.RiLastError
     

@@ -33,11 +33,25 @@
 #
 # ***** END LICENSE BLOCK *****
 
+"""This module allows using a RenderMan sloargs library.
+"""
+
 import sys, os, os.path
 import ctypes
 import ctypes.util
 from _slreturntypes import _ShaderInfo, _ShaderParam
 import rmanlibutil
+
+# This is the name of the C library that gets loaded by the PRMan SloArgs
+# implementation to obtain a function pointer to the free() function
+# (which is only required for reading meta data).
+# As of Python 2.6 this name should work cross-platform. In previous versions,
+# the caller could modify this name to pick up the correct version (such
+# as "msvcrt"). If the free() function couldn't be obtained, reading meta
+# data is disabled.
+# The variable can also be set to None to disable reading meta data altogether
+# (in case there is a problem with it).
+_libc_name = "c"
 
 #################### ctypes type declarations #######################
 
@@ -284,7 +298,24 @@ class _SloArgs:
 
 class _SloArgs_PRMan(_SloArgs):
     def __init__(self, libName):
+        global _libc_name
+        
         _SloArgs.__init__(self, libName=libName, VISSYMDEF=_VISSYMDEF_prman)
+        
+        # Try to get a pointer to the C free() function (required for freeing
+        # the result returned by getting the shader meta data).
+        # We just try to load the "c" library (as of Python 2.6 this also works
+        # on Windows).
+        self._free = None
+        if _libc_name is not None:
+            libcName = ctypes.util.find_library(str(_libc_name))
+            try:
+                lib = ctypes.cdll.LoadLibrary(libcName)
+                self._free = lib.free
+                self._free.argtypes = [ctypes.c_void_p]
+                self._free.restype = None
+            except:
+                pass
 
     @staticmethod
     def defaultLibName():
@@ -294,11 +325,19 @@ class _SloArgs_PRMan(_SloArgs):
         _SloArgs._declareFunctions(self, sloargs)
         # PRMan-specific functions
         sloargs.Slo_GetAllMetaData.argtypes = []
-        sloargs.Slo_GetAllMetaData.restype = ctypes.POINTER(ctypes.c_char_p*100)
+        sloargs.Slo_GetAllMetaData.restype = ctypes.POINTER(ctypes.c_char_p*1000)
 
     def _getMetaData(self):
-        data = self._sloargs.Slo_GetAllMetaData()
+        """Return the shader meta data.
+        """
+        # If we couldn't obtain the free() function in the constructor we
+        # just return an empty dict (otherwise we would have to create a memory
+        # leak further down).
+        if self._free is None:
+            return {}
+        
         res = {}
+        data = self._sloargs.Slo_GetAllMetaData()
         i = 0
         while data.contents[i]!=None:
             key = data.contents[i]
@@ -306,11 +345,7 @@ class _SloArgs_PRMan(_SloArgs):
             res[key] = val
             i += 2
 
-        # TODO: data needs to be freed
-#        c = ctypes.cdll.LoadLibrary("/lib64/libc.so.6")
-#        c.free.argtypes = [ctypes.c_void_p]
-#        c.free.restype = None
-#        c.free(data)
+        self._free(data)
         return res
 
 ############################# 3Delight ##################################

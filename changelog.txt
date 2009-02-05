@@ -6,6 +6,7 @@ Changes from cgkit-2.0.0alpha8 to cgkit-2.0.0alpha9:
 New features:
 
 - New module sloargs to parse compiled RenderMan shaders.
+- New module pointcloud to read/write RenderMan point cloud files.
 
 Bug fixes/enhancements:
 

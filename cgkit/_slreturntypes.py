@@ -38,6 +38,10 @@
 
 class _ShaderInfo:
     """Holds information about a shader.
+    
+    For backwards compatibility this class behaves like a tuple
+    (type, name, params). The meta data has to be accessed via attribute
+    access.
     """
     
     def __init__(self, type=None, name=None, params=None, meta=None):
@@ -76,6 +80,9 @@ class _ShaderInfo:
 
 class _ShaderParam:
     """Holds information about a shader parameter.
+    
+    For backwards compatibility this class behaves like a 7-tuple
+    (outSpec, storage, type, size, name, space, default). 
     """
     
     def __init__(self, outputSpec=None, storage=None, type=None, size=None, name=None, space=None, default=None):

@@ -448,7 +448,20 @@ def convertdefault(paramtuple):
     # converted default value (this is the case when the value was
     # extracted from a compiled shader).
     if not isinstance(defstr, basestring):
-        return defstr
+        # Make sure that point-like types are returned as vec3 and matrix types
+        # are returned as mat4.
+        if typ in ["color", "point", "vector", "normal"]:
+            retType = cgtypes.vec3
+        elif typ=="matrix":
+            retType = cgtypes.mat4
+        else:
+            # No vec3/mat4 type, then just return the value
+            return defstr
+        # Cast the value...
+        if arraylen is None:
+            return retType(defstr)
+        else:
+            return map(lambda v: retType(v), defstr)
 
     # Replace {} with [] so that SL arrays look like Python lists
     if arraylen is not None:

@@ -19,7 +19,7 @@ surface testshader(float Ka = 1;
 		   uniform color col = color "rgb" (1,1,1);
 		   matrix M = 1, T = matrix(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
 		   arg;
-		   float singleArr[1] = {0.7};
+		   float singleArr[1] = {0.5};
                   )
 {
 #define TEST_LINE_CONTINUATION { \

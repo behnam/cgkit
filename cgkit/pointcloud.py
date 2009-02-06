@@ -36,6 +36,7 @@
 
 # Point cloud test
 
+import os.path
 import ctypes
 import rmanlibutil
 
@@ -57,13 +58,17 @@ class PtcReader:
 
         self._PtcGetPointCloudInfo = ptclib.PtcGetPointCloudInfo
 
+        # Set 64 as default (which is the maximum in PRMan (when using this API call))
+        nvars = ctypes.c_int(64)
+
         # Just open the file to find out the number of variables in the file...
-        nvars = ctypes.c_int()
-        handle = ptclib.PtcOpenPointCloudFile(fileName, ctypes.byref(nvars), None, None)
-        if handle is None:
-            raise IOError("Cannot open point cloud file %s"%fileName)
-        ptclib.PtcClosePointCloudFile(handle)
-        
+        # (3Delight only)
+        if "3delight" in os.path.basename(libName):
+            handle = ptclib.PtcOpenPointCloudFile(fileName, ctypes.byref(nvars), None, None)
+            if handle is None:
+                raise IOError("Cannot open point cloud file %s"%fileName)
+            ptclib.PtcClosePointCloudFile(handle)
+
         # Now prepare storage for the variable names and types and open the file for real...
         numVars = nvars.value
         types = (numVars*ctypes.c_char_p)()
@@ -84,7 +89,7 @@ class PtcReader:
         
         code = ""
         idx = 0
-        for i in range(numVars):
+        for i in range(nvars.value):
             name = names[i]
             type = types[i]
             self.variables.append((type, name))

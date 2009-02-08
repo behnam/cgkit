@@ -164,6 +164,30 @@ def updateInfoModule(cgkit_light):
         print 'Could not write file "%s"'%infomod
         sys.exit(1)
 
+def pyx2c(pyxName, cName):
+    """Run pyrex on a pyx file.
+    
+    pyxName is the input pyx file, cName the output C file.
+    """
+    cmd = "pyrexc -o %s %s"%(cName, pyxName)
+    print cmd
+    res = os.system(cmd)
+    if res!=0:
+        print >>sys.stderr, "Error running pyrexc"
+        sys.exit()
+    
+def convertPyxFiles():
+    """Convert all pyx files in pyrex/pyx.
+    """
+    pyxFiles = glob.glob("pyrex/pyx/*.pyx")
+    for pyxFile in pyxFiles:
+        cFile = os.path.splitext(os.path.basename(pyxFile))[0]+".c"
+        cFile = os.path.join("pyrex", "c", cFile)
+        if isNewer(pyxFile, cFile):
+            pyx2c(pyxFile, cFile)
+        else:
+            print "%s is up-to-date"%cFile
+
 ######################################################################
 ######################################################################
 ######################################################################
@@ -540,6 +564,11 @@ if GLOVESDK_AVAILABLE:
                              ,extra_link_args=LINK_ARGS
                              ,define_macros=MACROS)]
 
+ext_modules += [Extension("_pointcloud", ["pyrex/c/_pointcloud.c"]
+                         ,extra_compile_args=CC_ARGS
+                         ,extra_link_args=LINK_ARGS
+                         ,define_macros=MACROS)]
+
 
 # Infos...
 updateInfoModule(INSTALL_CGKIT_LIGHT)
@@ -593,6 +622,8 @@ print 70*"="
 # Test (to enable light version)
 if INSTALL_CGKIT_LIGHT:
     ext_modules = []
+
+convertPyxFiles()
 
 setup(name = PACKAGE_NAME,
       version = "2.0.0alpha8cvs",

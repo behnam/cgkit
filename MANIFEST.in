@@ -30,3 +30,5 @@ recursive-include unittests *.py
 recursive-include utilities *.py
 recursive-include utilities/3dsmax *.ms
 recursive-include utilities/maya *.mel
+recursive-include pyrex/c *.c
+recursive-include pyrex/pyx *.pyx

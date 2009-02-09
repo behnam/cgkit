@@ -204,7 +204,10 @@ class _RenderManAPI:
             else:
                 raise TypeError("RtFloat is of an unknown type")
             
-            self._numpyTypes[self._ri.RtInt] = numpy.int_
+            # numpy.int_ is 64bit on a 64bit system (so it's rather long instead of int)
+            # That's why we use an int32 here which should also match the
+            # C int type on 64bit systems.
+            self._numpyTypes[self._ri.RtInt] = numpy.int32
 
     def _getRiLastError(self):
         return self._ri.RiLastError

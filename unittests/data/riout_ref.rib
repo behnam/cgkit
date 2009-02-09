@@ -1,5 +1,4 @@
 # Normalized RIB
-version 3.03
 ErrorHandler "abort"
 ErrorHandler "print"
 ErrorHandler "ignore"

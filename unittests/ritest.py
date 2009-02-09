@@ -29,6 +29,9 @@ def normalizeRIB(inFile, outFile):
         s = s.replace("]", " ] ")
         s = s.replace("#", " # ")
         tokens = s.split()
+        # Drop the version line
+        if len(tokens)>0 and tokens[0]=="version":
+            continue
         for tok in tokens:
             if tok=="#":
                 break
@@ -92,7 +95,11 @@ def polys(ri):
     ri.RiTranslate(1.33,0,0)
     ri.RiGeneralPolygon([4], P=[A,B,C,D], Cs=[(1,0,0),(0,1,0),(0,0,1),(1,1,0)])
     ri.RiTranslate(1.33,0,0)
-    ri.RiPointsPolygons([4], [0,1,2,3], P=[A,B,C,D], Cs=[(1,0,0),(0,1,0),(0,0,1),(1,1,0)])
+    if has_numpy:
+        ids = numpy.array([0,1,2,3], dtype=numpy.int32)
+    else:
+        ids = [0,1,2,3]
+    ri.RiPointsPolygons([4], ids, P=[A,B,C,D], Cs=[(1,0,0),(0,1,0),(0,0,1),(1,1,0)])
     ri.RiTranslate(1.33,0,0)
     ri.RiPointsGeneralPolygons([1], [4], [0,1,2,3], P=[A,B,C,D], Cs=[(1,0,0),(0,1,0),(0,0,1),(1,1,0)])
     

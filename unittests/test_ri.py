@@ -39,6 +39,7 @@ class TestRi(unittest.TestCase):
         
     def testCRiModule(self):
         """Check the cri module."""
+        print "cri test is disabled"
         return
 
         if os.path.exists("tmp/criout.rib"):

@@ -36,6 +36,7 @@
 
 import os.path
 import ctypes
+import cgtypes
 import rmanlibutil
 import _pointcloud
 try:
@@ -434,14 +435,17 @@ class PtcWriter:
         
         m can be any object that contains 16 floats (the values may be nested).
         """
-        values = []
-        for v in m:
-            try:
-                values.extend(list(v))
-            except:
-                values.append(v)
-        if len(values)!=16:
-            raise ValueError("Matrix must be composed of 16 values, got %s instead."%len(values))
+        if isinstance(m, cgtypes.mat4):
+            values = m.toList(rowmajor=True)
+        else:
+            values = []
+            for v in m:
+                try:
+                    values.extend(list(v))
+                except:
+                    values.append(v)
+            if len(values)!=16:
+                raise ValueError("Matrix must be composed of 16 values, got %s instead."%len(values))
         return (16*ctypes.c_float)(*values)
         
     def __del__(self):

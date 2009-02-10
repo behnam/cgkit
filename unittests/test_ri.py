@@ -52,6 +52,8 @@ class TestRi(unittest.TestCase):
 #        ri = cgkit.cri.loadRI("ri")
 #        ri = cgkit.cri.loadRI("aqsislib")
 #        ri = cgkit.cri.loadRI("ri2rib")
+#        ri = cgkit.cri.loadRI("prman")
+#        ri.RiProcFree = None
 
         ritest.main(ri, "tmp/criout.rib", archiveName="tmp/cinclude.rib")
         

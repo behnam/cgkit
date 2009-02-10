@@ -95,8 +95,7 @@ class TestPointCloud(unittest.TestCase):
         self.assertAlmostEqual(1.5, rad, 5)
         self.assertEqual({}, data)
 
-        v = ptc.readDataPoint()
-        self.assertEqual(None, v)
+        self.assertRaises(EOFError, lambda: ptc.readDataPoint())
         
         ptc.close()
     
@@ -185,11 +184,14 @@ class TestPointCloud(unittest.TestCase):
         ptc.writeDataPoints(2, buffer)
         ptc.close()
 
-        buf = numpy.zeros(shape=(2,8), dtype=numpy.float32)
+        buf = numpy.zeros(shape=(3,8), dtype=numpy.float32)
         ptc = pointcloud.open("tmp/pointcloud3.ptc", "r", self.libName)
-        ptc.readDataPoints(2, buf)
+        n = ptc.readDataPoints(3, buf)
+        self.assertEqual(2, n)
         self.assertEqual([1,2,3,1,0,0,7,8], list(list(buf)[0]))
         self.assertEqual([-1,-2,-3,0,0,1,-7,-8], list(list(buf)[1]))
+        n = ptc.readDataPoints(3, buf)
+        self.assertEqual(0, n)
         ptc.close()
 
 ######################################################################

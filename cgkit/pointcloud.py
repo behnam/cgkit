@@ -128,6 +128,7 @@ class PtcReader:
         
         self._handle = handle
 
+        self.name = fileName
         self.variables = []
         self.npoints = None
         self.bbox = None
@@ -175,8 +176,15 @@ class PtcReader:
         if ptclib.PtcGetPointCloudInfo(handle, "world2ndc", m)==1:
             self.world2ndc = list(m)
 
+        if self.npoints is None:
+            raise IOError("Could not obtain the number of points in point cloud file %s."%fileName)
+        if self.npoints<0:
+            raise ValueError("The number of points in the point cloud file is negative (%s)."%self.npoints)
         if self.datasize is None:
             raise IOError("Could not obtain datasize value from point cloud file %s."%fileName)
+
+        # The number of points that can still be read before eof is hit
+        self._numPointsLeft = self.npoints
 
         # Set up storage for reading individual data points
         self._pos = (3*ctypes.c_float)()
@@ -206,14 +214,19 @@ class PtcReader:
         Returns a tuple (pos, normal, radius, dataDict) where pos and normal
         are 3-tuples of floats, radius is a single float and dataDict a
         dictionary with the extra variables that are attached to the point.
-        If no more point is available None is returned.
+        If no more point is available an EOFError exception is thrown.
+        An IOErrror handle is thrown when an error occurs during reading or
+        when the file has already been closed.
         """
         if self._handle is None:
-            raise IOError("The point cloud file has already been closed.")
+            raise IOError("The point cloud file has already been closed (%s)"%self.name)
+        if self._numPointsLeft==0:
+            raise EOFError("There are no more points left to read from point cloud file %s"%self.name)
         
+        self._numPointsLeft -= 1
         res = self._PtcReadDataPoint(self._handle, self._pos, self._normal, self._radius, self._data)
         if res==0:
-            return None
+            raise IOError("Error while reading data point from point cloud file %s"%self.name)
         else:
             dataDict = {}
             data = self._data
@@ -233,8 +246,11 @@ class PtcReader:
         
         The return value is the number of points that have actually
         been read (additional items in the buffers remain at their previous
-        value).
+        value). When 0 is returned, the end of the file has been reached.
         """
+        if numPoints<=0:
+            return 0
+        
         # Are there 4 individual buffers?
         if type(buffer) is tuple:
             if len(buffer)!=4:
@@ -260,10 +276,13 @@ class PtcReader:
             radPtr = normPtr+3*sizeOfFloat
             dataPtr = radPtr+sizeOfFloat
         
+        num = min(numPoints, self._numPointsLeft)
+        
         # Read the points
-        n = _pointcloud.readDataPoints(ctypes.addressof(self._PtcReadDataPoint), self._handle, numPoints,
-                                       pntPtr, pntStride, normPtr, normStride, radPtr, radStride, dataPtr, dataStride)
-        return n
+        self._numPointsLeft -= num
+        _pointcloud.readDataPoints(ctypes.addressof(self._PtcReadDataPoint), self._handle, num,
+                                   pntPtr, pntStride, normPtr, normStride, radPtr, radStride, dataPtr, dataStride)
+        return num
 
     def iterPoints(self):
         """Iterate over all the points in the file.
@@ -271,11 +290,8 @@ class PtcReader:
         Yields tuples (point,normal,radius,data) for every point in the file.
         This is equivalent to calling readDataPoint() repeatedly.
         """
-        while 1:
-            data = self.readDataPoint()
-            if data is None:
-                break
-            yield data
+        while self._numPointsLeft>0:
+            yield self.readDataPoint()
             
     def iterBatches(self, batchSize=1000, combinedBuffer=False, numpyArray=False):
         """Iterate over point batches.
@@ -295,7 +311,7 @@ class PtcReader:
         if numpyArray and not _numpy_available:
             raise ImportError("numpy is not available") 
         
-        num = self.npoints
+        num = self._numPointsLeft
         buffer = None
         bufLen = 0
         while num>0:

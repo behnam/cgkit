@@ -54,7 +54,9 @@ def readDataPoints(long readFuncLoc, long ptcHandle, long numPoints,
     to. *Stride is the number of floats to advance the pointers to get to the
     next data location. The buffers must be large enough to hold numPoints
     items.
-    The return value is the number of points that were actually read.
+    numPoints must at least be the number of points that are still left
+    in the file (otherwise the function may generate an exception or return
+    bogus values, whatever the underlying RenderMan implementation does).
     """
     cdef PtcReadDataPointPtr PtcReadDataPoint
     cdef PtcPointCloud pointCloud
@@ -78,15 +80,12 @@ def readDataPoints(long readFuncLoc, long ptcHandle, long numPoints,
     while n<numPoints:
         res = PtcReadDataPoint(pointCloud, pntPtr, normalPtr, radiusPtr, dataPtr)
         if res==0:
-            break
+            raise IOError("Failed to read data point from point cloud file")
         pntPtr += pointStride
         normalPtr += normalStride
         radiusPtr += radiusStride
         dataPtr += dataStride
         n += 1
-        
-    # Return the number of points read
-    return n
 
 def writeDataPoints(long writeFuncLoc, long ptcHandle, long numPoints,
                     long pointBuf, int pointStride,

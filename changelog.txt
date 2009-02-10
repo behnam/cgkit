@@ -10,6 +10,7 @@ New features:
 
 Bug fixes/enhancements:
 
+- cri: numpy integer arrays were not properly supported on 64-bit systems
 - mayaascii: Bugfix #2119263: The setAttr command wasn't recognizing the 
   channelBox option (+ some other bugfixes). 
 - slparams: The module can now also retrieve information from compiled shaders

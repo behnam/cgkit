@@ -8,58 +8,58 @@ class TestArraySlot(unittest.TestCase):
     
     def testConstructor(self):
         
-        as = _core.DoubleArraySlot(1)
+        asl = _core.DoubleArraySlot(1)
         # array size==0?
-        self.assertEqual(as.size(), 0)
+        self.assertEqual(asl.size(), 0)
         # multiplicity==1?
-        self.assertEqual(as.multiplicity(), 1)
-        self.assertEqual(list(as), [])
-        self.assertEqual(as.getController(), None)
+        self.assertEqual(asl.multiplicity(), 1)
+        self.assertEqual(list(asl), [])
+        self.assertEqual(asl.getController(), None)
 
-        as = _core.DoubleArraySlot()
+        asl = _core.DoubleArraySlot()
         # array size==0?
-        self.assertEqual(as.size(), 0)
+        self.assertEqual(asl.size(), 0)
         # multiplicity==1?
-        self.assertEqual(as.multiplicity(), 1)
-        self.assertEqual(list(as), [])
+        self.assertEqual(asl.multiplicity(), 1)
+        self.assertEqual(list(asl), [])
 
-        as = _core.DoubleArraySlot(3)
+        asl = _core.DoubleArraySlot(3)
         # array size==0?
-        self.assertEqual(as.size(), 0)
+        self.assertEqual(asl.size(), 0)
         # multiplicity==3?
-        self.assertEqual(as.multiplicity(), 3)
-        self.assertEqual(list(as), [])
+        self.assertEqual(asl.multiplicity(), 3)
+        self.assertEqual(list(asl), [])
 
     def testResize(self):
 
-        as = _core.DoubleArraySlot(1)
+        asl = _core.DoubleArraySlot(1)
 
         # Create 8 elements
-        as.resize(8)
-        self.assertEqual(as.size(), 8)
-        self.assertEqual(list(as), 8*[0])
+        asl.resize(8)
+        self.assertEqual(asl.size(), 8)
+        self.assertEqual(list(asl), 8*[0])
 
         # Set values
         for i in range(8):
-            as[i]=i+1
+            asl[i]=i+1
 
         # Check if the values were properly set
-        self.assertEqual(list(as), range(1,9))
+        self.assertEqual(list(asl), range(1,9))
 
         # Enlarge the array
-        as.resize(20)
-        self.assertEqual(as.size(), 20)
+        asl.resize(20)
+        self.assertEqual(asl.size(), 20)
         # Check if the values were properly copied
-        self.assertEqual(list(as), range(1,9)+12*[0])
+        self.assertEqual(list(asl), range(1,9)+12*[0])
 
         # Shrink the array
-        as.resize(4)
+        asl.resize(4)
         # Check if the values were properly copied
-        self.assertEqual(list(as), range(1,5))
+        self.assertEqual(list(asl), range(1,5))
 
         # Negative size must equal 0
-        as.resize(-2)
-        self.assertEqual(as.size(), 0)
+        asl.resize(-2)
+        self.assertEqual(asl.size(), 0)
 
     def testSizeConstraints(self):
         """Check if the size constraint really constrains the size.
@@ -150,32 +150,32 @@ class TestArraySlot(unittest.TestCase):
     def testGetSetMult1(self):
 
         # Multiplicity 1
-        as = _core.Vec3ArraySlot(1)
-        as.resize(10)
+        asl = _core.Vec3ArraySlot(1)
+        asl.resize(10)
 
         for i in range(10):
-            as.setValue(i, vec3(i+1))
+            asl.setValue(i, vec3(i+1))
 
         for i in range(10):
-            self.assertEqual(as.getValue(i), vec3(i+1))
+            self.assertEqual(asl.getValue(i), vec3(i+1))
 
         for i in range(10):
-            self.assertEqual(as[i], vec3(i+1))
+            self.assertEqual(asl[i], vec3(i+1))
 
     def testGetSetMultn(self):
 
         # Multiplicity 3
-        as = _core.IntArraySlot(3)
-        as.resize(10)
+        asl = _core.IntArraySlot(3)
+        asl.resize(10)
 
         for i in range(10):
-            as.setValue(i, (i, i+1, i+2))
+            asl.setValue(i, (i, i+1, i+2))
 
         for i in range(10):
-            self.assertEqual(as.getValue(i), (i,i+1,i+2))
+            self.assertEqual(asl.getValue(i), (i,i+1,i+2))
 
         for i in range(10):
-            self.assertEqual(as[i], (i,i+1,i+2))
+            self.assertEqual(asl[i], (i,i+1,i+2))
 
     def testController(self):
 
@@ -186,25 +186,25 @@ class TestArraySlot(unittest.TestCase):
             ctrl[i] = vec3(i+1)
 
         # "Target" slot
-        as = _core.Vec3ArraySlot()
-        as.setController(ctrl)
-        self.assertEqual(as.size(), 10)
+        asl = _core.Vec3ArraySlot()
+        asl.setController(ctrl)
+        self.assertEqual(asl.size(), 10)
         for i in range(10):
-            self.assertEqual(as[i], vec3(i+1))
+            self.assertEqual(asl[i], vec3(i+1))
 
         # Change an item in the controller...
         ctrl[1]=vec3(-1,-2,-3)
         # ...and see if the target also has changed
         for i in range(10):
             if i==1:
-                self.assertEqual(as[i], vec3(-1,-2,-3))
+                self.assertEqual(asl[i], vec3(-1,-2,-3))
             else:
-                self.assertEqual(as[i], vec3(i+1))
+                self.assertEqual(asl[i], vec3(i+1))
 
         # Disconnect
-        as.setController(None)
+        asl.setController(None)
         # modify an element
-        as[1] = vec3(2,2,2)
+        asl[1] = vec3(2,2,2)
         # and check if ctrl and target are separate
         for i in range(10):
             if i==1:
@@ -213,24 +213,24 @@ class TestArraySlot(unittest.TestCase):
                 self.assertEqual(ctrl[i], vec3(i+1))
         
         for i in range(10):
-            self.assertEqual(as[i], vec3(i+1))
+            self.assertEqual(asl[i], vec3(i+1))
         
 
     def testExceptions(self):
         
-        as = _core.DoubleArraySlot(1)
-        as.resize(8)
-        self.assertRaises(IndexError, lambda: as[8])
-        self.assertRaises(IndexError, lambda: as.getValue(8))
-        self.assertRaises(IndexError, lambda: as.setValue(8,0))
-        self.assertRaises(TypeError, lambda: as.setValue(0,vec3()))
+        asl = _core.DoubleArraySlot(1)
+        asl.resize(8)
+        self.assertRaises(IndexError, lambda: asl[8])
+        self.assertRaises(IndexError, lambda: asl.getValue(8))
+        self.assertRaises(IndexError, lambda: asl.setValue(8,0))
+        self.assertRaises(TypeError, lambda: asl.setValue(0,vec3()))
 
-        as = _core.DoubleArraySlot(2)
-        as.resize(8)
-        self.assertRaises(IndexError, lambda: as[8])
-        self.assertRaises(IndexError, lambda: as.getValue(8))
-        self.assertRaises(IndexError, lambda: as.setValue(8,(1,2)))
-        self.assertRaises(ValueError, lambda: as.setValue(0,5))
+        asl = _core.DoubleArraySlot(2)
+        asl.resize(8)
+        self.assertRaises(IndexError, lambda: asl[8])
+        self.assertRaises(IndexError, lambda: asl.getValue(8))
+        self.assertRaises(IndexError, lambda: asl.setValue(8,(1,2)))
+        self.assertRaises(ValueError, lambda: asl.setValue(0,5))
 
 
 ######################################################################

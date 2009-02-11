@@ -9,59 +9,59 @@ class TestSlot(unittest.TestCase):
     def testConstructor(self):
 
         # Standard constructor
-        as = _core.DoubleSlot()
-        self.assertEqual(as.getValue(), 0)
-        self.assertEqual(as.getController(), None)
+        asl = _core.DoubleSlot()
+        self.assertEqual(asl.getValue(), 0)
+        self.assertEqual(asl.getController(), None)
 
-        as = _core.IntSlot()
-        self.assertEqual(as.getValue(), 0)
+        asl = _core.IntSlot()
+        self.assertEqual(asl.getValue(), 0)
 
-        as = _core.Vec3Slot()
-        self.assertEqual(as.getValue(), vec3(0))
+        asl = _core.Vec3Slot()
+        self.assertEqual(asl.getValue(), vec3(0))
 
-        as = _core.StrSlot()
-        self.assertEqual(as.getValue(), "")        
+        asl = _core.StrSlot()
+        self.assertEqual(asl.getValue(), "")        
 
         # Constructor (initialvalue, flags)
-        as = _core.DoubleSlot(12.7, 0)
-        self.assertEqual(as.getValue(), 12.7)
-        self.assertEqual(as.getController(), None)
+        asl = _core.DoubleSlot(12.7, 0)
+        self.assertEqual(asl.getValue(), 12.7)
+        self.assertEqual(asl.getController(), None)
 
-        as = _core.IntSlot(5, 0)
-        self.assertEqual(as.getValue(), 5)
+        asl = _core.IntSlot(5, 0)
+        self.assertEqual(asl.getValue(), 5)
 
-        as = _core.Vec3Slot(vec3(1,2,3), 0)
-        self.assertEqual(as.getValue(), vec3(1,2,3))
+        asl = _core.Vec3Slot(vec3(1,2,3), 0)
+        self.assertEqual(asl.getValue(), vec3(1,2,3))
 
-        as = _core.StrSlot("spam", 0)
-        self.assertEqual(as.getValue(), "spam")
+        asl = _core.StrSlot("spam", 0)
+        self.assertEqual(asl.getValue(), "spam")
 
     def testNoneConnection(self):
         """Check that connecting to None doesn't crash."""
-        as = DoubleSlot()
-        as.connect(None)
+        asl = DoubleSlot()
+        asl.connect(None)
 
     def testNoneDisconnection(self):
         """Check that disconnecting from None doesn't crash."""
-        as = DoubleSlot()
-        as.disconnect(None)
+        asl = DoubleSlot()
+        asl.disconnect(None)
 
     def testDisconnect(self):
         """Test the disconnect method."""
         ctrl = DoubleSlot(12)
-        as = DoubleSlot(5)
+        asl = DoubleSlot(5)
 
         # Check that disconnecing a non-existent connection raises an error
-        self.assertRaises(ValueError, ctrl.disconnect, as)
+        self.assertRaises(ValueError, ctrl.disconnect, asl)
 
         # Connect and disconnect and check that the controller doesn't
-        # influence as anymore
-        ctrl.connect(as)
-        self.assertEqual(as.getValue(), 12.0)
-        ctrl.disconnect(as)
+        # influence asl anymore
+        ctrl.connect(asl)
+        self.assertEqual(asl.getValue(), 12.0)
+        ctrl.disconnect(asl)
         ctrl.setValue(4)
         self.assertEqual(ctrl.getValue(), 4.0)
-        self.assertEqual(as.getValue(), 12.0)
+        self.assertEqual(asl.getValue(), 12.0)
 
 
 ##class TestArraySlot(unittest.TestCase):
@@ -69,12 +69,12 @@ class TestSlot(unittest.TestCase):
 ##    def testConstructor(self):
 
 ##        # Standard constructor (check if items are 0)
-##        as = _core.IntArraySlot()
-##        as.resize(100)
+##        asl = _core.IntArraySlot()
+##        asl.resize(100)
 ##        self.assertEqual(list(as), 100*[0])
 
-##        as = _core.DoubleArraySlot()
-##        as.resize(100)
+##        asl = _core.DoubleArraySlot()
+##        asl.resize(100)
 ##        self.assertEqual(list(as), 100*[0.0])
         
 

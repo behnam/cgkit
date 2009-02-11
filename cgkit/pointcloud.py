@@ -87,8 +87,10 @@ def _arrayPointer(a, n):
         raise TypeError, "Unknown array type"
 
 
-class PtcReader:
+class PtcReader(object):
     """Point cloud reader class.
+    
+    An instance of this class is returned by the open() function.
     """
     
     def __init__(self, fileName, libName):
@@ -97,6 +99,7 @@ class PtcReader:
         fileName is the name of the point cloud file and libName the name
         of the shared library that implements the point cloud API.
         """
+        object.__init__(self)
         
         self._handle = None
         
@@ -130,20 +133,17 @@ class PtcReader:
         self._handle = handle
 
         self.name = fileName
-        self.variables = []
-        self.npoints = None
-        self.bbox = None
-        self.datasize = None
-        self.world2eye = None
-        self.world2ndc = None
-        self.format = None
+        # The dictionary containing the point cloud attributes.
+        # Access to the attributes is provided via properties.
+        self._ptcAttrs = {}
         
         code = ""
         idx = 0
+        vars = []
         for i in range(nvars.value):
             name = names[i]
             type = types[i]
-            self.variables.append((type, name))
+            vars.append((type, name))
             if type=="float":
                 code += "dataDict['%s'] = data[%s]\n"%(name,idx)
                 idx += 1
@@ -158,24 +158,32 @@ class PtcReader:
         # Compile the code that will pick the correct data components and put them into a dict
         self._dataCollectionCode = compile(code, "<string>", "exec")
         
+        self._ptcAttrs["variables"] = vars
+        
+        # Get the npoints attribute...
         n = ctypes.c_int()
         ptclib.PtcGetPointCloudInfo.argtypes = [ptclib.PtcPointCloud, ctypes.c_char_p, ctypes.POINTER(ctypes.c_int)]
         if ptclib.PtcGetPointCloudInfo(handle, "npoints", ctypes.byref(n))==1:
-            self.npoints = n.value
+            self._ptcAttrs["npoints"] = n.value
+        # Get the datasize attribute
         if ptclib.PtcGetPointCloudInfo(handle, "datasize", ctypes.byref(n))==1:
-            self.datasize = n.value
+            self._ptcAttrs["datasize"] = n.value
+        # Get the bbox attribute
         ptclib.PtcGetPointCloudInfo.argtypes = [ptclib.PtcPointCloud, ctypes.c_char_p, ctypes.POINTER(ctypes.c_float)]
         b = (6*ctypes.c_float)()
         if ptclib.PtcGetPointCloudInfo(handle, "bbox", b)==1:
-            self.bbox = list(b)
+            self._ptcAttrs["bbox"] = list(b)
+        # Get the format attribute
         f = (3*ctypes.c_float)()
         if ptclib.PtcGetPointCloudInfo(handle, "format", f)==1:
-            self.format = tuple(f)
+            self._ptcAttrs["format"] = tuple(f)
+        # Get the world2eye attribute
         m = (16*ctypes.c_float)()
         if ptclib.PtcGetPointCloudInfo(handle, "world2eye", m)==1:
-            self.world2eye = list(m)
+            self._ptcAttrs["world2eye"] = list(m)
+        # Get the world2ndc attribute
         if ptclib.PtcGetPointCloudInfo(handle, "world2ndc", m)==1:
-            self.world2ndc = list(m)
+            self._ptcAttrs["world2ndc"] = list(m)
 
         if self.npoints is None:
             raise IOError("Could not obtain the number of points in point cloud file %s."%fileName)
@@ -199,6 +207,48 @@ class PtcReader:
         Closes the file.
         """
         self.close()
+
+    @property
+    def variables(self):
+        """Return the variables attribute."""
+        return self._ptcAttrs.get("variables", None)
+    
+    @property
+    def npoints(self):
+        """Return the npoints attribute."""
+        return self._ptcAttrs.get("npoints", None)
+
+    @property
+    def datasize(self):
+        """Return the datasize attribute."""
+        return self._ptcAttrs.get("datasize", None)
+
+    @property
+    def bbox(self):
+        """Return the bbox attribute."""
+        return self._ptcAttrs.get("bbox", None)
+
+    @property
+    def format(self):
+        """Return the format attribute."""
+        return self._ptcAttrs.get("format", None)
+
+    @property
+    def world2eye(self):
+        """Return the world2eye attribute."""
+        return self._ptcAttrs.get("world2eye", None)
+
+    @property
+    def world2ndc(self):
+        """Return the world2ndc attribute."""
+        return self._ptcAttrs.get("world2ndc", None)
+    
+    def iterAttrs(self):
+        """Iterate over all attributes defined in the file.
+        
+        Yields tuples (name,value).
+        """
+        return self._ptcAttrs.iteritems()
     
     def close(self):
         """Close the point cloud file.
@@ -373,6 +423,8 @@ class PtcReader:
     
 class PtcWriter:
     """Point cloud writer class.
+    
+    An instance of this class is returned by the open() function.
     """
     
     def __init__(self, fileName, libName, vars, world2eye, world2ndc, format):

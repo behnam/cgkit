@@ -1,0 +1,298 @@
+% pointcloud
+
+\section{\module{pointcloud} ---
+         Read and write RenderMan point cloud files}
+\label{pointcloud}
+
+\declaremodule{extension}{cgkit.pointcloud}
+\modulesynopsis{Read and write RenderMan point cloud files}
+
+This module allows reading and writing RenderMan point cloud files. The module
+relies on an external shared library that implements the actual low-level
+access to the point cloud file. This library is not part of cgkit but must
+be provided by the renderer package that you are using (for example, PRMan or
+3Delight). Without such a library you won't be able to read or write any
+point cloud file using this module.
+
+The module provides one single function \function{open()} which opens a
+point cloud file for reading or writing. 
+
+% open
+\begin{funcdesc}{open}{fileName, mode, libName, \ldots}
+Open a point cloud file for reading or writing. \var{fileName} is the name
+of the point cloud file, \var{mode} is either \code{"r"} for reading a file or
+\code{"w"} for writing a new file. \var{libName} is the name of the shared
+library that implements the point cloud API which will be used for accessing
+the file. You can either pass just the base name of the library or a full path
+to a shared library.
+
+When the mode is \code{"w"} the following additional keyword arguments must
+be given:
+\begin{itemize}
+  \item \var{vars}: A list of tuples (\var{type}, \var{name}) that defines what
+  additional variables to write. \var{name} is the name of the
+  variable and \var{type} its RenderMan type (float, vector, point, normal,
+  color, matrix).
+  \item \var{world2eye}: The world-to-eye matrix. The matrix can be a
+  \code{mat4} object or any other (possibly nested) sequence that produces 16
+  floats in row-major order.
+  \item \var{world2ndc}: The world-to-ndc matrix.
+  \item \var{format}: A tuple (\var{xres}, \var{yres}, \var{aspect}) where
+  each value is a float.
+\end{itemize}
+
+Depending on the mode, the function either returns a \class{PtcReader}
+or \class{PtcWriter} object.
+\end{funcdesc}
+
+%----------------------------------------------------------------
+\subsection{PtcReader object}
+
+A \class{PtcReader} object has the following attributes and methods:
+
+\begin{memberdesc}{name}
+The file name.
+\end{memberdesc}
+
+\begin{memberdesc}{variables}
+A list of tuples (\var{type}, \var{name}) that specifies what additional
+variables are stored in the file. The order of the variables in the file
+is that of the list.
+\end{memberdesc}
+
+\begin{memberdesc}{npoints}
+The number of points in the file.
+\end{memberdesc}
+
+\begin{memberdesc}{datasize}
+The size of the data part per point (in number of floats).
+\end{memberdesc}
+
+\begin{memberdesc}{bbox}
+A list of 6 floats specifying the bounding box of the point cloud.
+\end{memberdesc}
+
+\begin{memberdesc}{format}
+The format tuple (\var{xres}, \var{yres}, \var{aspect}).
+\end{memberdesc}
+
+\begin{memberdesc}{world2eye}
+The world-to-eye matrix as a list of 16 floats in row-major order.
+\end{memberdesc}
+
+\begin{memberdesc}{world2ndc}
+The world-to-ndc matrix as a list of 16 floats in row-major order.
+\end{memberdesc}
+
+\begin{methoddesc}{close}{}
+Close the point cloud file.
+\end{methoddesc}
+
+\begin{methoddesc}{iterAttrs}{}
+Iterate over all attributes defined in the file. Yields tuples (\var{name},
+\var{value}).
+\end{methoddesc}
+
+\begin{methoddesc}{readDataPoint}{}
+Read the next data point. Returns a tuple (\var{pos}, \var{normal},
+\var{radius}, \var{dataDict}) where \var{pos} and \var{normal} are 3-tuples of
+floats, \var{radius} is a single float and \var{dataDict} a dictionary with the
+extra variables that are attached to the point. If no more point is available
+an \exception{EOFError} exception is thrown.
+An \exception{IOErrror} exception is thrown when an error occurs during reading
+or when the file has already been closed.
+
+Note that reading a large file using this method will be slow because every
+single point has to be read by a dedicated Python call. If you can process
+the points in batches, you should rather use the \method{readDataPoints()}
+method which will be a lot faster because a single Python call will read
+an entire sequence of points at once.
+\end{methoddesc}
+
+\begin{methoddesc}{readDataPoints}{numPoints, buffer=None}
+Read a sequence of data points.
+\var{numPoints} is the number of points to read. \var{buffer} is either a single
+buffer that will receive all values or a tuple (\var{pointbuf}, \var{normalbuf},
+\var{radiusbuf}, \var{databuf}) that contains the individual buffers for the
+respective values. A buffer must always be large enough to hold \var{numPoints}
+values. The function accepts \module{ctypes} arrays as buffers or any sequence
+object that supports the array interface (such as \var{numpy} arrays).
+        
+The return value is the number of points that have actually been read (additional
+items in the buffers remain at their previous value). When 0 is returned, the
+end of the file has been reached
+\end{methoddesc}
+
+\begin{methoddesc}{iterPoints}{}
+Iterate over all the points in the file.
+Yields tuples (\var{point}, \var{normal}, \var{radius}, \var{data}) for every
+point in the file. This is equivalent to calling \method{readDataPoint()}
+repeatedly.
+\end{methoddesc}
+
+\begin{methoddesc}{iterBatches}{batchSize=1000, combinedBuffer=False,
+numpyArray=False}
+Iterate over point batches.
+Reads \var{batchSize} points at once and yields one or more buffers containing
+the data. \var{combinedBuffer} determines whether all data is written into one
+single buffer or if there is an individual buffer for the point, normal, radius
+and data. \var{numpyArray} determines whether the buffers are created as
+\module{numpy} arrays or \var{ctypes} arrays. The buffers will always contain
+\var{batchSize} elements unless it is the last buffer returned which may
+have a smaller size.
+\end{methoddesc}
+
+
+%----------------------------------------------------------------
+\subsection{PtcWriter object}
+
+A \class{PtcWriter} object has the following attributes and methods:
+
+\begin{memberdesc}{name}
+The file name.
+\end{memberdesc}
+
+\begin{memberdesc}{datasize}
+The size of the data part per point (in number of floats).
+\end{memberdesc}
+
+\begin{methoddesc}{close}{}
+Close the point cloud file.
+\end{methoddesc}
+
+\begin{methoddesc}{writeDataPoint}{point, normal, radius, data}
+Write a point into the point cloud file.
+\var{point} and \var{normal} are vectors (any 3-sequence of floats) and
+\var{radius} a float. \var{data} is a dictionary that contains the extra
+variables that must have been declared when the file was opened.
+Undeclared values are ignored, missing declared values are set to 0.
+\end{methoddesc}
+
+\begin{methoddesc}{writeDataPoints}{numPoints, buffer}
+Write a sequence of data points.
+\var{numPoints} is the number of points to write. \var{buffer} is either a
+single buffer that contains all values or a tuple (\var{pointbuf},
+\var{normalbuf}, \var{radiusbuf}, \var{databuf}) that each contains the
+respective value. The buffers must contain at least \var{numPoints} items.
+The function accepts \module{ctypes} arrays as buffers or any sequence object
+that supports the array interface (such as \module{numpy} arrays).
+\end{methoddesc}
+
+%----------------------------------------------------------------
+\subsection{Examples}
+
+You create a new point cloud file like this:
+
+\begin{verbatim}
+>>> from cgkit.cgtypes import *
+>>> from cgkit import pointcloud
+>>> ptc = pointcloud.open("cloud.ptc", "w", "3delight", vars=[("float", "foo")], world2eye=mat4(1), world2ndc=mat4(1), format=(640,480,1))
+>>> ptc.name
+'cloud.ptc'
+>>> ptc.datasize
+1
+\end{verbatim}
+
+The data size of 1 means there is one additional float attached to each point
+which is the extra variable \code{foo}. Once the file is open you can write
+individual points like this:
+
+\begin{verbatim}
+>>> ptc.writeDataPoint((0.5,0.3,0.9), (0,0,1), 1.0, {"foo":0.75})
+\end{verbatim}
+
+Writing each point individually will be slow though. If possible you should try
+to gather a larger number of points and write them with a single call like this
+(for the sake of the example, we just create three points manually):
+
+\begin{verbatim}
+>>> pnts = (9*ctypes.c_float)(1.5,0.5,0.8, 0.8,0.9,1.0, 0.1,0.2,0.3)
+>>> normals = (9*ctypes.c_float)(0,0,1, 1,0,0, 0,1,0)
+>>> rads = (3*ctypes.c_float)(0.6, 0.7, 0.8)
+>>> datas = (3*ptc.datasize*ctypes.c_float)(0.4, 0.3, 0.2)
+>>> ptc.writeDataPoints(3, (pnts,normals,rads,datas))
+>>> ptc.close()
+\end{verbatim}
+
+The file can then be read again as follows:
+
+\begin{verbatim}
+>>> ptc = pointcloud.open("cloud.ptc", "r", "3delight")
+>>> ptc.name
+'cloud.ptc'
+>>> ptc.npoints
+4
+>>> ptc.datasize
+1
+>>> ptc.variables
+[('float', 'foo')]
+>>> ptc.world2eye
+[1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+>>> ptc.bbox
+[-1.3333333730697632, -1.3333333730697632, -1.3333333730697632, 2.6666667461395264, 2.6666667461395264, 2.6666667461395264]
+>>> ptc.format
+(640.0, 480.0, 1.0)
+\end{verbatim}
+
+Once the file is open, the data can be read in various ways. If you want
+to process each point individually in Python, you could either use the
+\method{readDataPoint()} method or just iterate over all the points:
+
+\begin{verbatim}
+>>> for p in ptc.iterPoints(): print p
+... 
+((0.5, 0.30000001192092896, 0.89999997615814209), (0.0, 0.0, 1.0), 1.0, {'foo': 0.75})
+((1.5, 0.5, 0.80000001192092896), (0.0, 0.0, 1.0), 0.60000002384185791, {'foo': 0.40000000596046448})
+((0.80000001192092896, 0.89999997615814209, 1.0), (1.0, 0.0, 0.0), 0.69999998807907104, {'foo': 0.30000001192092896})
+((0.10000000149011612, 0.20000000298023224, 0.30000001192092896), (0.0, 1.0, 0.0), 0.80000001192092896, {'foo': 0.20000000298023224})
+\end{verbatim}
+
+Again, this will be slow for large point cloud files. If your application
+allows batch processing the points or you interface with C code, it will be
+faster to read several points at once (this time we use \module{numpy} instead
+of \var{ctypes} for creating a buffer):
+
+\begin{verbatim}
+>>> import numpy
+>>> buf = numpy.zeros(shape=(5, 7+ptc.datasize), dtype=numpy.float32)
+>>> ptc.readDataPoints(5, buf)
+4
+>>> print buf
+[[ 0.5         0.30000001  0.89999998  0.          0.          1.          1.
+   0.75      ]
+ [ 1.5         0.5         0.80000001  0.          0.          1.
+   0.60000002  0.40000001]
+ [ 0.80000001  0.89999998  1.          1.          0.          0.
+   0.69999999  0.30000001]
+ [ 0.1         0.2         0.30000001  0.          1.          0.
+   0.80000001  0.2       ]
+ [ 0.          0.          0.          0.          0.          0.          0.
+   0.        ]]
+>>> ptc.readDataPoints(5, buf)
+0
+\end{verbatim}
+
+Instead of a single buffer, you could again pass four individual buffers just
+like above when we were writing the file.
+
+You could also leave the buffer creation up to the point cloud handle and just
+iterate over buffers (output slightly reformatted for better readability):
+
+\begin{verbatim}
+>>> for buffers in ptc.iterBatches(numpyArray=True): print buffers
+... 
+(array([[ 0.5       ,  0.30000001,  0.89999998],
+       [ 1.5       ,  0.5       ,  0.80000001],
+       [ 0.80000001,  0.89999998,  1.        ],
+       [ 0.1       ,  0.2       ,  0.30000001]],dtype=float32),
+array([[ 0.,  0.,  1.],
+       [ 0.,  0.,  1.],
+       [ 1.,  0.,  0.],
+       [ 0.,  1.,  0.]], dtype=float32),
+array([ 1.        ,  0.60000002,  0.69999999,  0.80000001], dtype=float32),
+array([[ 0.75      ],
+       [ 0.40000001],
+       [ 0.30000001],
+       [ 0.2       ]], dtype=float32))
+\end{verbatim}
+

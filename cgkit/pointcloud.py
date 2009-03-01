@@ -266,7 +266,7 @@ class PtcReader(object):
         are 3-tuples of floats, radius is a single float and dataDict a
         dictionary with the extra variables that are attached to the point.
         If no more point is available an EOFError exception is thrown.
-        An IOErrror handle is thrown when an error occurs during reading or
+        An IOErrror exception is thrown when an error occurs during reading or
         when the file has already been closed.
         """
         if self._handle is None:
@@ -284,7 +284,7 @@ class PtcReader(object):
             exec self._dataCollectionCode
             return tuple(self._pos), tuple(self._normal), self._radius.value, dataDict
 
-    def readDataPoints(self, numPoints, buffer=None):
+    def readDataPoints(self, numPoints, buffer):
         """Read a sequence of data points.
         
         numPoints is the number of points to read. buffer is either a single
@@ -347,10 +347,10 @@ class PtcReader(object):
     def iterBatches(self, batchSize=1000, combinedBuffer=False, numpyArray=False):
         """Iterate over point batches.
         
-        Reads batchSize points at once and yields one or more buffer
+        Reads batchSize points at once and yields one or more buffers
         containing the data.
         combinedBuffer determines whether all data is written into one single
-        buffer or if there is an individual buffer for the point, norma, radius
+        buffer or if there is an individual buffer for the point, normal, radius
         and data.
         numpyArray determines whether the buffers are created as numpy arrays
         or ctypes arrays.
@@ -445,6 +445,8 @@ class PtcWriter:
         self._PtcWriteDataPoint = ptclib.PtcWriteDataPoint
         self._PtcFinishPointCloudFile = ptclib.PtcFinishPointCloudFile
 
+        self.name = fileName
+        
         xres,yres,aspect = format
         
         w2e = self._matrixToCTypes(world2eye)
@@ -518,7 +520,7 @@ class PtcWriter:
         point and normal are vectors (any 3-sequence of floats) and radius
         a float. data is a dict that contains the extra variables that
         must have been declared in the constructor. Undeclared values are
-        ignored, missing declared valued are set to 0.
+        ignored, missing declared values are set to 0.
         """
         if self._handle is None:
             raise IOError("The point cloud file has already been closed.")
@@ -531,7 +533,7 @@ class PtcWriter:
         if res==0:
             raise IOError("Failed to write point cloud data point")
 
-    def writeDataPoints(self, numPoints, buffer=None):
+    def writeDataPoints(self, numPoints, buffer):
         """Write a sequence of data points.
         
         numPoints is the number of points to write. buffer is either a single
@@ -607,7 +609,7 @@ def open(fileName, mode="r", libName=None, **kwargs):
     fileName is the name of the point cloud file. mode is either "r"
     for reading a file or "w" for writing a new point cloud file.
     libName is the library name that implements the point cloud API.
-    When mode is "r", the following additional keyword arguments must
+    When mode is "w", the following additional keyword arguments must
     be present:
     
     - vars: A list of tuples (type, name) that defines what additional variables to write

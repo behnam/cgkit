@@ -252,7 +252,8 @@ def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None, includ
     - type: The type of the shader (surface, displacement, etc.)
     - name: The name of the shader
     - params: The shader parameters (see below)
-    - meta: The shader meta data
+    - meta: The shader meta data. How exactly meta data is specified depends
+            on the renderer you are using.
      
     The parameters are given as a list of shader parameter objects
     describing each parameter. A shader parameter object has the
@@ -263,7 +264,7 @@ def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None, includ
     - type: The parameter type
     - size: The array length or None if the parameter is not an array
     - name: The name of the parameter
-    - spacE: The space in which a point-like type was defined
+    - space: The space in which a point-like type was defined
     - default: The default value (always given as a string)
     
     For backwards compatibility, the shader info object behaves like a
@@ -419,8 +420,8 @@ exec "from cgkit.sl import *" in _local_namespace
 def convertdefault(paramtuple):
     """Converts the default value of a shader parameter into a Python type.
 
-    paramtuple must be a 7-tuple as returned by slparams(). The
-    function returns a Python object that corresponds to the default
+    paramtuple must be a 7-tuple (or parameter object) as returned by slparams().
+    The function returns a Python object that corresponds to the default
     value of the parameter. If the default value can't be converted
     then None is returned. Only the functions that are present in the
     sl module are evaluated. If a default value calls a user defined

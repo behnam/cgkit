@@ -10,6 +10,11 @@ New features:
 
 Bug fixes/enhancements:
 
+- ri/cri: Added the following calls:
+      RiArchiveBegin(), RiArchiveEnd(), RiCamera(), RiDisplayChannel(),
+      RiIfBegin(), RiElseIf(), RiElse(), RiIfEnd(),
+      RiMakeBrickMap(), RiResource(), RiResourceBegin(), RiResourceEnd(),
+      RiScopedCoordinateSystem(), RiShader(), RiSystem().
 - cri: numpy integer arrays were not properly supported on 64-bit systems
 - mayaascii: Bugfix #2119263: The setAttr command wasn't recognizing the 
   channelBox option (+ some other bugfixes). 

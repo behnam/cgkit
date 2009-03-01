@@ -455,6 +455,86 @@ def _createRiFunctions(ri):
     ri.RiSincFilter.argtypes = [c_float, c_float, c_float, c_float]
     ri.RiSincFilter.restype = c_float
     
+    # Optional calls from the 3.4 API:
+    
+    if hasattr(ri, "RiArchiveBegin"):
+        ri.RiArchiveBegin.argtypes = [RtToken]
+        ri.RiArchiveBegin.restype = c_void_p
+    else:
+        ri.RiArchiveBegin = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiArchiveEnd"):
+        ri.RiArchiveEnd.argtypes = []
+    else:
+        ri.RiArchiveEnd = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiCamera"):
+        ri.RiCamera.argtypes = [RtToken]
+    else:
+        ri.RiCamera = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiDisplayChannel"):
+        ri.RiDisplayChannel.argtypes = [RtToken]
+    else:
+        ri.RiDisplayChannel = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiElse"):
+        ri.RiElse.argtypes = []
+    else:
+        ri.RiElse = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiElseIf"):
+        ri.RiElseIf.argtypes = [RtToken]
+    else:
+        ri.RiElseIf = _undefinedFunctionSubstitute
+        
+    if hasattr(ri, "RiIfBegin"):
+        ri.RiIfBegin.argtypes = [RtToken]
+    else:
+        ri.RiIfBegin = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiIfEnd"):
+        ri.RiIfEnd.argtypes = []
+    else:
+        ri.RiIfEnd = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiMakeBrickMap"):
+        ri.RiMakeBrickMap.argtypes = [RtInt, POINTER(c_char_p), c_char_p]
+    else:
+        ri.RiMakeBrickMap = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiResource"):
+        ri.RiResource.argtypes = [RtToken, RtToken]
+    else:
+        ri.RiResource = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiResourceBegin"):
+        ri.RiResourceBegin.argtypes = []
+    else:
+        ri.RiResourceBegin = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiResourceEnd"):
+        ri.RiResourceEnd.argtypes = []
+    else:
+        ri.RiResourceEnd = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiScopedCoordinateSystem"):
+        ri.RiScopedCoordinateSystem.argtypes = [RtToken]
+    else:
+        ri.RiScopedCoordinateSystem = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiShader"):
+        ri.RiShader.argtypes = [RtToken, RtToken]
+    else:
+        ri.RiShader = _undefinedFunctionSubstitute
+
+    if hasattr(ri, "RiSystem"):
+        ri.RiSystem.argtypes = [c_char_p]
+    else:
+        ri.RiSystem = _undefinedFunctionSubstitute
+    
+def _undefinedFunctionSubstitute(*args, **kwargs):
+    raise NotImplementedError("This function call is not implemented by this implementation of the RenderMan interface")
     
 def _getLastError(ri):
     """Getter function for the RiLastError variable.

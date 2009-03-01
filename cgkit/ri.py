@@ -280,7 +280,8 @@ class RIBStream:
 
     The version number is automatically placed into the stream before
     any "real" Ri calls are made. Output from RiArchiveRecord() will
-    be placed before the version number.
+    be placed before the version number. (Note: The version line is disabled
+    for now).
     """
     
     def __init__(self, outstream):
@@ -299,7 +300,9 @@ class RIBStream:
     def write(self, data):
         """Write data into the stream."""
         if self.output_version:
-            self.out.write('version 3.03\n')
+            # The binding contains newer calls, so this version number
+            # might not be accurate anyway.
+#            self.out.write('version 3.03\n')
             self.output_version = 0
         self.out.write(data)
 
@@ -1029,6 +1032,15 @@ def RiShadingInterpolation(type):
 
     _ribout.write('ShadingInterpolation "'+type+'"\n')
 
+# RiShader
+def RiShader(name, handle, *paramlist, **keyparams):
+    """Set the current coshader.
+
+    Example: RiShader("plastic", "plastic_layer", Kd=0.7, Ks=0.3)"""
+
+    _ribout.write('Shader "'+name+'"'+' "'+handle+'"'+ \
+                 _paramlist2string(paramlist, keyparams)+"\n")
+    
 # RiSurface
 def RiSurface(name, *paramlist, **keyparams):
     """Set the current surface shader.
@@ -1128,6 +1140,14 @@ def RiDisplay(name,type,mode, *paramlist, **keyparams):
     _ribout.write('Display "'+name+'" "'+type+'" "'+mode+'"'+ \
                  _paramlist2string(paramlist, keyparams)+"\n")
 
+# RiDisplayChannel
+def RiDisplayChannel(channel, *paramlist, **keyparams):
+    """Defines a new display channel.
+
+    Example: RiDisplayChannel("color aovCi", "string opacity", "aovOi")
+    """
+    _ribout.write('DisplayChannel "%s"%s\n'%(channel, _paramlist2string(paramlist, keyparams)))
+
 # RiFormat
 def RiFormat(xres, yres, aspect):
     """Set the resolution of the output image and the aspect ratio of a pixel.
@@ -1170,6 +1190,14 @@ def RiProjection(name, *paramlist, **keyparams):
     else:
         _ribout.write('Projection "'+name+'"'+ \
                       _paramlist2string(paramlist, keyparams)+"\n")
+
+# RiCamera
+def RiCamera(name, *paramlist, **keyparams):
+    """Mark the current camera description.
+
+    Example: RiCamera("rightcamera")
+    """
+    _ribout.write('Camera "%s"%s\n'%(name, _paramlist2string(paramlist, keyparams)))
 
 # RiScreenWindow
 def RiScreenWindow(left, right, bottom, top):
@@ -1624,9 +1652,32 @@ def RiReadArchive(filename, callback=None, *ignore):
     In this implementation the callback function is not used and can
     be left out.
 
-    RiExample: RiReadArchive("teapot.rib")"""
+    Example: RiReadArchive("teapot.rib")"""
 
     _ribout.write('ReadArchive "'+filename+'"\n')
+
+# RiArchiveBegin
+def RiArchiveBegin(archivename, *paramlist, **keyparams):
+    """Begin an inline archive.
+    
+    Example: RiArchiveBegin("myarchive")
+             ...
+             RiArchiveEnd()
+             RiReadArchive("myarchive")
+    """
+    _ribout.write('ArchiveBegin "%s"%s\n'%(archivename, _paramlist2string((), keyparams)))
+    return archivename
+
+# RiArchiveEnd
+def RiArchiveEnd():
+    """Terminate an inline archive.
+    
+    Example: RiArchiveBegin("myarchive")
+             ...
+             RiArchiveEnd()
+             RiReadArchive("myarchive")
+    """
+    _ribout.write('ArchiveEnd\n')
 
 
 def RiProcDelayedReadArchive(): return "DelayedReadArchive"
@@ -1858,6 +1909,15 @@ def RiMakeShadow(picname, shadowname, *paramlist, **keyparams):
     
     _ribout.write('MakeShadow "'+picname+'" "'+shadowname+'"'+_paramlist2string(paramlist, keyparams)+'\n')
 
+# RiMakeBrickMap
+def RiMakeBrickMap(ptcnames, bkmname, *paramlist, **keyparams):
+    """Create a brick map file from a list of point cloud file names.
+
+    Example: RiMakeBrickMap(["sphere.ptc", "box.ptc"], "spherebox.bkm", "float maxerror", 0.002)
+    """
+    names = " ".join(map(lambda name: '"%s"'%name, ptcnames))
+    _ribout.write('MakeBrickMap [%s] "%s"%s\n'%(names, bkmname, _paramlist2string(paramlist, keyparams)))
+
 # RiDetail
 def RiDetail(bound):
     """Set the current bounding box.
@@ -1905,8 +1965,15 @@ def RiCoordinateSystem(spacename):
 
     Example: RiCoordinateSystem("lamptop")
     """
-
     _ribout.write('CoordinateSystem "'+spacename+'"\n')
+
+# RiScopedCoordinateSystem
+def RiScopedCoordinateSystem(spacename):
+    """Mark the current coordinate system with a name but store it on a separate stack.
+
+    Example: RiScopedCoordinateSystem("lamptop")
+    """
+    _ribout.write('ScopedCoordinateSystem "'+spacename+'"\n')
 
 # RiTransformPoints
 def RiTransformPoints(fromspace, tospace, points):
@@ -1948,6 +2015,59 @@ def RiGetContext():
     global _current_context
 
     return _current_context
+
+# RiSystem
+def RiSystem(cmd):
+    """Execute an arbitrary command in the same environment as the current rendering pass.
+    """
+    # Escape quotes
+    cmd = cmd.replace('"', r'\"')
+    _ribout.write('System "%s"\n'%cmd)
+
+# RiIfBegin
+def RiIfBegin(expression, *paramlist, **keyparams):
+    """Begin a conditional block.
+    """
+    _ribout.write('IfBegin "%s"%s\n'%(expression, _paramlist2string(paramlist, keyparams)))
+
+# RiElseIf
+def RiElseIf(expression, *paramlist, **keyparams):
+    """Add an else-if block to a conditional block.
+    """
+    
+    _ribout.write('ElseIf "%s"%s\n'%(expression, _paramlist2string(paramlist, keyparams)))
+
+# RiElse
+def RiElse():
+    """Add an else block to a conditional block.
+    """
+    
+    _ribout.write('Else\n')
+
+# RiIfEnd
+def RiIfEnd():
+    """Terminate a conditional block.
+    """
+    
+    _ribout.write('IfEnd\n')
+    
+# RiResource
+def RiResource(handle, type, *paramlist, **keyparams):
+    """Create or operate on a named resource of a particular type.
+    """
+    _ribout.write('Resource "%s" "%s"%s\n'%(handle, type, _paramlist2string(paramlist, keyparams)))
+
+# RiResourceBegin
+def RiResourceBegin():
+    """Push the current set of resources. 
+    """
+    _ribout.write('ResourceBegin\n')
+
+# RiResourceEnd
+def RiResourceEnd():
+    """Pop the current set of resources. 
+    """
+    _ribout.write('ResourceEnd\n')
 
 ##################### Global variabels (internal) ####################
 

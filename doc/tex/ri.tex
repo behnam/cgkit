@@ -25,9 +25,8 @@ their site.
 This document is not an introduction to the RenderMan interface
 itself, it just explains the usage of this particular Python
 binding. The binding was written to be compliant to v3.2 of Pixar's
-RenderMan Interface specification. However, it also supports some
-newer features such as string handles for light sources or object
-instances.
+RenderMan Interface specification. However, it also supports features
+that were introduced after v3.2.
 
 There is another RenderMan module called \refmodule[cgkit.cri]{cri} that
 interfaces a renderer directly. Almost everything that is said in this section
@@ -334,7 +333,8 @@ written to the output stream:
 If this option is set to 0 directly after \function{RiBegin()} is
 called, then no \code{"version"} call will be generated in the RIB stream
 (default is 1).\\
-New in version 1.1.
+New in version 1.1.\\
+(as of cgkit 2.0.0alpha9, the \code{version} call has been disabled)
 \end{funcdesc}
 
 %-----------

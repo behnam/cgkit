@@ -218,6 +218,26 @@ class _RenderManAPI:
     RiLastError = property(_getRiLastError, _setRiLastError)
     LastError = property(_getRiLastError, _setRiLastError)
         
+    def RiArchiveBegin(self, archivename, *paramlist, **keyparams):
+        """Begin an inline archive.
+        
+        Example: RiArchiveBegin("myarchive")
+                 ...
+                 RiArchiveEnd()
+                 RiReadArchive("myarchive")
+        """
+        return self._ri.RiArchiveBegin(archivename, *self._createCParamList(paramlist, keyparams))
+    
+    def RiArchiveEnd(self):
+        """Terminate an inline archive.
+        
+        Example: RiArchiveBegin("myarchive")
+                 ...
+                 RiArchiveEnd()
+                 RiReadArchive("myarchive")
+        """
+        self._ri.RiArchiveEnd()
+
     def RiArchiveRecord(self, type, format, *args):
         """Output a user data record.
     
@@ -326,6 +346,13 @@ class _RenderManAPI:
         """
         bound = self._toCArray(self._ri.RtFloat, bound)
         self._ri.RiBound(bound)
+
+    def RiCamera(self, name, *paramlist, **keyparams):
+        """Mark the current camera description.
+    
+        Example: RiCamera("rightcamera")
+        """
+        self._ri.RiCamera(name, *self._createCParamList(paramlist, keyparams))
 
     def RiClipping(self, near, far):
         """Sets the near and the far clipping plane along the direction of view.
@@ -533,6 +560,13 @@ class _RenderManAPI:
         """
         self._ri.RiDetailRange(minvisible, lowertransition, uppertransition, maxvisible)
 
+    def RiDisplayChannel(self, channel, *paramlist, **keyparams):
+        """Defines a new display channel.
+    
+        Example: RiDisplayChannel("color aovCi", "string opacity", "aovOi")
+        """
+        self._ri.RiDisplayChannel(channel, *self._createCParamList(paramlist, keyparams))
+
     def RiDisk(self, height, radius, thetamax, *paramlist, **keyparams):
         """Create a disk (parallel to the XY plane).
     
@@ -558,6 +592,17 @@ class _RenderManAPI:
                  RiDisplay("myimage.tif", RI_FRAMEBUFFER, RI_RGB)
         """
         self._ri.RiDisplay(name, type, mode, *self._createCParamList(paramlist, keyparams))
+    
+    def RiElse(self):
+        """Add an else block to a conditional block.
+        """
+        
+        self._ri.RiElse()
+
+    def RiElseIf(self, expression, *paramlist, **keyparams):
+        """Add an else-if block to a conditional block.
+        """
+        self._ri.RiElseIf(expression, *self._createCParamList(paramlist, keyparams))
 
     def RiEnd(self):
         """Terminates the main block.
@@ -672,6 +717,16 @@ class _RenderManAPI:
         """
         self._ri.RiIdentity()
         
+    def RiIfBegin(self, expression, *paramlist, **keyparams):
+        """Begin a conditional block.
+        """
+        self._ri.RiIfBegin(expression, *self._createCParamList(paramlist, keyparams))
+
+    def RiIfEnd(self):
+        """Terminate a conditional block.
+        """
+        self._ri.RiIfEnd()
+
     def RiIlluminate(self, light, onoff):
         """Activate or deactive a light source.
     
@@ -703,6 +758,15 @@ class _RenderManAPI:
         Example: light1 = RiLightSource("distantlight", intensity=1.5)
         """
         return self._ri.RiLightSource(name, *self._createCParamList(paramlist, keyparams))
+
+    def RiMakeBrickMap(self, ptcnames, bkmname, *paramlist, **keyparams):
+        """Create a brick map file from a list of point cloud file names.
+    
+        Example: RiMakeBrickMap(["sphere.ptc", "box.ptc"], "spherebox.bkm", "float maxerror", 0.002)
+        """
+        n = len(ptcnames)
+        names = (n*ctypes.c_char_p)(*ptcnames)
+        self._ri.RiMakeBrickMap(n, names, bkmname, *self._createCParamList(paramlist, keyparams))
 
     def RiMakeCubeFaceEnvironment(self, px,nx,py,ny,pz,nz, texname, fov, filterfunc, swidth, twidth, *paramlist, **keyparams):
         """Convert six image files into an environment map.
@@ -1116,6 +1180,21 @@ class _RenderManAPI:
         Example: RiRelativeDetail(0.7)"""
         self._ri.RiRelativeDetail(relativedetail)
 
+    def RiResource(self, handle, type, *paramlist, **keyparams):
+        """Create or operate on a named resource of a particular type.
+        """
+        self._ri.RiResource(handle, type, *self._createCParamList(paramlist, keyparams))
+    
+    def RiResourceBegin(self):
+        """Push the current set of resources. 
+        """
+        self._ri.RiResourceBegin()
+    
+    def RiResourceEnd(self):
+        """Pop the current set of resources. 
+        """
+        self._ri.RiResourceEnd()
+
     def RiReverseOrientation(self):
         """Causes the current orientation to be toggled.
     
@@ -1142,12 +1221,26 @@ class _RenderManAPI:
         scale = self._toCArray(self._ri.RtFloat, scale)
         self._ri.RiScale(*tuple(scale))
 
+    def RiScopedCoordinateSystem(self, spacename):
+        """Mark the current coordinate system with a name but store it on a separate stack.
+    
+        Example: RiScopedCoordinateSystem("lamptop")
+        """
+        self._ri.RiScopedCoordinateSystem(spacename)
+
     def RiScreenWindow(self, left, right, bottom, top):
         """Specify the extents of the output image on the image plane.
     
         Example: RiScreenWindow(-1,1,-1,1)
         """
         self._ri.RiScreenWindow(left, right, bottom, top)
+
+    def RiShader(self, name, handle, *paramlist, **keyparams):
+        """Set the current coshader.
+    
+        Example: RiShader("plastic", "plastic_layer", Kd=0.7, Ks=0.3)
+        """
+        self._ri.RiShader(name, handle, *self._createCParamList(paramlist, keyparams))
 
     def RiShadingInterpolation(self, type):
         """Specify how shading samples are interpolated.
@@ -1254,6 +1347,11 @@ class _RenderManAPI:
     
         Example: RiSurface("plastic", Kd=0.7, Ks=0.3)"""
         self._ri.RiSurface(name, *self._createCParamList(paramlist, keyparams))
+
+    def RiSystem(self, cmd):
+        """Execute an arbitrary command in the same environment as the current rendering pass.
+        """
+        self._ri.RiSystem(cmd)
 
     def RiTextureCoordinates(self, s1, t1, s2, t2, s3, t3, s4, t4):
         """Set the current set of texture coordinates.

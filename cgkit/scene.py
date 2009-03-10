@@ -50,6 +50,8 @@ class Scene(object):
     """%Scene class."""
     
     def __init__(self):
+        object.__init__(self)
+        
         # Handedness ('r' or 'l')
         self._handedness = "r"
         # Normalized up direction

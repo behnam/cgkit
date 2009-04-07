@@ -39,7 +39,7 @@
 
 from cgtypes import vec3
 from Interfaces import ISceneItem
-import worldobject, timer
+import timer
 import protocols
 from boundingbox import BoundingBox
 import joystick
@@ -67,7 +67,7 @@ class Scene(object):
         self.items = []
 #        self.items_by_name = {}
 
-        self._worldroot = worldobject.WorldObject("WorldRoot", auto_insert=False)
+        self._worldroot = _core.WorldObject("WorldRoot")
         self._timer = timer.Timer(auto_insert=False)
 
         # Key: ID  Value:Joystick object

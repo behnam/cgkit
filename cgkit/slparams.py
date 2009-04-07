@@ -53,7 +53,12 @@ import os, os.path, sys, string, StringIO, sltokenize, types
 import cgtypes, math, sl, simplecpp
 import _slparser
 from _slreturntypes import _ShaderInfo, _ShaderParam
-import sloargs
+try:
+    import sloargs
+    _has_sloargs = True
+except ImportError, exc:
+    _has_sloargs = False
+    _sloargs_importerror = exc
 
 class SLParamsError(Exception):
     pass
@@ -282,7 +287,10 @@ def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None, includ
     # (suffix != .sl). If so, use the sloargs module to get the shader information
     if isinstance(slfile, basestring):
         if os.path.splitext(slfile)[1].lower()!=".sl":
-            return sloargs.slparams(slfile)
+            if (_has_sloargs):
+                return sloargs.slparams(slfile)
+            else:
+                raise _sloargs_importerror
 
     # Run the preprocessor on the input file...
     

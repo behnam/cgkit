@@ -286,7 +286,10 @@ scripts = ["viewer.py",
            "render.py",
            "utilities/postbake.py",
            "utilities/info3d.py",
-           "utilities/convert3d.py"]
+           "utilities/convert3d.py",
+           "utilities/seqls.py",
+           "utilities/seqmv.py",
+           "utilities/seqrm.py",]
 
 # Lib3ds
 if LIB3DS_AVAILABLE:

@@ -553,17 +553,17 @@ class Sequence:
                 s = res.getNumStr(0)
             else:
                 rangeStrs.append(compactRange(values[i]))
-                if unpadded[i]:
-                    s = "@"
-                else:
-                    if minWidths[i]==maxWidths[i]:
-                        n = minWidths[i]
-                        if n==4:
-                            s = "#"
-                        else:
-                            s = n*"@"
+                if minWidths[i]==maxWidths[i]:
+                    n = minWidths[i]
+                    if n==4:
+                        s = "#"
                     else:
-                        s = "*"
+                        s = n*"@"
+                elif unpadded[i]:
+                    n = minWidths[i]
+                    s = n*"@"
+                else:
+                    s = "*"
             # The number index is always 0 because we are replacing the numbers
             # one by one (which reduces the numcount)
             res.replaceNum(0, s)

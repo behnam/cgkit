@@ -364,6 +364,12 @@ class Tool:
         Returns a tuple (width, height, pixel aspect)
         """
         res = getScene().getGlobal("resolution", (640,480))
+        # If the resolution is a string, try to evaluate it
+        if isinstance(res, basestring):
+            try:
+                res = eval(res)
+            except:
+                pass
         try:
             if len(res)==2:
                 w,h = res

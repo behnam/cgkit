@@ -235,7 +235,8 @@ class RIBExporter:
         else:
             defaultdisplaymode = RI_RGB
         mode = scene.getGlobal("displaymode", defaultdisplaymode)
-        out = self.outputSpec(output, mode=mode, output_framebuffer=output_framebuffer)
+        dispType = scene.getGlobal("displaytype", RI_FILE)
+        out = self.outputSpec(output, mode=mode, output_framebuffer=output_framebuffer, display=dispType)
         if bake:
             bakemodel = cmds.worldObject(bakemodel)
             bakepass = BakePass(output=out, bakemodel=bakemodel, bakestvar=bakestvar)
@@ -284,11 +285,12 @@ class RIBExporter:
     ## protected:
 
     # outputSpec
-    def outputSpec(self, output, mode=RI_RGB, output_framebuffer=False):
+    def outputSpec(self, output, mode=RI_RGB, output_framebuffer=False, display=RI_FILE):
         """Return the output specification for the final image pass.
 
         output is the parameter passed to exportFile().
         mode and output_framebuffer is only used when output is a string.
+        display is the the display type.
         The return value is a list of output specs which can be
         passed as output parameter to the ImagePass.
         """
@@ -297,7 +299,7 @@ class RIBExporter:
             return []
         # Is output a string? (i.e. the output file name)
         elif isinstance(output, types.StringTypes):
-            out = [(output, RI_FILE, mode, {})]
+            out = [(output, display, mode, {})]
             if output_framebuffer:
                 out += [(output, RI_FRAMEBUFFER, mode, {})]
             return out

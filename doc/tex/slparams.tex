@@ -69,7 +69,12 @@ an array
 \item \var{name}: The name of the parameter 
 \item \var{space}: The space in which a point-like type or a color was
 defined. If the parameter is an array then this is also an array of space names.
-\item \var{default}: The default value (always given as a string)
+\item \var{default}: The "raw" default value. If the input was a shader source file,
+  this will always be a string containing an expression. If the input was
+  a compiled shader this will already be an appropriate Python value.
+  You should never use this value directly, but always use
+  \function{convertdefault()} to obtain a value which can be further processed.
+  This way, your code will work for both, compiled shaders and shader source files.
 \end{itemize}
 
 For backwards compatibility, the shader info object behaves like a

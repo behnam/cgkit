@@ -270,7 +270,12 @@ def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None, includ
     - size: The array length or None if the parameter is not an array
     - name: The name of the parameter
     - space: The space in which a point-like type was defined
-    - default: The default value (always given as a string)
+    - default: The "raw" default value. If the input was a shader source file,
+      this will always be a string containing an expression. If the input was
+      a compiled shader this will already be an appropriate Python value.
+      You should never use this value directly, but always use convertdefault()
+      to obtain a value which can be further processed. This way, your code
+      will work for both, compiled shaders and shader source files.
     
     For backwards compatibility, the shader info object behaves like a
     3-tuple (type, name, params). The meta data can only be accessed via name

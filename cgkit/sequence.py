@@ -34,6 +34,7 @@
 # ***** END LICENSE BLOCK *****
 # $Id: rmshader.py,v 1.9 2006/05/26 21:33:29 mbaas Exp $
 
+import sys
 import string
 import os.path
 import re
@@ -76,7 +77,7 @@ class SeqString:
         # Example: 'anim1_0001.png' -> ['anim', (1,1), '_', (1,4), '.png']
         self._value = []
         
-        self.setString(s)
+        self._initSeqString(s)
 
     def __repr__(self):
         return self.__str__()
@@ -131,7 +132,7 @@ class SeqString:
         # one string has one component more in _value
         return cmp(len(self._value), len(other._value))
         
-    def setString(self, s):
+    def _initSeqString(self, s):
         """Initialize the sequence string with a string.
 
         s can either be a regular string, another sequence string (to create
@@ -311,6 +312,16 @@ class SeqString:
         width = self._value[idx*2+1][1]
         self._value[idx*2+1] = (value,width)
 
+    def setNums(self, nums):
+        """Set all numbers at once.
+        
+        nums is a list of integers. The number of values may not
+        exceed the number count in the string, otherwise an IndexError
+        exception is thrown.
+        """
+        for i,val in enumerate(nums):
+            self.setNum(i, val)
+
     def getNumWidth(self, idx):
         """Return the number of digits of a particular number.
 
@@ -360,8 +371,8 @@ class SeqString:
         exceed the number count in the string, otherwise an IndexError
         exception is thrown.
         """
-        for i in range(len(widths)):
-            self.setNumWidth(i,widths[i])
+        for i,w in enumerate(widths):
+            self.setNumWidth(i, w)
             
     def deleteNum(self, idx):
         """Delete a number inside the string.
@@ -393,6 +404,28 @@ class SeqString:
         # Remove the number
         del self._value[idx*2+1:idx*2+3]
 
+    def replaceStr(self, idx, txt):
+        """Replace a string part by another string.
+
+        idx is the index of the sub-string (0-based) which may also be
+        negative. txt is a string that will replace the sub-string.
+        Raises an IndexError exception when idx is out of range.
+        """
+        
+        if idx<0:
+            idx2 = len(self._value)+2*idx
+            # Does the value list end in a text part? Then we need to adjust the index
+            if len(self._value)%2==1:
+                idx2 += 1
+        else:
+            idx2 = 2*idx
+        
+        # Check if the index is valid
+        if idx2<0 or idx2>=len(self._value):
+            raise IndexError, "index out of range"
+
+        # Replace the text
+        self._value[idx2] = txt
 
 class Sequence:
     """A list of names that all belong to the same sequence.
@@ -835,6 +868,202 @@ class Range:
         self._ranges.sort()
         
         
+class SeqTemplate:
+    """Sequence template class.
+    
+    An instance of this class represens a template string to create numbered
+    sequences.
+    """
+    
+    def __init__(self, template):
+        """Constructor.
+        
+        template is a string that contains substitution patterns. The patterns
+        may be composed of a number of @ characters or a # character.
+        Directly following the pattern there may be an optional integer index
+        in brackets that refers to a particular source number that will be used
+        during the substitution (e.g. @@[1], #[2]).
+        The pattern may also include an entire expression in Python syntax.
+        In this case, the above simple expression must be enclosed in curly
+        braces (e.g. {#[-1]+10}, {2*@@@@}).
+        """
+        
+        self.template = template
+        
+        seqStr,valExprs,indices,hasExplicitIndex = self._splitTemplate(template)
+        self._templateSeqString = seqStr
+        self._valExprs = valExprs
+        self._exprIndices = indices
+        self.hasExplicitIndex = hasExplicitIndex
+        
+    def __call__(self, values):
+        """An alternative way to call the substitute() method.
+        """
+        return self.substitute(values)
+        
+    def substitute(self, values):
+        """Return a string that uses the given input numbers.
+        
+        The substitution patterns in the template string are replaced by
+        the given numbers. values must be a list of objects that can be
+        turned into integers.
+        It is the callers responsibility to make sure that values contains
+        enough numbers.
+        If any number expression fails, a ValueError exception is thrown
+        (this is also the case when the expressions refers to a value in
+        the input list that is not available).
+        """
+        # Make sure we have integers
+        values = [int(v) for v in values]
+        
+        # Evaluate the number expressions...
+        nums = []
+        for expr in self._valExprs:
+            try:
+                nums.append(eval(expr, {"n":values}))
+            except:
+                raise ValueError("Error in sequence number expression %s: %s"%(expr,sys.exc_info()[1]))
+        
+        # Set the numbers in the template and return the result as a plain string.
+        self._templateSeqString.setNums(nums)
+        return str(self._templateSeqString)
+    
+    def expressionIndices(self, inputSize):
+        """Return the indices of the source values that the number expressions refer to.
+        
+        inputSize is the length of the value sequence that will get passed
+        to substitute(). This is used to resolve negative indices. The
+        result may still contain negative indices if any index in the expressions
+        is out of range. The order of the values in the list is the same
+        order as the expressions appear in the template.
+        The return value can be used to check if an expression would produce
+        an IndexError exception.
+        """
+        res = []
+        for i in self._exprIndices:
+            if i<0:
+                i = inputSize+i
+            res.append(i)
+        return res
+        
+    def _splitTemplate(self, template):
+        """Split a template into a sequence string and value expressions.
+        
+        template is a string that contains substitution patterns. The patterns
+        may be composed of a number of @ characters or a # character.
+        Directly following the pattern there may be an optional integer index
+        in brackets that refers to a particular source number that will be used
+        during the substitution (e.g. @@[1], #[2]).
+        The pattern may also include an entire expression in Python syntax.
+        In this case, the above simple expression must be enclosed in curly
+        braces (e.g. {#[-1]+10}, {2*@@@@}).
+        
+        The return value is a tuple (seqStr, valExprs, indices, hasExplicitIndex)
+        where seqStr is a sequence string that has as many number components
+        as there were substitution patterns in the template string. The text
+        parts of the sequence string are identical to the template, the numbers
+        will all be 0. valExprs is a list of strings that contain the expressions
+        that have to be used to obtain the final number value. The expressions
+        use a variable n which must be a list of integers.
+        indices is a list of integer indices that refer to the source number
+        that each expression is using. This is the array index that appears
+        in the expression. The numbers may still be negative.
+        hasExplicitIndex is a boolean that indicates whether the template
+        had any substitution pattern where the number index was specified explicitly.
+        
+        The substitution can then be performed by evaluating the expressions
+        and setting the resulting numbers in the sequence string.
+        """
+        tmpl = template.replace("#", "@@@@")
+        # Regular expression that detects a substitution pattern.
+        # There are two variants:
+        # 1. A number of @ characters, followed by an optional index (@@@2)
+        # 2. A full expression enclosed in {} ({@@2+10})
+        patternExp = re.compile(r"(@+)(?:\[(-?[0-9]+)\])?|\{[^@]*(@+)(?:\[(-?[0-9]+)\])?(.*)\}")
+        
+        # The individual tokens for the sequence string input. The text parts
+        # will only be represented by a single "*" (to make sure they don't
+        # contain any numbers). The number parts will be composed of "0" with
+        # the correct padding.
+        toks = []
+        # For every "*" in toks, this list will contain the corresponding real
+        # string. These strings are replaced after the SeqString has been created.
+        strToks = []
+        # The final value expressions
+        valExprs = []
+        # The indices that are used in the expression (0-based or negative)
+        indices = []
+        # This is set to true if any expression was using an explicit index
+        hasExplicitIndex = False
+        # This index is used if there was none specified in the template string
+        currentIdx = 1
+        while 1:
+            # Search for the next substitution pattern
+            m = patternExp.search(tmpl)
+            # Not found, then terminate
+            if m is None:
+                toks.append("*")
+                strToks.append(tmpl)
+                break
+            
+            # Get the complete substitution pattern
+            fullPattern = m.group()
+#            print "Pattern:",fullPattern, m.groups()
+            # Is it the version with the {}?
+            if fullPattern.startswith("{"):
+                pattern = m.group(3)
+                idx = m.group(4)
+                e = m.end(4)
+                if e is -1:
+                    e = m.end(3)
+                else:
+                    e += 1
+                valExprPre = tmpl[m.start()+1:m.start(3)]
+                valExprPost = tmpl[e:m.end()-1]
+            # No {}
+            else:
+                pattern = m.group(1)
+                idx = m.group(2)
+                valExprPre = ""
+                valExprPost = ""
+            
+#            print "-> pat:'%s'  idx:'%s'  valExprPre:'%s'  valExprPost:'%s'"%(pattern, idx, valExprPre, valExprPost)
+            width = len(pattern)
+            
+            if idx is None or idx=="":
+                idx = currentIdx
+            else:
+                hasExplicitIndex = True
+                idx = int(idx)
+            
+            if idx==0:
+                raise ValueError("0-index is not defined: %s"%fullPattern)
+            elif idx>0:
+                idx -= 1
+            indices.append(idx)
+            valExpr = "%sn[%s]%s"%(valExprPre, idx, valExprPost)
+#            print valExpr
+            valExprs.append(valExpr)
+            
+            s = m.start()
+            e = m.end()
+            strToks.append(tmpl[:s])
+            toks.append("*")
+            toks.append(width*"0")
+            tmpl = tmpl[e:]
+            currentIdx += 1
+        
+        # Create the sequence string from the "*", "0000" tokens. This ensures
+        # that the number count is as expected.
+        s = SeqString("".join(toks))
+        # Now replace the "*" with their corresponding strings (which may
+        # contain numbers. But these numbers are just treated as strings)
+        for i,tok in enumerate(strToks):
+            s.replaceStr(i,tok)
+            
+        return s, valExprs, indices, hasExplicitIndex
+
+
 def compactRange(values):
     """Build the range string that lists all values in the given list in a compacted form.
     
@@ -974,56 +1203,59 @@ def glob(name):
     fileNames = filter(lambda n: SeqString(os.path.splitext(n)[0]).numCount()>0, fileNames)
     
     return Sequences(fileNames, assumeFiles=True)
+
+
+# The following function is obsolete and replaced by the SeqTemplate class.
+#def numSubstitutionPatterns(pattern):
+#    """Return the number of substitution patterns inside a string.
+#    
+#    Returns the number of occurrences of a single '#' or a sequence of '@'
+#    character.
+#    """
+#    rexp = re.compile(r"#|@+")
+#    res = 0
+#    while 1:
+#        m = rexp.search(pattern)
+#        if m is None:
+#            break
+#        res += 1
+#        pattern = pattern[m.end():]
+#    return res
     
-def numSubstitutionPatterns(pattern):
-    """Return the number of substitution patterns inside a string.
-    
-    Returns the number of occurrences of a single '#' or a sequence of '@'
-    character.
-    """
-    rexp = re.compile(r"#|@+")
-    res = 0
-    while 1:
-        m = rexp.search(pattern)
-        if m is None:
-            break
-        res += 1
-        pattern = pattern[m.end():]
-    return res
-    
-def replaceNums(pattern, nums):
-    """Replace number patterns inside a string.
-    
-    pattern is a string that contains '#' or '@' characters. A single '#'
-    represents a padded number with 4 digits whereas a sequence of '@'
-    characters represents a number of that width. If a number is larger than
-    the specified width, the final width will be larger as well (i.e. the
-    number is not clipped).
-    nums is a list of integers. For each number in the list, the pattern
-    string must contain exactly one number substitution pattern.
-    """
-    if len(nums)==1:
-        patternMsg = "pattern"
-    else:
-        patternMsg = "patterns"
-        
-    s = pattern
-    for num in nums:
-        n1 = s.find("#")
-        n2 = s.find("@")
-        if n1!=-1 and (n2==-1 or n1<n2):
-            s = "%s%04d%s"%(s[:n1], num, s[n1+1:])
-        elif n2!=-1 and (n1==-1 or n2<n1):
-            n = 1
-            while n2+n<len(s) and s[n2+n]=="@":
-                n += 1
-            sdef = "%%s%%0%dd%%s"%n
-            s = sdef%(s[:n2], num, s[n2+n:])
-        else:
-            raise ValueError("No matching number substitution pattern found: %s (expected %s %s)"%(pattern, len(nums), patternMsg))
-            
-    if s.find("#")!=-1 or s.find("@")!=-1:
-        raise ValueError("Too many number substitution patterns: %s (only expected %s %s)"%(pattern,len(nums), patternMsg))
-        
-    return s
+# The following function is obsolete and replaced by the SeqTemplate class.
+#def replaceNums(pattern, nums):
+#    """Replace number patterns inside a string.
+#    
+#    pattern is a string that contains '#' or '@' characters. A single '#'
+#    represents a padded number with 4 digits whereas a sequence of '@'
+#    characters represents a number of that width. If a number is larger than
+#    the specified width, the final width will be larger as well (i.e. the
+#    number is not clipped).
+#    nums is a list of integers. For each number in the list, the pattern
+#    string must contain exactly one number substitution pattern.
+#    """
+#    if len(nums)==1:
+#        patternMsg = "pattern"
+#    else:
+#        patternMsg = "patterns"
+#        
+#    s = pattern
+#    for num in nums:
+#        n1 = s.find("#")
+#        n2 = s.find("@")
+#        if n1!=-1 and (n2==-1 or n1<n2):
+#            s = "%s%04d%s"%(s[:n1], num, s[n1+1:])
+#        elif n2!=-1 and (n1==-1 or n2<n1):
+#            n = 1
+#            while n2+n<len(s) and s[n2+n]=="@":
+#                n += 1
+#            sdef = "%%s%%0%dd%%s"%n
+#            s = sdef%(s[:n2], num, s[n2+n:])
+#        else:
+#            raise ValueError("No matching number substitution pattern found: %s (expected %s %s)"%(pattern, len(nums), patternMsg))
+#            
+#    if s.find("#")!=-1 or s.find("@")!=-1:
+#        raise ValueError("Too many number substitution patterns: %s (only expected %s %s)"%(pattern,len(nums), patternMsg))
+#        
+#    return s
 

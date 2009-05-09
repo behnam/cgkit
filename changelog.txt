@@ -10,6 +10,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- RMShader: Passing parameter values for array parameters in the constructor
+  didn't work.
 - ri/cri: Added the following calls:
       RiArchiveBegin(), RiArchiveEnd(), RiCamera(), RiDisplayChannel(),
       RiIfBegin(), RiElseIf(), RiElse(), RiIfEnd(),

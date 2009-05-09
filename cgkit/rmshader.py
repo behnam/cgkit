@@ -280,32 +280,9 @@ class RMShader(object):
 
 #        print 'declare("%s", type=%s, cls=%s, arraysize=%s, default=%s)'%(name, type, cls, arraysize, default)
         
-        # Create a "dummy shader" which will be passed to slparams to parse
-        # the declaration in name
-        shd = "surface spam(%s) {}"%name
-        try:
-            # Force a syntax error when name contains no declaration
-            if " " not in name:
-                raise slparams.SyntaxError()
-            slinfo = slparams.slparams(StringIO.StringIO(shd))
-            shdtype, shdname, params = slinfo[0]
-        except slparams.SyntaxError, e:
-            # Check if name is only a single name or if there was an attempt
-            # to specify the entire declaration
-            invalid = " []():;'\"'"
-            for inv in invalid:
-                if inv in name:
-                    raise ValueError, 'Invalid declaration: "%s"'%name
-            # It's probably really just the name, so use the remaining
-            # arguments to create a parameter tuple...
-            if cls==None:
-                cls = "uniform"
-            if type==None:
-                raise ValueError, 'No type for parameter "%s" specified'%name
-            if type not in ["float", "string", "color", "point", "vector",
-                            "normal", "matrix"]:
-                raise ValueError, 'Invalid type for parameter "%s": %s'%(name, type)
-            params = [("", cls, type, arraysize, name, "", str(default))]
+        # Get a slparams-stype params tuple from either name alone or from
+        # all the args
+        params = self._declare_getParams(name, type, cls, arraysize, default)
 
         typelut = {"float":"double",
                    "string":"str",
@@ -323,7 +300,7 @@ class RMShader(object):
             pname = p[4]
             pdefault = slparams.convertdefault(p)
             slottype = typelut[ptype]
-            if parraylen==None:
+            if parraylen is None:
                 decl = "%s %s"%(p[1], ptype)
             else:
                 decl = "%s %s[%d]"%(p[1], ptype, parraylen)
@@ -344,7 +321,18 @@ class RMShader(object):
                 if pytype=="str":
                     pdefault = self.undeclared[pname]
                 else:
-                    pdefault = eval("%s(%s)"%(pytype, repr(self.undeclared[pname])))
+                    # Scalar?
+                    if parraylen is None:
+                        pdefault = eval("%s(%s)"%(pytype, repr(self.undeclared[pname])))
+                    # Array
+                    else:
+                        userDefault = self.undeclared[pname]
+                        try:
+                            if len(userDefault)!=parraylen:
+                                raise ValueError('Invalid default value for shader parameter "%s". Expected %s values, but got %s'%(pname, parraylen, len(userDefault)))
+                        except TypeError:
+                            raise TypeError('Invalid default value for shader parameter "%s". Expected a sequence of %s values.'%(pname, parraylen))
+                        pdefault = [eval("%s(%s)"%(pytype, repr(v))) for v in self.undeclared[pname]]
                 del self.undeclared[pname]
                 
             # Create the slot and add the variable to the params dictionary
@@ -353,6 +341,44 @@ class RMShader(object):
             else:
                 self.createSlot(pname, slottype, parraylen, pdefault)
             self.shaderparams[pname] = decl
+    
+    def _declare_getParams(self, name, type, cls, arraysize, default):
+        """Helper method for declare().
+        
+        Turns the arguments into a params "tuple". See declare() for a description 
+        of the arguments.
+        The return value is either a params object as returned by slparams()
+        or an old-style params tuple.
+        """
+        # Create a "dummy shader" which will be passed to slparams to parse
+        # the declaration in name
+        shd = "surface spam(%s) {}"%name
+        try:
+            # Force a syntax error when name contains no declaration
+            if " " not in name:
+                raise slparams.SyntaxError()
+            slinfo = slparams.slparams(StringIO.StringIO(shd))
+            shdtype, shdname, params = slinfo[0]
+        except slparams.SyntaxError, e:
+            # Check if name is only a single name or if there was an attempt
+            # to specify the entire declaration
+            invalid = " []():;'\"'"
+            for inv in invalid:
+                if inv in name:
+                    raise ValueError, 'Invalid declaration: "%s"'%name
+            # It's probably really just the name, so use the remaining
+            # arguments to create a parameter tuple...
+            if cls is None:
+                cls = "uniform"
+            if type is None:
+                raise ValueError, 'No type for parameter "%s" specified'%name
+            if type not in ["float", "string", "color", "point", "vector",
+                            "normal", "matrix"]:
+                raise ValueError, 'Invalid type for parameter "%s": %s'%(name, type)
+            params = [("", cls, type, arraysize, name, "", str(default))]
+            
+        return params
+
         
     # loadShaderSource
     def loadShaderSource(self):
@@ -365,14 +391,14 @@ class RMShader(object):
         \return Shader source code or None
         """
 
-        if self.filename==None:
+        if self.filename is None:
             return None
         
         f = file(self.filename)
         src = f.read()
         # Search for <shader type> + one or more white space + <shadername>..
         match = re.search("%s\s+%s"%(self.shadertype, self.shadername), src)
-        if match!=None:
+        if match is not None:
             s, e = match.start(), match.end()
             src = src[:e-len(self.shadername)] + "$SHADERNAME" + src[e:]
         else:
@@ -393,14 +419,14 @@ class RMShader(object):
         \param default Default value or None
         """
         
-        if arraylen==None:
+        if arraylen is None:
             exec "slot = %sSlot()"%type.capitalize()
-            if default!=None:
+            if default is not None:
                 slot.setValue(default)
         else:
             exec "slot = %sArraySlot()"%type.capitalize()
             slot.resize(arraylen)
-            if default!=None:
+            if default is not None:
                 for i,v in enumerate(default):
                     slot[i] = v
                 

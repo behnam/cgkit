@@ -42,6 +42,8 @@ import optparse
 import shutil
 from cgkit import sequence
 from cgkit.sequence import SeqString
+import re
+
 
 def promptUser(question):
     """Print a question and ask for y/n.
@@ -58,75 +60,96 @@ def promptUser(question):
             return True
         print "Expected 'y' or 'n'"
 
-
 def outputNameSpec(fileSequence, dstName, newSequenceValues, force):
-    """
+    """Return everything that is required to produce output names.
+    
     newSequenceValues is a boolean indicating whether the main sequence number
     will receive new values or if the values from the input sequence are used.
     
+    The return value is a 3-tuple (dstName, numIdxs, seqNumIdx) where dstName
+    is the final output name that may have a substitution pattern added to it.
+    numIdxs is a list of indices that refer to the number in the source name
+    that will make it into the output name. For example, if the source files
+    are of the form "clip@_#" and numIdxs is [1], then this means only the
+    last number will be used for substitution and the final destination name
+    must have one substitution pattern. seqNumIdx is the index of the number
+    that is considered to be the main number (the index refers to the numIdxs
+    list, it's not the index in the source name).
+    
     Returns None when the user didn't confirm the operation.
     """
+    # Get the number ranges of all numbers in the input sequence
     ranges = fileSequence.ranges()
+    
+    # Create the output template
+    dstTemplate = sequence.SeqTemplate(dstName)
     
     # The index of the number that varies most (i.e. the index of the sequence number)
     seqNumIdx = fileSequence.sequenceNumberIndex()
-            
-    # This is a list containing the number indices of the numbers that will
-    # make it into the destination name. The final length of this list must
-    # match the number of patterns in the destination name.
+
     numIdxs = []
-    numPatterns = sequence.numSubstitutionPatterns(dstName)
     numValues = len(ranges)
     numVaryingValues = len(filter(lambda rng: len(rng)>1, ranges))
+    
+    numIdxs = range(numValues)
+    
+    indices = dstTemplate.expressionIndices(numValues)
+    numPatterns = len(indices)
+    if numPatterns>0 and (min(indices)<0 or max(indices)>=numValues):
+        raise ValueError("A number pattern in the output template name refers to a non-existent source number: %s"%dstName)
+
     # Is the destination name without any pattern at all? Then append '#' if
     # there is a unique sequence number
     if numPatterns==0:
         if numVaryingValues==1 or newSequenceValues:
-            numIdxs = [seqNumIdx]
+            # Check if the name ends in a number. Appending the sequence number
+            # would create new numbers (e.g. "clip2#" -> "clip20001", "clip20002",...)
             if len(dstName)>0 and dstName[-1] in string.digits:
                 print "The destination name ends in a number which would affect the output sequence number."
                 if not force and not promptUser("Are you sure to continue?"):
                     return None
-            dstName = dstName+"#"
+            # Add a pattern that refers to the sequence number (+1 because the index in the pattern is 1-based)
+            dstTemplate = sequence.SeqTemplate(dstName+"#[%s]"%(seqNumIdx+1))
+            indices = [seqNumIdx]
         elif numVaryingValues!=0:
             raise ValueError('Invalid destination name: "%s". Cannot figure out how to number the destination files. There are %s varying numbers.'%(dstName, numVaryingValues))
-    # Does the number of patterns match the number of values? Then everything is fine. 
-    elif numPatterns==numValues:
-        numIdxs = range(numValues)
-    # Does the number of patterns match the number of varying values? Then everything
-    # is fine as well. The single-valued numbers are just ignored (which means
-    # they are treated like a string)
-    elif numPatterns==numVaryingValues:
+    # Do we only have as many patterns as there are *varying* numbers
+    # and no explicit index was specified?
+    # Then we can assume that the user only wants to reference the varying
+    # numbers and the constant numbers are just part of the name.
+    elif numPatterns==numVaryingValues and not dstTemplate.hasExplicitIndex:
+        numIdxs = []
         for i,rng in enumerate(ranges):
             if len(rng)>1:
                 numIdxs.append(i)
-    # Only 1 pattern (even though the source names have more (or less))?
-    # Only accept this when a destination range was specified (as this means
-    # name clashes won't occur because every file gets a unique number)
-    elif numPatterns==1 and newSequenceValues:
-        numIdxs = [seqNumIdx]
-    else:
+    # Do we have too little patterns? (and the user did not specify any
+    # index explicitly?)
+    # If so, throw an error because it's not clear which number should be
+    # mapped to which pattern.
+    elif numPatterns!=numValues and not dstTemplate.hasExplicitIndex and not newSequenceValues:
         if numValues==numVaryingValues:
             expectedStr = "%s pattern"%numValues
             if numValues>1:
                 expectedStr += "s"
-            
         else:
             expectedStr = "%s or %s patterns"%(numVaryingValues, numValues)
         if numPatterns>numValues:
             raise ValueError('Invalid destination name: "%s". There are too many substitution patterns (expected %s).'%(dstName, expectedStr))
         else:
             raise ValueError('Invalid destination name: "%s". There are not enough substitution patterns (expected %s).'%(dstName, expectedStr))
-            
-    # Adjust the index that refers to the sequence number (as we might have removed some numbers from the list)
-    for i,idx in enumerate(numIdxs):
-        if idx==seqNumIdx:
-            seqNumIdx = i
-            break
-    else:
-        raise RuntimeError, "Bug: Couldn't find the new sequence number index."
 
-    return dstName, numIdxs, seqNumIdx
+    # Recompute the index that refers to the sequence number (as we might have
+    # removed some numbers from the list and seqNumIdx should always refer
+    # to a number that is actually used in the output, so that the -d option works)
+    seqNumIdx = -1
+    maxVal = -1
+    for i,idx in enumerate(indices):
+        v = len(ranges[idx])
+        if v>=maxVal:
+            seqNumIdx = i
+            maxVal = v
+    
+    return dstTemplate, numIdxs, seqNumIdx
 
 def buildFileTable(fileSequence, srcRange, dstName, dstRangeIterator, force):
     """Build the file table. 
@@ -143,18 +166,19 @@ def buildFileTable(fileSequence, srcRange, dstName, dstRangeIterator, force):
     The return value is a list of tuples (srcName,dstName,uiSrcName,uiDstName)
     where srcName/dstName is the full real path of the source/destination file.
     The ui names are the ones that have been specified on the command line
-    and this is what gets printed when the --test flag is used.
+    which is what gets printed when the --test flag is used.
     None is returned if the user didn't confirm the operation.
     
     The number of items in the returned list depends on the source range
     and the destination range iterator. If the latter runs out of numbers,
     any remaining source files are ignored.
     """
+    # Determine how the output files are numbered...
     res = outputNameSpec(fileSequence, dstName, dstRangeIterator is not None, force)
     if res is None:
         return None
-    dstName, numIdxs, seqNumIdx = res
-                
+    dstTemplate, numIdxs, seqNumIdx = res
+    
     # Assign output names to the input names...
     fileTable = []
     for srcName in fileSequence:
@@ -177,7 +201,7 @@ def buildFileTable(fileSequence, srcRange, dstName, dstRangeIterator, force):
                     break
             # Create the file names and add them to the list
             uiSrc = str(srcName)
-            uiDst = sequence.replaceNums(dstName, nums)
+            uiDst = dstTemplate.substitute(nums)
             if os.path.splitext(uiDst)[1]!=ext:
                 uiDst += ext
             src = os.path.realpath(uiSrc)
@@ -276,7 +300,7 @@ def main():
         dstRangeIterator = iter(sequence.Range(opts.destination_frames))
 
     srcSeq = args[0]
-    dstArg = args[1]        
+    dstArg = args[1]
     
     # Determine the source sequences
     fseqs = sequence.glob(srcSeq)
@@ -343,5 +367,5 @@ except KeyboardInterrupt:
     print >>sys.stderr, "\nUser abort"
 except:
     print >>sys.stderr, "ERROR:",sys.exc_info()[1]
-    raise
+#    raise
     sys.exit(1)

@@ -36,7 +36,7 @@
 # $Id: rmshader.py,v 1.9 2006/05/26 21:33:29 mbaas Exp $
 
 import optparse
-import os
+import sys, os
 import os.path
 import time
 from cgkit import sequence
@@ -54,7 +54,11 @@ class SequenceInfo:
         minMTime = None
         maxMTime = None
         for fileName in seq:
-            fileInfo = os.stat(str(fileName))
+            try:
+                fileInfo = os.stat(str(fileName))
+            except OSError:
+                print >>sys.stderr, sys.exc_info()[1]
+                continue
             size += fileInfo.st_size
             if minMTime is None or fileInfo.st_mtime<minMTime:
                 minMTime = fileInfo.st_mtime
@@ -83,7 +87,7 @@ class SequenceInfo:
         """Return the mtime of the oldest file in the sequence.
         """
         if self.minMTime is None:
-            return "None"
+            return "?"
         else:
             t = time.localtime(self.minMTime)
             return time.strftime("%d %b %H:%M", t)
@@ -92,7 +96,7 @@ class SequenceInfo:
         """Return the mtime of the newest file in the sequence.
         """
         if self.maxMTime is None:
-            return "None"
+            return "?"
         else:
             t = time.localtime(self.maxMTime)
             return time.strftime("%d %b %H:%M", t)
@@ -137,7 +141,7 @@ def main():
         for fseq in fseqs:
             if opts.long:
                 info = SequenceInfo(fseq)
-                print "%8s  %s - %s %-12s %s [%d files]"%(info.sizeStr(),
+                print "%8s  %12s - %12s %-12s %s [%d files]"%(info.sizeStr(),
                                                         info.minMTimeStr(),
                                                         info.maxMTimeStr(),
                                                         "(%s)"%info.timeSpanStr(),

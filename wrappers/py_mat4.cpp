@@ -208,10 +208,10 @@ void class_mat4()
 
   class_<mat4d>("mat4")
     .def(init<double>())
-    /*    .def(init<double,double,double,double,
-	      double,double,double,double,
+    .def(init<double,double,double,double,
               double,double,double,double,
-              double,double,double,double>())*/
+              double,double,double,double,
+              double,double,double,double>())
     .def(init<const mat4d&>())
     .def(self_ns::str(self))
     .def("__repr__", &repr)

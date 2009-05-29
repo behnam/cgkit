@@ -204,7 +204,7 @@ LIB_DIRS = []
 LIBS     = []
 CC_ARGS  = []
 LINK_ARGS = []
-MACROS    = []
+MACROS    = [("BOOST_PYTHON_MAX_ARITY", 18)]
 data_files = []
 scripts = []
 

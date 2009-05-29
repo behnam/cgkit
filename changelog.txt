@@ -10,6 +10,9 @@ New features:
 
 Bug fixes/enhancements:
 
+- mat4: Wrapped the mat4 constructor that takes 16 floats as input. Because
+  this one was missing, calling copy.copy() on a mat4 that was returned by
+  the library (instead of being created by the user) did not work.
 - RMShader: Passing parameter values for array parameters in the constructor
   didn't work.
 - ri/cri: Added the following calls:

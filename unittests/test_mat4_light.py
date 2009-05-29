@@ -3,7 +3,7 @@
 import unittest
 #from cgkit.cgtypes import *
 from cgkit.light.cgtypes import *
-import math, os, pickle, cPickle, sys
+import math, os, pickle, cPickle, sys, copy
 
 class TestMat4(unittest.TestCase):
 
@@ -615,6 +615,14 @@ class TestMat4(unittest.TestCase):
         os.remove(fname)
 
         self.assertEqual(m, n)
+
+    ######################################################################
+    def testCopy(self):
+        """Test copying an internal mat4.
+        """
+        m = mat4.translation((1,2,3))
+        m2 = copy.copy(m)
+        self.assertEqual(m, m2)
 
 
 ######################################################################

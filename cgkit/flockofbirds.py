@@ -157,7 +157,7 @@ class FlockOfBirds(component.Component):
                 #    (position, angles, matrix, quat)
                 # 2. Set the values on the corresponding slots
 #                print values
-                ps,as,ms,qs = self._slots[i]
+                ps,angs,ms,qs = self._slots[i]
                 m = self.bird_mode[i]
                 if m[0]=="P":
                     p = vec3(values[:3])
@@ -165,7 +165,7 @@ class FlockOfBirds(component.Component):
                 c = m[-1]                    
                 if c=="A":
                     a = vec3(values[-3:])
-                    as.setValue(a)
+                    angs.setValue(a)
                 elif c=="M":
                     m = mat3(values[-9:])
                     ms.setValue(m)

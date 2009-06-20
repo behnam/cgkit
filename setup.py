@@ -65,7 +65,7 @@ def findFile(filename, dirs):
     msg = 'Error: File "%s" not found in:\n'%filename
     for dir in dirs:
         msg += '  %s\n'%dir
-    print msg
+    print (msg)
     sys.exit(1)
 
 # packageDLL
@@ -81,7 +81,7 @@ def packageDLL(dll):
     # Copy the DLL (only if the source is newer than the dest)...
     dstdll = os.path.join(PACKAGE_NAME, dllname)
     if (not os.path.exists(dstdll)) or (os.path.getmtime(dstdll)<os.path.getmtime(dll)):
-        print 'Copying DLL %s...'%dll
+        print ('Copying DLL %s...'%dll)
         shutil.copyfile(dll, dstdll)
     # Add it to the list of data files...
     dest = os.path.join(get_python_lib(plat_specific=True), PACKAGE_NAME)
@@ -104,17 +104,17 @@ def updateInfoModule(cgkit_light):
     current date and time.
     """
 
-    print "Updating version in the cgkitinfo module..."
+    print ("Updating version in the cgkitinfo module...")
     template = os.path.join("cgkit", "cgkitinfo_template.txt")
     infomod = os.path.join("cgkit", "cgkitinfo.py")
 
     # Read the cgkitinfo template module
     try:
-        f = file(template)
+        f = open(template, "rt")
         lines = f.readlines()
         f.close()
     except:
-        print 'Error: Could not read file "%s"'%template
+        print ('Error: Could not read file "%s"'%template)
         sys.exit(1)
 
     # Replace the version string...
@@ -126,7 +126,9 @@ def updateInfoModule(cgkit_light):
             continue
         if f[0]=="version_info":
             try:
-                exec s.strip()
+                ns = {}
+                exec(s.strip(), ns)
+                version_info = ns.get("version_info")
                 if type(version_info)!=tuple:
                     raise Exception
                 if len(version_info)!=4:
@@ -137,11 +139,12 @@ def updateInfoModule(cgkit_light):
                 if type(rlevel)!=str:
                     raise Exception
             except:
-                print 'Invalid version tuple in file "%s": %s'%(template,s.strip())
+                print ('Invalid version tuple in file "%s": %s'%(template,s.strip()))
+                raise
                 sys.exit(1)
         if f[0]=="version":
             if version_info==None:
-                print '%s: version_info must occur before version'%template
+                print ('%s: version_info must occur before version'%template)
                 sys.exit(1)
             major,minor,micro,rlevel = version_info
             v = "%d.%d.%d"%(major,minor,micro)
@@ -151,17 +154,17 @@ def updateInfoModule(cgkit_light):
                 v += " 'light'"
             v+=" (%s)"%time.strftime("%b %d %Y, %H:%M")
             lines[i] = 'version = "%s"\n'%v
-            print "Version:",v
+            print ("Version:",v)
 
     lines.append("\ncgkit_light = %s"%cgkit_light)
 
     # Save the new content to the actual module file...
     try:
-        f = file(infomod, "wt")
+        f = open(infomod, "wt")
         f.writelines(lines)
         f.close()
     except:
-        print 'Could not write file "%s"'%infomod
+        print ('Could not write file "%s"'%infomod)
         sys.exit(1)
 
 def pyx2c(pyxName, cName):
@@ -170,10 +173,10 @@ def pyx2c(pyxName, cName):
     pyxName is the input pyx file, cName the output C file.
     """
     cmd = "pyrexc -o %s %s"%(cName, pyxName)
-    print cmd
+    print (cmd)
     res = os.system(cmd)
     if res!=0:
-        print >>sys.stderr, "Error running pyrexc"
+        sys.stderr.write("Error running pyrexc\n")
         sys.exit()
     
 def convertPyxFiles():
@@ -186,7 +189,7 @@ def convertPyxFiles():
         if isNewer(pyxFile, cFile):
             pyx2c(pyxFile, cFile)
         else:
-            print "%s is up-to-date"%cFile
+            print ("%s is up-to-date"%cFile)
 
 ######################################################################
 ######################################################################
@@ -240,11 +243,11 @@ if sys.platform!="win32":
 
 # Read the config file
 if os.path.exists("config.cfg"):
-    execfile("config.cfg")
+    exec(open("config.cfg").read())
 else:
-    print 70*"-"
-    print "Warning: No config file available (config.cfg)"
-    print 70*"-"
+    print (70*"-")
+    print ("Warning: No config file available (config.cfg)")
+    print (70*"-")
 
 # Disable all optional libs, STL and Boost for the light version...
 if INSTALL_CGKIT_LIGHT:
@@ -331,17 +334,17 @@ else:
     libcore = "libcore.a"
 libcore = os.path.join("supportlib", "lib", libcore)
 if not os.path.exists(libcore) and not INSTALL_CGKIT_LIGHT:
-    print 70*"-"
-    print "The library %s does not exist."%libcore
-    print "You have to compile the C++ support library first. Please go to the"
-    print "subdirectory 'supportlib' and invoke scons:\n"
-    print " > cd supportlib"
-    print " > scons\n"
-    print "After that, you can proceed with calling the setup script. Please"
-    print "see the file readme.txt or the section about compiling the package"
-    print "in the manual if you encounter any further problems."
-    print "Note: You can read the manual online at http://cgkit.sf.net"
-    print 70*"-"
+    print (70*"-")
+    print ("The library %s does not exist."%libcore)
+    print ("You have to compile the C++ support library first. Please go to the")
+    print ("subdirectory 'supportlib' and invoke scons:\n")
+    print (" > cd supportlib")
+    print (" > scons\n")
+    print ("After that, you can proceed with calling the setup script. Please")
+    print ("see the file readme.txt or the section about compiling the package")
+    print ("in the manual if you encounter any further problems.")
+    print ("Note: You can read the manual online at http://cgkit.sf.net")
+    print (70*"-")
     sys.exit(1)
 
 ##### Windows specific stuff #####
@@ -394,10 +397,10 @@ if sys.platform=="win32":
             INC_DIRS += [os.path.join(CYBERX3D_PATH, "include")]
             LIB_DIRS += [os.path.join(CYBERX3D_PATH, "lib")]
             LIB_DIRS += [os.path.join(XERCES_PATH, "lib")]
-    	if CYBERX3D_LIB==None:
-    	    CYBERX3D_LIB = "CyberX3D"
-    	if CYBERX3D_XERCES_LIB==None:
-    	    CYBERX3D_XERCES_LIB = "xerces-c_2"
+        if CYBERX3D_LIB==None:
+            CYBERX3D_LIB = "CyberX3D"
+        if CYBERX3D_XERCES_LIB==None:
+            CYBERX3D_XERCES_LIB = "xerces-c_2"
             LIBS += [CYBERX3D_LIB, CYBERX3D_XERCES_LIB, "gdi32"]
             if os.path.isabs(CYBERX3D_XERCES_DLL):
                 packageDLL(CYBERX3D_XERCES_DLL)
@@ -431,10 +434,10 @@ else:
 
     # CyberX3D
     if CYBERX3D_AVAILABLE:
-	if CYBERX3D_LIB==None:
-	    CYBERX3D_LIB = "cx3d"
-	if CYBERX3D_XERCES_LIB==None:
-	    CYBERX3D_XERCES_LIB = "xerces-c"
+        if CYBERX3D_LIB==None:
+            CYBERX3D_LIB = "cx3d"
+        if CYBERX3D_XERCES_LIB==None:
+            CYBERX3D_XERCES_LIB = "xerces-c"
         LIBS += [CYBERX3D_LIB, CYBERX3D_XERCES_LIB]
 
     # "Disable" debug symbols
@@ -575,28 +578,28 @@ ext_modules += [Extension("_pointcloud", ["pyrex/c/_pointcloud.c"]
 
 # Infos...
 updateInfoModule(INSTALL_CGKIT_LIGHT)
-print 70*"="
-print "3DS importer:      %s"%(enabledStr(LIB3DS_AVAILABLE))
-print "VRML/X3D importer: %s"%(enabledStr(CYBERX3D_AVAILABLE))
-print "OpenSceneGraph:    %s"%(enabledStr(OSG_AVAILABLE))
-print "OGRE:              %s"%(enabledStr(OGRE_AVAILABLE))
-print "3DXWare:           %s"%(enabledStr(THREEDXWARE_AVAILABLE))
-print "Wintab:            %s"%(enabledStr(WINTAB_AVAILABLE))
-print "Glove module:      %s"%(enabledStr(GLOVESDK_AVAILABLE))
-print 70*"="
+print (70*"=")
+print ("3DS importer:      %s"%(enabledStr(LIB3DS_AVAILABLE)))
+print ("VRML/X3D importer: %s"%(enabledStr(CYBERX3D_AVAILABLE)))
+print ("OpenSceneGraph:    %s"%(enabledStr(OSG_AVAILABLE)))
+print ("OGRE:              %s"%(enabledStr(OGRE_AVAILABLE)))
+print ("3DXWare:           %s"%(enabledStr(THREEDXWARE_AVAILABLE)))
+print ("Wintab:            %s"%(enabledStr(WINTAB_AVAILABLE)))
+print ("Glove module:      %s"%(enabledStr(GLOVESDK_AVAILABLE)))
+print (70*"=")
 
-print "Include paths (INC_DIRS):\n"
+print ("Include paths (INC_DIRS):\n")
 for p in INC_DIRS:
-    print " ",p
+    print (" ",p)
     
-print "\nLibrary paths (LIB_DIRS):\n"
+print ("\nLibrary paths (LIB_DIRS):\n")
 for p in LIB_DIRS:
-    print " ",p
+    print (" ",p)
 
-print "\nLibraries to link with (LIBS):\n"
-print " ",", ".join(LIBS)
+print ("\nLibraries to link with (LIBS):\n")
+print (" ",", ".join(LIBS))
 
-print ""
+print ()
 
 # Check if the boost/python.hpp header can be found...
 # [disabled the test because it doesn't take the built-in search paths
@@ -617,10 +620,10 @@ print ""
 # (because optional libs might have been included or excluded)
 if os.path.exists("config.cfg") and not INSTALL_CGKIT_LIGHT:
     if isNewer("config.cfg", "wrappers/py_wrapper.cpp"):
-        print "Forcing compilation of py_wrapper.cpp"
+        print ("Forcing compilation of py_wrapper.cpp")
         os.utime("wrappers/py_wrapper.cpp", None)
 
-print 70*"="
+print (70*"=")
 
 # Test (to enable light version)
 if INSTALL_CGKIT_LIGHT:
@@ -655,4 +658,4 @@ setup(name = PACKAGE_NAME,
       data_files = data_files
       )
 
-print "... finished setup"
+print ("... finished setup")

@@ -154,7 +154,7 @@ def updateInfoModule(cgkit_light):
                 v += " 'light'"
             v+=" (%s)"%time.strftime("%b %d %Y, %H:%M")
             lines[i] = 'version = "%s"\n'%v
-            print ("Version:",v)
+            print ("Version: %s"%v)
 
     lines.append("\ncgkit_light = %s"%cgkit_light)
 
@@ -590,16 +590,16 @@ print (70*"=")
 
 print ("Include paths (INC_DIRS):\n")
 for p in INC_DIRS:
-    print (" ",p)
+    print (" %s"%p)
     
 print ("\nLibrary paths (LIB_DIRS):\n")
 for p in LIB_DIRS:
-    print (" ",p)
+    print (" %s"%p)
 
 print ("\nLibraries to link with (LIBS):\n")
-print (" ",", ".join(LIBS))
+print (" %s"%(", ".join(LIBS)))
 
-print ()
+print ("")
 
 # Check if the boost/python.hpp header can be found...
 # [disabled the test because it doesn't take the built-in search paths

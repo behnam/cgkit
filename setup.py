@@ -241,13 +241,22 @@ if sys.platform!="win32":
     vars = get_config_vars()
     vars["OPT"] = vars["OPT"].replace("-g", "")
 
-# Read the config file
-if os.path.exists("config.cfg"):
-    exec(open("config.cfg").read())
+# Read the general config file
+configName = "config.cfg"
+if os.path.exists(configName):
+    print ("Reading %s..."%configName)
+    exec(open(configName).read())
 else:
-    print (70*"-")
-    print ("Warning: No config file available (config.cfg)")
-    print (70*"-")
+    print ("Config file (%s) not available"%configName)
+
+# Read the version-specific config file
+vi = sys.version_info
+configName = "config_py%s%s.cfg"%vi[:2]
+if os.path.exists(configName):
+    print ("Reading %s..."%configName)
+    exec(open(configName).read())
+else:
+    print ("Version-specific config file (%s) not available"%configName)
 
 # Disable all optional libs, STL and Boost for the light version...
 if INSTALL_CGKIT_LIGHT:

@@ -10,6 +10,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- setup script: In addition to the general config file config.cfg the setup
+  script also reads a version-specific config_pyXY.cfg script.
 - mat4: Wrapped the mat4 constructor that takes 16 floats as input. Because
   this one was missing, calling copy.copy() on a mat4 that was returned by
   the library (instead of being created by the user) did not work.

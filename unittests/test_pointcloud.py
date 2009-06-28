@@ -5,7 +5,12 @@ import os, os.path
 from cgkit import pointcloud
 from cgkit.cgtypes import *
 import ctypes
-import numpy
+try:
+    import numpy
+    numpy_available = True
+except ImportError:
+    print "Warning: numpy not available. pointcloud test incomplete."
+    numpy_available = False
 
 class TestPointCloud(unittest.TestCase):
     """Test the pointcloud module.
@@ -187,6 +192,9 @@ class TestPointCloud(unittest.TestCase):
     def testMultiPointsOneBuffer(self):
         """Test writing/reading several points at once.
         """
+        if not numpy_available:
+            return
+        
         buffer = numpy.zeros(shape=(2,8), dtype=numpy.float32)
         buffer[0] = (1,2,3,1,0,0,7,8)
         buffer[1] = (-1,-2,-3,0,0,1,2,-8)

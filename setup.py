@@ -381,7 +381,7 @@ if sys.platform=="win32":
         LIBS += ["opengl32", "glu32"]
     
         # Additional compiler options
-        CC_ARGS  += ["/GR", "/Zm700"]
+        CC_ARGS  += ["/GR", "/Zm700", "/EHsc"]
         # Additional linker options
         LINK_ARGS += ["/NODEFAULTLIB:LIBCMT"]
     
@@ -406,15 +406,15 @@ if sys.platform=="win32":
             INC_DIRS += [os.path.join(CYBERX3D_PATH, "include")]
             LIB_DIRS += [os.path.join(CYBERX3D_PATH, "lib")]
             LIB_DIRS += [os.path.join(XERCES_PATH, "lib")]
-        if CYBERX3D_LIB==None:
-            CYBERX3D_LIB = "CyberX3D"
-        if CYBERX3D_XERCES_LIB==None:
-            CYBERX3D_XERCES_LIB = "xerces-c_2"
-            LIBS += [CYBERX3D_LIB, CYBERX3D_XERCES_LIB, "gdi32"]
-            if os.path.isabs(CYBERX3D_XERCES_DLL):
-                packageDLL(CYBERX3D_XERCES_DLL)
-            else:
-                packageDLL(os.path.join(XERCES_PATH, "bin", CYBERX3D_XERCES_DLL))
+            if CYBERX3D_LIB==None:
+                CYBERX3D_LIB = "CyberX3D"
+            if CYBERX3D_XERCES_LIB==None:
+                CYBERX3D_XERCES_LIB = "xerces-c_2"
+                LIBS += [CYBERX3D_LIB, CYBERX3D_XERCES_LIB, "gdi32"]
+                if os.path.isabs(CYBERX3D_XERCES_DLL):
+                    packageDLL(CYBERX3D_XERCES_DLL)
+                else:
+                    packageDLL(os.path.join(XERCES_PATH, "bin", CYBERX3D_XERCES_DLL))
 
 ##### Mac OS X (Darwin) #####
 elif sys.platform=="darwin":

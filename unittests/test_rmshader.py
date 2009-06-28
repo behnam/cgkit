@@ -3,7 +3,6 @@
 import unittest
 from cgkit.rmshader import RMShader
 from cgkit.cgtypes import *
-import numpy
 
 class TestRMShader(unittest.TestCase):
     """Test the RMShader class.

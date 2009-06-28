@@ -3,7 +3,7 @@
 import unittest
 from cgkit.cgtypes import *
 #from cgkit.light.cgtypes import *
-import math, os, pickle, cPickle
+import math, os, pickle
 
 class TestVec4(unittest.TestCase):
 
@@ -25,9 +25,9 @@ class TestVec4(unittest.TestCase):
         self.failUnless(v==vec4(2.5,2.5,2.5,2.5),
                         "vec4(2.5) != (2.5,2.5,2.5,2.5) : %s"%str(v))
 
-        v = vec4(-1.5, 42L)
+        v = vec4(-1.5, 42)
         self.failUnless(v==vec4(-1.5, 42.0, 0.0),
-                        "vec4(-1.5, 42L) != (-1.5, 42,0,0) : %s"%str(v))
+                        "vec4(-1.5, 42) != (-1.5, 42,0,0) : %s"%str(v))
 
         v = vec4(())
         self.failUnless(v==vec4(0, 0, 0, 0),
@@ -154,7 +154,7 @@ class TestVec4(unittest.TestCase):
         c = a*2
         self.failUnless(c==vec4(-2,5,6,4),
                          "falsche Multiplikation vec4*int: %s"%str(c))
-        c = a*2L
+        c = a*2
         self.failUnless(c==vec4(-2,5,6,4),
                          "falsche Multiplikation vec4*long: %s"%str(c))
         c = 2.0*a
@@ -421,12 +421,12 @@ class TestVec4(unittest.TestCase):
     def testPickle(self):
         fname = "delme_pickle.dat"
         
-        f = file(fname, "w")
+        f = file(fname, "wb")
         v = vec4(1, 2.5, -3.7, 12)
         pickle.dump(v, f)
         f.close()
 
-        f = file(fname)
+        f = file(fname, "rb")
         w = pickle.load(f)
         f.close()
 

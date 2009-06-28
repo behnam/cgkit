@@ -3,7 +3,7 @@
 import unittest
 from cgkit.cgtypes import *
 #from cgkit.light.cgtypes import *
-import math, os, pickle, cPickle
+import math, os, pickle
 
 class TestQuat(unittest.TestCase):
 
@@ -94,7 +94,7 @@ class TestQuat(unittest.TestCase):
         c = a*2
         self.failUnless(c==quat(-2,5,6,4),
                          "falsche Multiplikation quat*int: %s"%str(c))
-        c = a*2L
+        c = a*2
         self.failUnless(c==quat(-2,5,6,4),
                          "falsche Multiplikation quat*long: %s"%str(c))
         c = 2.0*a
@@ -295,12 +295,12 @@ class TestQuat(unittest.TestCase):
     def testPickle(self):
         fname = "delme_pickle.dat"
         
-        f = file(fname, "w")
+        f = open(fname, "wb")
         q = quat(1,2,3,4)
         pickle.dump(q, f)
         f.close()
 
-        f = file(fname)
+        f = open(fname, "rb")
         w = pickle.load(f)
         f.close()
 

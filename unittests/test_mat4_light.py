@@ -3,7 +3,7 @@
 import unittest
 #from cgkit.cgtypes import *
 from cgkit.light.cgtypes import *
-import math, os, pickle, cPickle, sys, copy
+import math, os, pickle, sys, copy
 
 class TestMat4(unittest.TestCase):
 
@@ -603,12 +603,12 @@ class TestMat4(unittest.TestCase):
     def testPickle(self):
         fname = "delme_pickle.dat"
         
-        f = file(fname, "w")
+        f = open(fname, "wb")
         m = mat4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)
         pickle.dump(m, f)
         f.close()
 
-        f = file(fname)
+        f = open(fname, "rb")
         n = pickle.load(f)
         f.close()
 

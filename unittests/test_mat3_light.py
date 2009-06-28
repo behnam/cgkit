@@ -2,7 +2,7 @@
 
 import unittest
 from cgkit.light.cgtypes import *
-import math, os, pickle, cPickle, sys
+import math, os, pickle, sys
 from cgkit.sl import degrees, radians
 
 class TestMat3(unittest.TestCase):
@@ -526,11 +526,11 @@ class TestMat3(unittest.TestCase):
                 # have to be applied just in the opposite order than mentioned
                 # in the fromEuler*() method name.
                 C = R1*R2*R3
-                exec 'E = mat3.fromEuler%s(angle["X"], angle["Y"], angle["Z"])'%order
+                exec ('E = mat3.fromEuler%s(angle["X"], angle["Y"], angle["Z"])'%order)
                 self.assertEqual(E, C)
     
-                exec 'x,y,z = E.toEuler%s()'%order
-                exec 'E2 = mat3.fromEuler%s(x, y, z)'%order
+                exec ('x,y,z = E.toEuler%s()'%order)
+                exec ('E2 = mat3.fromEuler%s(x, y, z)'%order)
                 if E2!=E:
 #                    print E
 #                    print E2
@@ -564,12 +564,12 @@ class TestMat3(unittest.TestCase):
     def testPickle(self):
         fname = "delme_pickle.dat"
         
-        f = file(fname, "w")
+        f = open(fname, "wb")
         m = mat3(1,2,3,4,5,6,7,8,9)
         pickle.dump(m, f)
         f.close()
 
-        f = file(fname)
+        f = open(fname, "rb")
         n = pickle.load(f)
         f.close()
 

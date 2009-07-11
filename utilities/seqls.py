@@ -33,10 +33,9 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-# $Id: rmshader.py,v 1.9 2006/05/26 21:33:29 mbaas Exp $
 
 import optparse
-import sys, os
+import sys, os, glob
 import os.path
 import time
 from cgkit import sequence
@@ -121,7 +120,7 @@ class SequenceInfo:
                 return "%dd %dh"%(d,h)
             elif h>0:
                 return "%dh %dmin"%(h,m)
-            elif min>0:
+            elif m>0:
                 return "%dmin %ds"%(m,s)
             else:
                 return "%ss"%(s)
@@ -130,25 +129,38 @@ class SequenceInfo:
 def main():
     parser = optparse.OptionParser(usage="%prog [options] paths")
     parser.add_option("-l", "--long", action="store_true", default=False, help="Print additional information per sequence")
+    parser.add_option("-d", "--directories", action="store_true", default=False, help="List directories")
     opts,args = parser.parse_args()
 
     if len(args)==0:
         args = ["*"]
 
     args.sort()
+
+    # List directories first
+    if opts.directories:
+        for pattern in args:
+            for name in glob.glob("%s*"%pattern):
+                if os.path.isdir(name):
+                    if opts.long:
+                        print ("%53s/"%name)
+                    else:
+                        print ("%s/"%name)
+    
+    # List sequences
     for pattern in args: 
         fseqs = sequence.glob(pattern)
         for fseq in fseqs:
             if opts.long:
                 info = SequenceInfo(fseq)
-                print "%8s  %12s - %12s %-12s %s [%d files]"%(info.sizeStr(),
+                print ("%8s  %12s - %12s %-12s %s [%d files]"%(info.sizeStr(),
                                                         info.minMTimeStr(),
                                                         info.maxMTimeStr(),
                                                         "(%s)"%info.timeSpanStr(),
                                                         fseq,
-                                                        len(fseq))
+                                                        len(fseq)))
             else:
-                print fseq
+                print (fseq)
   
 ##########################################################################
   

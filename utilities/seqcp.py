@@ -38,6 +38,7 @@ import sys
 import optparse
 from cgkit import sequence
 
+
 def promptUser(question):
     """Print a question and ask for y/n.
     
@@ -61,7 +62,7 @@ def main():
     parser.add_option("-s", "--source-frames", default="0-", metavar="FRAMES", help="Specify a subset of the source frames")
     parser.add_option("-d", "--destination-frames", default=None, metavar="FRAMES", help="Specify the destination numbers")
     parser.add_option("-f", "--force", action="store_true", default=False, help="Never query the user for confirmation")
-    parser.add_option("-t", "--test", action="store_true", default=False, help="Only print what would be done, but don't move anything")
+    parser.add_option("-t", "--test", action="store_true", default=False, help="Only print what would be done, but don't copy anything")
     parser.add_option("-v", "--verbose", action="store_true", default=False, help="Print every file when it is copied")
     opts,args = parser.parse_args()
 
@@ -83,20 +84,19 @@ def main():
     # Determine the source sequences
     fseqs = sequence.glob(srcSeq)
     
-    mover = sequence.MoveSequence(fseqs, dstArg, [srcRange], dstRange, verbose=opts.verbose)
+    copier = sequence.CopySequence(fseqs, dstArg, [srcRange], dstRange, verbose=opts.verbose)
     
-    for srcSeq,dstSeq in mover.sequences():
-        print ("Move: %s -> %s"%(srcSeq, dstSeq))
-        
+    for srcSeq,dstSeq in copier.sequences():
+        print ("Copy: %s -> %s"%(srcSeq, dstSeq))
     
     # Check a file number would get appended to a trailing number in the base name
-    if mover.mergesNumbers() and not opts.force:
+    if copier.mergesNumbers() and not opts.force:
         print ("WARNING: The destination name ends in a number which would affect the output sequence number.")
         if not opts.test and not promptUser("Are you sure to continue?"):
             return
 
     # Check if an existing file would get overwritten
-    overwrites = list(mover.overwrites())
+    overwrites = list(copier.overwrites())
     if len(overwrites)>0 and not opts.force:
         print ("WARNING: %s files would get overwritten."%len(overwrites))
         if not opts.test and not promptUser("Are you sure to continue?"):
@@ -104,10 +104,12 @@ def main():
 
     # Dry run or real run...
     if opts.test:
-        mover.dryRun()
+        copier.dryRun()
     else:
-        mover.run()
-    
+        copier.run()
+
+    # TODO: If forward/backward copy fails, the files need to be copied to a temporary sequence first and then renamed.
+
 ##########################################################################
 try:
     main()

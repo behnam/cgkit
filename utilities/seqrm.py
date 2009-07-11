@@ -33,7 +33,6 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-# $Id: rmshader.py,v 1.9 2006/05/26 21:33:29 mbaas Exp $
 
 import sys
 import optparse
@@ -54,11 +53,12 @@ def promptUser(question):
             return False
         if answer=="y":
             return True
-        print "Expected 'y' or 'n'"
+        print ("Expected 'y' or 'n'")
 
 def main():
     parser = optparse.OptionParser(usage="%prog [options] sequences")
     parser.add_option("-f", "--force", action="store_true", default=False, help="Never query the user for confirmation")
+    parser.add_option("-v", "--verbose", action="store_true", default=False, help="Print every file when it is deleted")
     opts,args = parser.parse_args()
 
     if len(args)<1:
@@ -92,8 +92,10 @@ def main():
             
     # Delete the sequences..
     for fseq in sequences:
-        print "Deleting %s"%fseq
+        print ("Deleting %s"%fseq)
         for fileName in fseq:
+            if opts.verbose:
+                print ("Deleting %s"%fileName)
             os.remove(str(fileName))
             
     return 0
@@ -107,10 +109,10 @@ try:
 except SystemExit:
     ret = 1
 except KeyboardInterrupt:
-    print >>sys.stderr, "\nUser abort"
+    sys.stderr.write("\nUser abort\n")
     ret = 1
 except:
-    print >>sys.stderr, "ERROR:",sys.exc_info()[1]
+    sys.stderr.write("ERROR: %s"%sys.exc_info()[1])
 #    raise
     ret = 1
 

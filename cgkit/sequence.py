@@ -40,6 +40,7 @@ import os.path
 import re
 import glob as _glob
 import copy
+import shutil
 
 class SeqString:
     """Sequence string class.
@@ -428,7 +429,13 @@ class SeqString:
         self._value[idx2] = txt
 
 class Sequence:
-    """A list of names that all belong to the same sequence.
+    """A list of names/objects that all belong to the same sequence.
+    
+    The sequence can store the original objects that are associated with a
+    name or it can only store the names (as SeqString) objects. If the
+    original objects are available or not depends on how the sequence was
+    built. If the getNameFunc parameter was used when building the sequence
+    (see Sequences), then the original objects will be available.
     
     The class can be used like a list (using len(), index operator or iteration).
     """
@@ -438,6 +445,10 @@ class Sequence:
         """
         # A list of file names (stored as SeqString objects)
         self._names = []
+        
+        # The actual objects. This is either a list that always has as many
+        # items as _names or it is None.
+        self._objects = None
     
     def __str__(self):
         placeholder,ranges = self.sequenceName()
@@ -447,12 +458,41 @@ class Sequence:
             return "%s (%s)"%(placeholder, "; ".join(ranges))
     
     def __len__(self):
+        """Return the length of the sequence.
+        """
         return len(self._names)
     
-    def __getitem__(self, key):
-        """Return an element as a SeqString.
+    def __getitem__(self, idx):
+        """Return the object at position idx.
+        
+        The return value is either the original object that was stored
+        in the sequence or it is a SeqString containing the name if the
+        original object was just a string.
         """
-        return self._names[key]
+        if self._objects is None:
+            return self._names[idx]
+        else:
+            return self._objects[idx]
+    
+    def iterNames(self):
+        """Iterate over the names.
+        
+        Yields SeqString objects.
+        """
+        return iter(self._names)
+    
+    def iterObjects(self):
+        """Yield over the objects.
+        
+        Yields the original objects or the names as SeqStrings if the
+        objects haven't been stored in the sequence.
+        Using this method is equivalent to iterating over the sequence
+        object directly.
+        """
+        if self._objects is None:
+            return self.iterNames()
+        else:
+            return iter(self._objects)
     
     def match(self, name, numPos=None):
         """Check if a name matches the names in this sequence.
@@ -465,16 +505,26 @@ class Sequence:
         else:
             return self._names[0].match(name, numPos)
 
-    def append(self, name):
+    def append(self, name, obj=None):
         """Add a file name to the group.
         
         name can be a SeqString object or a regular string.
         The name is added unconditionally, so it's the callers responsibility
         to make sure the file really belongs to this sequence.
+        
+        This is called internally when sequences are built!
         """
         if not isinstance(name, SeqString):
             name = SeqString(name)
 
+        if obj is not None:
+            if self._objects is None:
+                if len(self._names)==0:
+                    self._objects = []
+                else:
+                    raise ValueError("objects must be given for all or none of the names")
+            self._objects.append(obj)
+            
         self._names.append(name)
         
     def sequenceNumberIndex(self):
@@ -607,7 +657,7 @@ class Sequences:
     """A collection of sequences.
     """
     
-    def __init__(self, names=[], assumeFiles=False):
+    def __init__(self, names=[], assumeFiles=False, getNameFunc=None):
         """Constructor.
         
         names is a list of strings that will be grouped into sequences.
@@ -616,7 +666,7 @@ class Sequences:
         self._sequences = []
         
         # Create the sequences
-        self.setFiles(names, assumeFiles=assumeFiles)
+        self.setFiles(names, assumeFiles=assumeFiles, getNameFunc=getNameFunc)
 
     def __str__(self):
         return "<Sequences: %d sequences>"%len(self._sequences)
@@ -636,7 +686,7 @@ class Sequences:
         self._sequences = []
 
     # setFiles
-    def setFiles(self, names, numPos=None, assumeFiles=False):
+    def setFiles(self, names, numPos=None, assumeFiles=False, getNameFunc=None):
         """Initialize the sequences given a flat list of names.
         
         names is a list of objects (usually strings) that are turned into
@@ -645,21 +695,31 @@ class Sequences:
         names. In this case, it will be ensured that files from different
         directories are put into different sequences and any number occurring
         in the directory part is "frozen" (turned into a string).
+        
+        getNameFunc can be a callable that gets called for every item in names.
+        The function has to return the actual name of that object. This can
+        be used if the input list contains object that are not strings but
+        some other (compound) objects.
         """
 
         self.clear()
 
-        # Convert the names into SeqString objects and sort them (numerically)...
+        # Create the objects list which contains 2-tuples (seqString,obj).
+        # obj is the original object from the "names" list or None.
+        if getNameFunc is None:
+            objects = map(lambda name: (SeqString(name),None), names)
+        else:
+            objects = map(lambda obj: (SeqString(getNameFunc(obj)),obj), names)
+        # Sort the objects according to their seqString
         # The order of the result is already so that members of the same
         # sequence are together, we just don't know yet where a sequence ends
         # and the next one begins.
-        seqnames = map(SeqString, names)
-        seqnames.sort()
+        objects.sort(key=lambda tup: tup[0])
         
         # Build sequences...
         currentSeq = Sequence()
         currentPath = None
-        for name in seqnames:
+        for name,obj in objects:
             # Are we dealing with file names? Then freeze directory numbers...
             if assumeFiles:
                 path,n = os.path.split(str(name))
@@ -692,7 +752,7 @@ class Sequences:
                 currentSeq = Sequence()
                 
             # Add the current name to the current sequence
-            currentSeq.append(name)
+            currentSeq.append(name, obj)
 
         # Also store the last sequence generated (if it isn't empty)
         if len(currentSeq)>0:
@@ -871,7 +931,7 @@ class Range:
 class SeqTemplate:
     """Sequence template class.
     
-    An instance of this class represens a template string to create numbered
+    An instance of this class represents a template string to create numbered
     sequences.
     """
     
@@ -1062,6 +1122,670 @@ class SeqTemplate:
             s.replaceStr(i,tok)
             
         return s, valExprs, indices, hasExplicitIndex
+
+
+class OutputNameGenerator:
+    """Generate the file names of an output sequence based on an input sequence.
+    
+    This class produces output sequence file names that are based on an input
+    sequence. The class is meant to be used by applications that produce an
+    output file sequence based on an input sequence but where the numbers in
+    the output sequence may be different than the numbers in the input sequence.
+    For example, the class is used by the sequence utilities (seqmv, seqcp,
+    seqrm, seqln).
+    
+    An OutputNameGenerator has one public attribute called numberMergeFlag
+    which is True when the output name pattern ended in a digit but didn't
+    contain any number pattern. In this case, the class will append a 4-padded
+    number but because the name already ended in a digit, the combination
+    of the pattern and the number results in a larger number which is
+    not necessarily what the user intended. The flag can be used by an
+    application to check whether it should ask the user for confirmation.
+    """
+    
+    def __init__(self, srcSequences, dstName, srcRanges=None, dstRange=None, keepExt=True,
+                 enforceDstRange=False, repeatSrc=True):
+        """Constructor.
+        
+        srcSequences is a list of Sequence objects that contain the source
+        sequence files that the output sequence is based on. The structure of
+        the names (i.e. how many separate numbers are within a name) determines
+        how many number patterns the output name may have.
+        dstName is a string containing the name pattern for building the
+        output file names. The syntax of the pattern is determined by the
+        SeqTemplate class (i.e. you can use @ or # characters to define where
+        the numbers are located and what their padding is. You can also
+        use an index to refer to a particular number from the input sequence
+        and you can use expressions within curly braces).
+        In the simplest case, the name can just be a base name without any
+        special characters at all. In this case, a 4-padded number is
+        automatically appended which will receive the values from the
+        main number sequence in the input files (or the values specified by
+        the destination range).
+        
+        srcRanges is a list of Range objects that defines which files from the
+        source sequence should be considered, everything outside the range
+        is ignored. The numbers produced by the range object refers to the
+        main sequence number of the input sequence (i.e. the number that varies
+        fastest). If no source range is given for a particular sequence, then
+        all input files are considered.
+        
+        dstRange may be a Range object that provides the main sequence number
+        for the output names. In this case, the main number from the input
+        sequence is ignored (unless referenced via an expression). If no range
+        object is given, the numbers are taken from the input sequence.
+        
+        keepExt is a boolean that indicates whether the file name extension
+        should be added automatically if it isn't already part of the output
+        name pattern. Note that the extension is *always* added unless the
+        output name already contains exactly the expected extension. If the
+        output name contains a different extension, the old extension is still
+        added. So if you want to be able to let the user rename the extension,
+        you must set this flag to False.
+        
+        enforceDstRange is a boolean that indicates whether the number of
+        generated name pairs should always match the number of files indicated
+        by the (finite) destination range, even when the source files have
+        already been exhausted. The default behavior is to abort the sequence
+        if there are no more source files. If the destination range is infinite,
+        then this flag has no effect and the sequence always ends when there
+        are no more source files.
+        
+        repeatSrc is a flag that is only used when enforceDstRange is True
+        and there are fewer input files than there are values in the destination
+        range. If repeatSrc is True, the input sequence is repeated from the
+        beginning again, otherwise the last name is duplicated.
+        """
+        if srcRanges is None:
+            srcRanges = []
+        for seq in srcSequences:
+            if not isinstance(seq, Sequence):
+                raise TypeError("The source sequences must be Sequence objects")
+        if not isinstance(dstName, basestring):
+            raise TypeError("The output sequence pattern must be a string")
+        for sr in srcRanges:
+            if sr is not None and not isinstance(sr, Range):
+                raise TypeError("The source ranges must be Range objects or None")
+        if dstRange is not None and not isinstance(dstRange, Range):
+            raise TypeError("The destination range must be a Range object or None")
+        
+        # Add full range to the srcRanges list until the length is identical to
+        # the number of sequences.
+        srcRanges.extend((len(srcSequences)-len(srcRanges))*[Range("0-")])
+
+        if dstRange is None:
+            dstRangeIter = None
+            enforceDstRange = False
+        else:
+            # Never enforce an infinite range
+            if dstRange.isInfinite():
+                enforceDstRange = False
+                
+            dstRangeIter = iter(dstRange)
+
+        self._srcSequences = srcSequences
+        self._dstName = dstName
+        self._srcRanges = srcRanges
+        self._dstRange = dstRange
+        self._dstRangeIter = dstRangeIter
+        self._keepExt = keepExt
+        self._enforceDstRange = enforceDstRange
+        self._repeatSrc = repeatSrc
+        self.numberMergeFlag = False
+
+        # Run the output preparation just to set the numberMergeFlag.
+        # The preparation is later done again when the user iterates over the names
+        for srcSeq in self._srcSequences:
+            self._outputNameSpec(srcSeq, dstName, dstRangeIter is not None)
+
+        
+    def iterNames(self):
+        """Iterate over input/output name pairs.
+        
+        Yields tuples (srcName, dstName) where source name is the unmodified
+        name from the input sequences and dstName is the generated output name
+        (as specified by the output pattern and additional arguments that
+        were passed to the constructor).
+        """
+    
+        # Iterate over all input sequences
+        for srcSeq,srcRange in zip(self._srcSequences, self._srcRanges):
+            # If the destination name refers to a directory, then use the sequence
+            # name of the input sequence.
+            if os.path.isdir(self._dstName):
+                dstName = os.path.join(self._dstName, os.path.basename(srcSeq.sequenceName()[0]))
+            else:
+                dstName = self._dstName
+        
+            # Create the src,dst pairs...
+            seqFileTable = []
+            for src,dst in self._iterNames(srcSeq, dstName, srcRange, self._dstRangeIter,
+                                           self._enforceDstRange, self._repeatSrc, self._keepExt):
+                yield (src,dst)
+
+    def _iterNames(self, srcSequence, dstName, srcRange, dstRangeIter, enforceDstRange, repeatSrc, keepExt):
+        """Iterate over input/output name pairs.
+        
+        Yields tuples (srcName, dstName) where source name is the unmodified
+        name from the input sequence and dstName the generated output name
+        (as specified by the output pattern and additional arguments that
+        were passed to the constructor).
+        """
+        
+        # If no source files are given, then no output files can be generated
+        if len(srcSequence)==0:
+            return
+        
+        # Prepare output name generation
+        res = self._outputNameSpec(srcSequence, dstName, dstRangeIter is not None)
+        dstTemplate, numIdxs, seqNumIdx = res
+        
+        srcIter = iter(srcSequence)
+        
+        # Assign output names to the input names...
+        while 1:
+            # srcIter is only None after it was already iterated over the source
+            # names and repeatSrc is set to False, so that the last name
+            # should just be kept.
+            if srcIter is not None:
+                try:
+                    srcName = srcIter.next()
+                except StopIteration:
+                    if enforceDstRange:
+                        if repeatSrc:
+                            srcIter = iter(srcSequence)
+                            srcName = srcIter.next()
+                        else:
+                            srcIter = None
+                    else:
+                        break
+            
+            srcName = str(srcName)
+            baseName = os.path.basename(srcName)
+            baseName,ext = os.path.splitext(baseName)
+            baseName = SeqString(baseName)
+            # Get all the numbers that are present in the source name
+            allNums = baseName.getNums()
+            # Only keep the numbers that are actually used in the output name
+            nums = map(lambda i: allNums[i], numIdxs)
+    
+            # Only queue this file when it is part of the source range
+            if len(nums)==0 or srcRange.contains(nums[seqNumIdx]):
+                # If a destination range was specified then replace the
+                # main file number with the next number in the range, otherwise
+                # the number from the input file is used
+                if dstRangeIter is not None and len(nums)>0:
+                    try:
+                        nums[seqNumIdx] = dstRangeIter.next()
+                    except StopIteration:
+                        break
+                # Create the file names and add them to the list
+                dstName = dstTemplate.substitute(nums)
+                if keepExt and os.path.splitext(dstName)[1]!=ext:
+                    dstName += ext
+                yield (srcName, dstName)
+    
+    def _outputNameSpec(self, fileSequence, dstName, newSequenceValues):
+        """Return everything that is required to produce output names.
+        
+        newSequenceValues is a boolean indicating whether the main sequence number
+        will receive new values or if the values from the input sequence are used.
+        
+        The return value is a 3-tuple (dstTemplate, numIdxs, seqNumIdx)
+        where dstTemplate is the SeqTemplate object that has to be used to
+        generate the final output name.
+        numIdxs is a list of indices that refer to the number in the source name
+        that will make it into the output name. For example, if the source files
+        are of the form "clip@_#" and numIdxs is [1], then this means only the
+        last number will be used for substitution and the final destination name
+        must have one substitution pattern. seqNumIdx is the index of the number
+        that is considered to be the main number (the index refers to the numIdxs
+        list, it's not the index in the source name).
+        
+        The method also sets the attribute numberMergeFlag to True if it
+        has appended a number pattern to the output name (because none was given)
+        but the name ended in a digit. This means the final number will be
+        different than what was specified in the input arguments. The caller may
+        use this attribute to ask the user for confirmation.
+        """
+        
+        # Get the number ranges of all numbers in the input sequence
+        ranges = fileSequence.ranges()
+        
+        # Create the output template
+        dstTemplate = SeqTemplate(dstName)
+        
+        # The index of the number that varies most (i.e. the index of the sequence number)
+        seqNumIdx = fileSequence.sequenceNumberIndex()
+    
+        numIdxs = []
+        numValues = len(ranges)
+        numVaryingValues = len(filter(lambda rng: len(rng)>1, ranges))
+        
+        numIdxs = range(numValues)
+        
+        indices = dstTemplate.expressionIndices(numValues)
+        numPatterns = len(indices)
+        if numPatterns>0 and (min(indices)<0 or max(indices)>=numValues):
+            raise ValueError("A number pattern in the output template name refers to a non-existent source number: %s"%dstName)
+    
+        # Is the destination name without any pattern at all? Then append '#' if
+        # there is a unique sequence number
+        if numPatterns==0:
+            if numVaryingValues==1 or newSequenceValues:
+                # Check if the name ends in a number. Appending the sequence number
+                # would create new numbers (e.g. "clip2#" -> "clip20001", "clip20002",...)
+                if len(dstName)>0 and dstName[-1] in string.digits:
+                    self.numberMergeFlag = True
+                # Add a pattern that refers to the sequence number (+1 because the index in the pattern is 1-based)
+                dstTemplate = SeqTemplate(dstName+"#[%s]"%(seqNumIdx+1))
+                indices = [seqNumIdx]
+#                numIdxs = [seqNumIdx]
+            elif numVaryingValues!=0:
+                raise ValueError('Invalid destination name: "%s". Cannot figure out how to number the destination files. There are %s varying numbers.'%(dstName, numVaryingValues))
+        # Do we only have as many patterns as there are *varying* numbers
+        # and no explicit index was specified?
+        # Then we can assume that the user only wants to reference the varying
+        # numbers and the constant numbers are just part of the name.
+        elif numPatterns==numVaryingValues and not dstTemplate.hasExplicitIndex:
+            numIdxs = []
+            for i,rng in enumerate(ranges):
+                if len(rng)>1:
+                    numIdxs.append(i)
+        # Do we have too little patterns? (and the user did not specify any
+        # index explicitly?)
+        # If so, throw an error because it's not clear which number should be
+        # mapped to which pattern.
+        elif numPatterns!=numValues and not dstTemplate.hasExplicitIndex and not newSequenceValues:
+            if numValues==numVaryingValues:
+                expectedStr = "%s pattern"%numValues
+                if numValues>1:
+                    expectedStr += "s"
+            else:
+                expectedStr = "%s or %s patterns"%(numVaryingValues, numValues)
+            if numPatterns>numValues:
+                raise ValueError('Invalid destination name: "%s". There are too many substitution patterns (expected %s).'%(dstName, expectedStr))
+            else:
+                raise ValueError('Invalid destination name: "%s". There are not enough substitution patterns (expected %s).'%(dstName, expectedStr))
+    
+        # Recompute the index that refers to the sequence number (as we might have
+        # removed some numbers from the list and seqNumIdx should always refer
+        # to a number that is actually used in the output, so that the -d option works)
+        seqNumIdx = -1
+        maxVal = -1
+#        for i,idx in enumerate(indices):
+        for i,idx in enumerate(numIdxs):
+            v = len(ranges[idx])
+            if v>=maxVal:
+                seqNumIdx = i
+                maxVal = v
+        
+        return dstTemplate, numIdxs, seqNumIdx
+
+
+class _SequenceProcessor:
+    """Base class for move/copy/link.
+    """
+    
+    def __init__(self, srcSequences, dstName, srcRanges=None, dstRange=None, keepExt=True, enforceDstRange=False, verbose=False):
+        ong = OutputNameGenerator(srcSequences,
+                                  dstName,
+                                  srcRanges = srcRanges,
+                                  dstRange = dstRange,
+                                  keepExt = keepExt,
+                                  enforceDstRange = enforceDstRange)
+        
+        self._mergesNumbers = ong.numberMergeFlag
+        self._verbose = verbose
+        
+        # Create the file table
+        fileTab = []
+        for uiSrc,uiDst in ong.iterNames():
+            src = os.path.realpath(uiSrc)
+            dst = os.path.realpath(uiDst)
+            fileTab.append((src,dst,uiSrc,uiDst))
+            
+        # Resolve internal collisions
+        srcFiles = map(lambda t: t[0], fileTab)
+        fileTab = self._resolveCollisions(fileTab, srcFiles)
+
+        self._fileTab = fileTab
+            
+    def mergesNumbers(self):
+        """Check if a trailing number on the output sequence and a file number would get merged.
+        
+        This method returns True when the base output sequence name ends in
+        a number and a sequence number would be appended as well which results
+        in a new number (for example, writing a sequence with the base name
+        out2 can produce output files out20001, out20002, ... which may not
+        be what the user intended). The result of this call can be used to
+        check if the application should ask the user for confirmation.
+        """
+        return self._mergesNumbers
+
+    def overwrites(self):
+        """Iterate over all output file names that already exist on disk.
+        
+        Only iterates over the files that are not part of the input sequence.
+        The returned files are those that would get overwritten when the
+        move operation would be carried out.
+        This can be used to check if the user should be asked for confirmation.
+        """
+        srcDict = {}
+        srcFiles = map(lambda t: t[0], self._fileTab)
+        for srcName in srcFiles:
+            srcDict[srcName] = 1
+            
+        dstFiles = map(lambda t: t[1], self._fileTab)
+        overwrites = []
+        for dstName in dstFiles:
+            if dstName not in srcDict and os.path.exists(dstName):
+                yield dstName
+    
+    def sequences(self):
+        """Iterate over the input/output sequences.
+        
+        Yields tuples (srcSeq, dstSeq) where each item is a Sequence()
+        object. The result can be used to show an overview of what the
+        move operation will do.
+        """
+        # Print the final source and destination sequences (just for user info)
+        seqs = Sequences(self._fileTab, getNameFunc=lambda t:t[2])
+        for srcSeq in seqs:
+            dstFiles = map(lambda t: t[3], srcSeq)
+            dstSeq = Sequences(dstFiles)[0]
+            yield srcSeq, dstSeq
+
+    def dryRun(self, outStream=None):
+        """Print what would get done when run() was called.
+        
+        outStream is an object with a write() method that will receive
+        the text. If None is passed, sys.stdout is used.
+        """
+        if outStream is None:
+            outStream = sys.stdout
+            
+        for src,dst,uiSrc,uiDst in self._fileTab:
+            if src!=dst:
+                outStream.write("%s -> %s\n"%(uiSrc, uiDst))
+    
+    def run(self, outStream=None):
+        """Do the operation.
+
+        outStream is an object with a write() and flush() method that will receive
+        the text (only in verbose mode). If None is passed, sys.stdout is used.
+        """
+        if outStream is None:
+            outStream = sys.stdout
+        
+        # Execute the list
+        for src,dst,uiSrc,uiDst in self._fileTab:
+            if src!=dst:
+                if self._verbose:
+                    outStream.write("%s -> %s\n"%(uiSrc, uiDst))
+                    outStream.flush()
+                self._fileOperation(src, dst)
+                
+    def _fileOperation(self, src, dst):
+        """Do the file operation.
+        
+        This must be implemented in a derived class.
+        """
+        raise NotImplementedError("This method must be implemented in a derived class")
+    
+    def _resolveCollisions(self, fileTable, srcFiles):
+        """Modify the file table, so that moving files doesn't result in collisions.
+        
+        Collisions are only checked among the files in the table, it is not checked
+        that a move operation would overwrite a file on disk.
+        Returns the new file table (the old table might have been modified!).
+        
+        srcFiles is the list of initial files as they exist on disk (the strings
+        must match the srcName strings in fileTable).
+        
+        Raises an exception if collisions cannot be resolved (this can happen
+        when the sequence contains file like img1.tif and img01.tif which might
+        both get mapped to the same output file name).
+        
+        This has to be implemented in a derived class.
+        """
+        return fileTable
+
+
+class MoveSequence(_SequenceProcessor):
+    """This class moves one or more sequences of files.
+    """
+    
+    def __init__(self, srcSequences, dstName, srcRanges=None, dstRange=None, keepExt=True, verbose=False):
+        """Constructor.
+        
+        srcSequences is a list of Sequence objects that contain the source
+        sequence files that the output sequence is based on.
+        
+        dstName is a string containing the name pattern for building the
+        output file names. The pattern may contain @ or # characters to define
+        where the numbers should appear and what their padding is.
+        You can also use an index to refer to a particular number from the
+        input sequence and you can use expressions within curly braces.
+        In the simplest case, the name can just be a base name without any
+        special characters at all. In this case, a 4-padded number is
+        automatically appended which will receive the values from the
+        main number sequence in the input files (or the values specified by
+        the destination range).
+
+        srcRanges is a list of Range objects that defines which files from the
+        source sequence should be considered, everything outside the range
+        is ignored. The numbers produced by the range object refers to the
+        main sequence number of the input sequence (i.e. the number that varies
+        fastest). If no source range is given for a particular sequence, then
+        all input files are considered.
+
+        dstRange may be a Range object that provides the main sequence number
+        for the output names. In this case, the main number from the input
+        sequence is ignored (unless referenced via an expression). If no range
+        object is given, the numbers are taken from the input sequence.
+        
+        keepExt is a boolean that indicates whether the file name extension
+        should be added automatically if it isn't already part of the output
+        name pattern. Note that the extension is *always* added unless the
+        output name already contains exactly the expected extension. If the
+        output name contains a different extension, the old extension is still
+        added. So if you want to be able to let the user rename the extension,
+        you must set this flag to False.
+        
+        The verbose flag determines whether each file is printed during the
+        actual operation.
+        """
+        _SequenceProcessor.__init__(self, srcSequences, dstName, srcRanges, dstRange, keepExt, enforceDstRange=False, verbose=verbose)
+            
+    def _fileOperation(self, src, dst):
+        """Do the move operation.
+        """
+        shutil.move(src, dst)
+    
+    def _checkCollisions(self, fileTable, srcFiles):
+        """Check if moving/renaming the files would lead to collisions.
+        
+        fileTable is a list of tuples where the first two items are the
+        srcName and the dstName. There may be additional items per tuple which
+        are just ignored.
+        srcFiles is the list of initial files as they exist on disk (the strings
+        must match the srcName strings in fileTable).
+        
+        Returns True when a file from the input sequence would get overwritten.
+        """
+        fileDict = {}
+        # Initialize the file dict with the source files
+        for name in srcFiles:
+            fileDict[name] = 1
+            
+        # Simulate the rename operations and check if there is a collision
+        for item in fileTable:
+            srcName = item[0]
+            dstName = item[1]
+            del fileDict[srcName]
+            if fileDict.has_key(dstName):
+                return True
+            fileDict[dstName] = 1
+            
+        return False
+    
+    def _resolveCollisions(self, fileTable, srcFiles):
+        """Modify the file table, so that moving files doesn't result in collisions.
+        
+        Collisions are only checked among the files in the table, it is not checked
+        that a move operation would overwrite a file on disk.
+        Returns the new file table (the old table might have been modified!).
+        
+        srcFiles is the list of initial files as they exist on disk (the strings
+        must match the srcName strings in fileTable).
+        
+        Raises an exception if collisions cannot be resolved (this can happen
+        when the sequence contains file like img1.tif and img01.tif which might
+        both get mapped to the same output file name).
+        """
+        # Check if renaming in the current order would result in a collision.
+        if self._checkCollisions(fileTable, srcFiles):
+            # Try the reverse order instead
+            fileTable.reverse()
+                    
+            # If this still collides, then use a temporary name
+            if self._checkCollisions(fileTable, srcFiles):
+                fileTable.reverse()
+                tab1 = []
+                tab2 = []
+                for item in fileTable:
+                    srcName = item[0]
+                    dstName = item[1]
+                    uiSrcName = item[2]
+                    uiDstName = item[3]
+                    
+                    p,n = os.path.split(dstName)
+                    tmpName = os.path.join(p, "__tmp__"+n)
+                    p,n = os.path.split(uiDstName)
+                    uiTmpName = os.path.join(p, "__tmp__"+n)
+                    
+                    tab1.append((srcName,tmpName,uiSrcName,uiTmpName))
+                    tab2.append((tmpName,dstName,uiTmpName,uiDstName))
+                fileTable = tab1+tab2
+                
+                if self._checkCollisions(fileTable, srcFiles):
+                    raise ValueError("Cannot resolve collisions because of inconsistent sequence numbering. A file from the input sequence would overwrite another file from the same sequence.")
+    
+        return fileTable
+
+
+class CopySequence(_SequenceProcessor):
+    """This class copies one or more sequences of files.
+    """
+    
+    def __init__(self, srcSequences, dstName, srcRanges=None, dstRange=None, keepExt=True, verbose=False):
+        """Constructor.
+        
+        srcSequences is a list of Sequence objects that contain the source
+        sequence files that the output sequence is based on.
+        
+        dstName is a string containing the name pattern for building the
+        output file names. The pattern may contain @ or # characters to define
+        where the numbers should appear and what their padding is.
+        You can also use an index to refer to a particular number from the
+        input sequence and you can use expressions within curly braces.
+        In the simplest case, the name can just be a base name without any
+        special characters at all. In this case, a 4-padded number is
+        automatically appended which will receive the values from the
+        main number sequence in the input files (or the values specified by
+        the destination range).
+
+        srcRanges is a list of Range objects that defines which files from the
+        source sequence should be considered, everything outside the range
+        is ignored. The numbers produced by the range object refers to the
+        main sequence number of the input sequence (i.e. the number that varies
+        fastest). If no source range is given for a particular sequence, then
+        all input files are considered.
+
+        dstRange may be a Range object that provides the main sequence number
+        for the output names. In this case, the main number from the input
+        sequence is ignored (unless referenced via an expression). If no range
+        object is given, the numbers are taken from the input sequence.
+        
+        keepExt is a boolean that indicates whether the file name extension
+        should be added automatically if it isn't already part of the output
+        name pattern. Note that the extension is *always* added unless the
+        output name already contains exactly the expected extension. If the
+        output name contains a different extension, the old extension is still
+        added. So if you want to be able to let the user rename the extension,
+        you must set this flag to False.
+        
+        The verbose flag determines whether each file is printed during the
+        actual operation.
+        """
+        _SequenceProcessor.__init__(self, srcSequences, dstName, srcRanges, dstRange, keepExt, enforceDstRange=True, verbose=verbose)
+            
+    def _fileOperation(self, src, dst):
+        """Do the copy operation.
+        """
+        shutil.copy(src, dst)
+    
+    def _checkCollisions(self, fileTable, srcFiles):
+        """Check if copying the files would lead to collisions.
+        
+        fileTable is a list of tuples where the first two items are the
+        srcName and the dstName. There may be additional items per tuple which
+        are just ignored.
+        srcFiles is the list of initial files as they exist on disk (the strings
+        must match the srcName strings in fileTable).
+        """
+        fileDict = {}
+        # Initialise the file dict with the source files
+        for name in srcFiles:
+            fileDict[name] = 1
+            
+        # Simulate the copy operations and check if there is a collision
+        for item in fileTable:
+            srcName = item[0]
+            dstName = item[1]
+            # Check if the original source file has already been overwritten
+            if srcName not in fileDict:
+                return True
+            if dstName in fileDict:
+                del fileDict[dstName]
+            
+        return False
+    
+    def _resolveCollisions(self, fileTable, srcFiles):
+        """Modify the file table, so that moving files doesn't result in collisions.
+        
+        Collisions are only checked among the files in the table, it is not checked
+        that a move operation would overwrite a file on disk.
+        Returns the new file table (the old table might have been modified!).
+        
+        srcFiles is the list of initial files as they exist on disk (the strings
+        must match the srcName strings in fileTable).
+        
+        Raises an exception if collisions cannot be resolved (this can happen
+        when the sequence contains file like img1.tif and img01.tif which might
+        both get mapped to the same output file name).
+        """
+        # Check if renaming in the current order would result in a collision.
+        if self._checkCollisions(fileTable, srcFiles):
+            # Try the reverse order instead
+            fileTable.reverse()
+                    
+            # If this still collides, then use a temporary name
+            if self._checkCollisions(fileTable, srcFiles):
+                fileTable.reverse()
+                raise ValueError("Cannot resolve collisions because of inconsistent sequence numbering. A file from the input sequence would overwrite another file from the same sequence.")
+    
+        return fileTable
+
+
+class SymLinkSequence(CopySequence):
+    """This class creates symbolic links between sequences.
+    """
+    def _fileOperation(self, src, dst):
+        """Do the copy operation.
+        """
+        os.symlink(src, dst)
 
 
 def compactRange(values):

@@ -7,9 +7,15 @@ New features:
 
 - New module sloargs to parse compiled RenderMan shaders.
 - New module pointcloud to read/write RenderMan point cloud files.
+- New module sequence that contains functionality to deal with numbered
+  (file) sequences. There are also new utilities seqls.py, seqmv.py, seqcp.py
+  and seqrm.py (the equivalent of ls, mv, cp, rm but they work on file
+  sequences).
 
 Bug fixes/enhancements:
 
+- ribexport: A custom rib string can now also be added to light sources
+  (for the image pass).
 - setup script: In addition to the general config file config.cfg the setup
   script also reads a version-specific config_pyXY.cfg script.
 - mat4: Wrapped the mat4 constructor that takes 16 floats as input. Because

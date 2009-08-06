@@ -781,6 +781,10 @@ class ImagePass(RenderPass):
             RiAttributeBegin()
             RiAttribute("identifier", "name", lgt.name)
             RiConcatTransform(lgt.worldtransform.toList())
+            # Custom RIB
+            rib = getattr(lgt, "rib", None)
+            if rib is not None:
+                RiArchiveRecord(RI_VERBATIM, rib+"\n")
             lid = self.exporter.applyLightSource(lgt)
             RiAttributeEnd()
             if lid!=None:

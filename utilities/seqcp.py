@@ -36,6 +36,7 @@
 
 import sys
 import optparse
+import cgkit.cgkitinfo
 from cgkit import sequence
 
 
@@ -61,10 +62,18 @@ def main():
     parser = optparse.OptionParser(usage="%prog [options] src dst")
     parser.add_option("-s", "--source-frames", default="0-", metavar="FRAMES", help="Specify a subset of the source frames")
     parser.add_option("-d", "--destination-frames", default=None, metavar="FRAMES", help="Specify the destination numbers")
+    parser.add_option("-e", "--drop-extensions", action="store_true", default=False, help="Don't handle missing file extensions in the output pattern")
+    parser.add_option("-S", "--symlink", action="store_true", default=False, help="Create symbolic links instead of copying the files")
+    parser.add_option("-R", "--realpath", action="store_true", default=False, help="Use the real path of the source files (follow links). This is only relevant when symbolic links are created.")
     parser.add_option("-f", "--force", action="store_true", default=False, help="Never query the user for confirmation")
     parser.add_option("-t", "--test", action="store_true", default=False, help="Only print what would be done, but don't copy anything")
     parser.add_option("-v", "--verbose", action="store_true", default=False, help="Print every file when it is copied")
+    parser.add_option("-V", "--version", action="store_true", default=False, help="Display version information")
     opts,args = parser.parse_args()
+
+    if opts.version:
+        print ("seqcp (cgkit %s)"%cgkit.cgkitinfo.version)
+        sys.exit(0)
 
     if len(args)!=2:
         parser.print_usage()
@@ -84,19 +93,26 @@ def main():
     # Determine the source sequences
     fseqs = sequence.glob(srcSeq)
     
-    copier = sequence.CopySequence(fseqs, dstArg, [srcRange], dstRange, verbose=opts.verbose)
+    if opts.symlink:
+        processor = sequence.SymLinkSequence(fseqs, dstArg, [srcRange], dstRange,
+                                             keepExt=not opts.drop_extensions, verbose=opts.verbose, resolveSrcLinks=opts.realpath)
+        opStr = "Link"
+    else:
+        processor = sequence.CopySequence(fseqs, dstArg, [srcRange], dstRange,
+                                          keepExt=not opts.drop_extensions, verbose=opts.verbose, resolveSrcLinks=opts.realpath)
+        opStr = "Copy"
     
-    for srcSeq,dstSeq in copier.sequences():
-        print ("Copy: %s -> %s"%(srcSeq, dstSeq))
+    for srcSeq,dstSeq in processor.sequences():
+        print ("%s: %s -> %s"%(opStr, srcSeq, dstSeq))
     
     # Check a file number would get appended to a trailing number in the base name
-    if copier.mergesNumbers() and not opts.force:
+    if processor.mergesNumbers() and not opts.force:
         print ("WARNING: The destination name ends in a number which would affect the output sequence number.")
         if not opts.test and not promptUser("Are you sure to continue?"):
             return
 
     # Check if an existing file would get overwritten
-    overwrites = list(copier.overwrites())
+    overwrites = list(processor.overwrites())
     if len(overwrites)>0 and not opts.force:
         print ("WARNING: %s files would get overwritten."%len(overwrites))
         if not opts.test and not promptUser("Are you sure to continue?"):
@@ -104,9 +120,9 @@ def main():
 
     # Dry run or real run...
     if opts.test:
-        copier.dryRun()
+        processor.dryRun()
     else:
-        copier.run()
+        processor.run()
 
     # TODO: If forward/backward copy fails, the files need to be copied to a temporary sequence first and then renamed.
 

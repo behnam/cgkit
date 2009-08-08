@@ -38,6 +38,7 @@ import optparse
 import sys, os, glob
 import os.path
 import time
+import cgkit.cgkitinfo
 from cgkit import sequence
 
 class SequenceInfo:
@@ -130,7 +131,12 @@ def main():
     parser = optparse.OptionParser(usage="%prog [options] paths")
     parser.add_option("-l", "--long", action="store_true", default=False, help="Print additional information per sequence")
     parser.add_option("-d", "--directories", action="store_true", default=False, help="List directories")
+    parser.add_option("-V", "--version", action="store_true", default=False, help="Display version information")
     opts,args = parser.parse_args()
+
+    if opts.version:
+        print ("seqls (cgkit %s)"%cgkit.cgkitinfo.version)
+        sys.exit(0)
 
     if len(args)==0:
         args = ["*"]

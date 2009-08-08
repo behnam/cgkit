@@ -36,6 +36,7 @@
 
 import sys
 import optparse
+import cgkit.cgkitinfo
 from cgkit import sequence
 
 def promptUser(question):
@@ -60,11 +61,17 @@ def main():
     parser = optparse.OptionParser(usage="%prog [options] src dst")
     parser.add_option("-s", "--source-frames", default="0-", metavar="FRAMES", help="Specify a subset of the source frames")
     parser.add_option("-d", "--destination-frames", default=None, metavar="FRAMES", help="Specify the destination numbers")
+    parser.add_option("-e", "--drop-extensions", action="store_true", default=False, help="Don't handle missing file extensions in the output pattern")
     parser.add_option("-f", "--force", action="store_true", default=False, help="Never query the user for confirmation")
     parser.add_option("-t", "--test", action="store_true", default=False, help="Only print what would be done, but don't move anything")
-    parser.add_option("-v", "--verbose", action="store_true", default=False, help="Print every file when it is copied")
+    parser.add_option("-v", "--verbose", action="store_true", default=False, help="Print every file when it is moved")
+    parser.add_option("-V", "--version", action="store_true", default=False, help="Display version information")
     opts,args = parser.parse_args()
 
+    if opts.version:
+        print ("seqmv (cgkit %s)"%cgkit.cgkitinfo.version)
+        sys.exit(0)
+        
     if len(args)!=2:
         parser.print_usage()
         return
@@ -83,7 +90,7 @@ def main():
     # Determine the source sequences
     fseqs = sequence.glob(srcSeq)
     
-    mover = sequence.MoveSequence(fseqs, dstArg, [srcRange], dstRange, verbose=opts.verbose)
+    mover = sequence.MoveSequence(fseqs, dstArg, [srcRange], dstRange, keepExt=not opts.drop_extensions, verbose=opts.verbose)
     
     for srcSeq,dstSeq in mover.sequences():
         print ("Move: %s -> %s"%(srcSeq, dstSeq))

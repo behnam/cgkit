@@ -38,6 +38,7 @@ import sys
 import optparse
 import os
 import os.path
+import cgkit.cgkitinfo
 from cgkit import sequence
 
 def promptUser(question):
@@ -59,7 +60,12 @@ def main():
     parser = optparse.OptionParser(usage="%prog [options] sequences")
     parser.add_option("-f", "--force", action="store_true", default=False, help="Never query the user for confirmation")
     parser.add_option("-v", "--verbose", action="store_true", default=False, help="Print every file when it is deleted")
+    parser.add_option("-V", "--version", action="store_true", default=False, help="Display version information")
     opts,args = parser.parse_args()
+
+    if opts.version:
+        print ("seqrm (cgkit %s)"%cgkit.cgkitinfo.version)
+        sys.exit(0)
 
     if len(args)<1:
         parser.print_usage()

@@ -45,13 +45,13 @@ import shutil
 class SeqString:
     """Sequence string class.
 
-    Sequence strings treat numbers inside a strings as integer numbers
+    Sequence strings treat numbers inside strings as integer numbers
     and not as strings. This can be used to sort numerically (e.g.
-    'anim01' is smaller than 'anim0002').
+    ``anim01`` is smaller than ``anim0002``).
 
     A sequence string is initialized by passing a regular string to
-    the constructor or by calling setString().
-    The main task of a SeqString is comparing two strings which can
+    the constructor. It can be converted back using the :func:`str()` operator.
+    The main task of a :class:`SeqString` is comparing two strings which can
     be done with the normal comparison operators. Example:
 
     >>> a = SeqString('a08')
@@ -71,17 +71,17 @@ class SeqString:
         to an empty string.
         """
         # This is an alternating sequence of text and number values
-        # (always beginning with a text (which might be empty)).
+        # (always beginning and ending with a text (which might both be empty)).
         # The value part is a tuple (value,numdigits) where value
         # is an integer and numdigits the number of digits the
-        # value was made of.
+        # value was made of. The list can never be empty (it always contains
+        # at least one string, even when that one is empty).
         # Example: 'anim1_0001.png' -> ['anim', (1,1), '_', (1,4), '.png']
-        self._value = []
-        
+        self._value = [""]
         self._initSeqString(s)
 
     def __repr__(self):
-        return self.__str__()
+        return "'%s'"%self.__str__()
 
     def __str__(self):
         """Convert the sequence string into a normal string.
@@ -98,7 +98,7 @@ class SeqString:
                 val,ndigits = vn
                 a = '%'+"0%dd"%ndigits
                 res += a%val
-        return res   
+        return res
 
     def __cmp__(self, other):
         """Comparison operator.
@@ -106,19 +106,27 @@ class SeqString:
         The text parts are treated as strings, the number parts as numbers
         (e.g. 'a08' is greater than 'a2').
         """
-
         if other is None:
             return 1
+        if not isinstance(other, SeqString):
+            if not isinstance(other, basestring):
+                return 1
+        
+        # Convert both strings into pristine SeqStrings (because some numbers
+        # on the input strings may have been replaced by strings which would
+        # mess with the comparison).
+        selfStr = SeqString(self)
+        other = SeqString(other)
         
         # Check the 'structure' of the strings first.
         # The numeric comparison is only done when the strings have the same
         # text/num patterns.
-        res = self.match_cmp(other)
+        res = selfStr.match_cmp(other)
         if res!=0:
             return res
 
         # Compare the individual components of the values side by side
-        for i, (a,b) in enumerate(zip(self._value, other._value)):
+        for i, (a,b) in enumerate(zip(selfStr._value, other._value)):
             if i%2==1:
                 # Get the numbers
                 a = a[0]
@@ -131,7 +139,7 @@ class SeqString:
 
         # If we are here everything has been equal so far, but maybe
         # one string has one component more in _value
-        return cmp(len(self._value), len(other._value))
+        return cmp(len(selfStr._value), len(other._value))
         
     def _initSeqString(self, s):
         """Initialize the sequence string with a string.
@@ -183,20 +191,24 @@ class SeqString:
         else:
              numtup = (int(textbuf),numtup[1])
              res.append(numtup)
+             res.append("")
 
         self._value = res
 
     def match(self, template, numPos=None):
         """Check if one sequence string is equal to another except for one or all numbers.
 
-        Returns True if the text parts of self and template are equal,
-        i.e. both strings belong to the same sequence.
+        Returns ``True`` if the text parts of *self* and *template* are equal,
+        i.e. both strings belong to the same sequence. *template* must be
+        a :class:`SeqString` object.
         
-        numPos is the index of the number that is allowed to vary. For example,
-        if numPos is -1, the last number in a string may be different for two
-        strings to be in the same sequence. If numPos is None, all numbers
-        may vary.
+        *numPos* is the index of the number that is allowed to vary. For example,
+        if *numPos* is -1, only the last number in a string may be different for two
+        strings to be in the same sequence. Al other numbers must match exactly
+        (including the padding). If *numPos* is ``None``, all numbers may vary.
         """
+        if not isinstance(template, SeqString):
+            raise TypeError("The template argument must be a SeqString object")
 
         # The lengths of the value lists must be equal
         if len(self._value)!=len(template._value):
@@ -212,7 +224,7 @@ class SeqString:
             if i%2==0:
                 if va!=vb:
                     return False
-            elif numPos is not None and i!=numPos and va[0]!=vb[0]:
+            elif numPos is not None and i!=numPos and va!=vb:
                 return False
             
         return True
@@ -220,12 +232,13 @@ class SeqString:
     def match_cmp(self, template):
         """Comparison function to build groups.
 
-        This is the same as match() but with a different return value
-        so that this method can be used as comparison function for sort().
+        Compare the text parts (the group name) of two sequence strings.
+        Numbers within the strings are ignored.
         
-        0: self==template, <0: self<template, >0: self>template
+        0 is returned if *self* and *template* belong to the same group, 
+        a negative value is returned if *self* comes before *template* and
+        a positive value is returned if *self* comes after *template*.
         """
-
         a = self.groupRepr()
         b = template.groupRepr()
         return cmp(a,b)
@@ -233,8 +246,8 @@ class SeqString:
     def groupRepr(self, numChar="*"):
         """Return a template string where the numbers are replaced by the given character.
         """
-        
         res=""
+        numChar = str(numChar)
         for i,v in enumerate(self._value):
             if i%2==0:
                 res += v
@@ -245,19 +258,21 @@ class SeqString:
     def numCount(self):
         """Return the number of number occurrences in the string.
 
-        Example: 'anim01.tif'    -> 1
-                 'anim1_018.tif' -> 2
-                 'anim'          -> 0
+        Examples:
+        
+        - ``anim01.tif``    -> 1
+        - ``anim1_018.tif`` -> 2
+        - ``anim``          -> 0
         """
         return int(len(self._value)/2)
 
     def getNum(self, idx):
         """Return a particular number inside the string.
 
-        idx is the index of the number (0-based) which may also be
+        *idx* is the index of the number (0-based) which may also be
         negative. The return value is an integer containing the number
         at that position. 
-        Raises an IndexError exception when idx is out of range.
+        Raises an :exc:`IndexError` exception when *idx* is out of range.
         """
 
         if idx<0:
@@ -270,10 +285,10 @@ class SeqString:
     def getNumStr(self, idx):
         """Return a particular number as a string just as it appears in the original string.
 
-        idx is the index of the number (0-based) which may also be
+        *idx* is the index of the number (0-based) which may also be
         negative. The return value is a string that contains the number
         as it appears in the string (including padding).
-        Raises an IndexError exception when idx is out of range.
+        Raises an :exc:`IndexError` exception when *idx* is out of range.
         """
 
         if idx<0:
@@ -296,29 +311,35 @@ class SeqString:
 
         return res
 
-    def setNum(self, idx, value):
+    def setNum(self, idx, value, width=None):
         """Set a new number.
 
-        idx is the index of the number (may be negative) and value
-        is the new integer value.
-        Raises an IndexError exception when idx is out of range.
-        """
+        *idx* is the index of the number (may be negative) and *value*
+        is the new integer value. If *width* is given, it will be the new
+        width of the number, otherwise the number keeps its old width.
+        Raises an :exc:`IndexError` exception when *idx* is out of range.
         
+        Note: It is possible to set a negative value. But when converted to
+        a string and then back to a sequence string again, that negative
+        number becomes a positive number and the minus symbol is part of
+        the preceding text part.
+        """
         if idx<0:
             idx = self.numCount()+idx
         if idx<0 or idx>=self.numCount():
             raise IndexError, "index out of range"
 
-        value = int(value)
-        width = self._value[idx*2+1][1]
-        self._value[idx*2+1] = (value,width)
+        if width is None:
+            width = self._value[idx*2+1][1]
+        self._value[idx*2+1] = (int(value),int(width))
 
     def setNums(self, nums):
         """Set all numbers at once.
         
-        nums is a list of integers. The number of values may not
-        exceed the number count in the string, otherwise an IndexError
-        exception is thrown.
+        *nums* is a list of integers. The number of values may not
+        exceed the number count in the string, otherwise an :exc:`IndexError`
+        exception is thrown. There may be fewer items in *nums* though in
+        which case the remaining numbers in the string keep their old value.
         """
         for i,val in enumerate(nums):
             self.setNum(i, val)
@@ -326,10 +347,9 @@ class SeqString:
     def getNumWidth(self, idx):
         """Return the number of digits of a particular number.
 
-        idx is the index of the number (may be negative).
-        Raises an IndexError exception when idx is out of range.
+        *idx* is the index of the number (may be negative).
+        Raises an :meth:`IndexError` exception when *idx* is out of range.
         """
-        
         if idx<0:
             idx = self.numCount()+idx
         if idx<0 or idx>=self.numCount():
@@ -340,11 +360,10 @@ class SeqString:
     def setNumWidth(self, idx, width):
         """Set the number of digits of a number.
 
-        idx is the index of the number (may be negative) and width
+        *idx* is the index of the number (may be negative) and *width*
         the new number of digits.
-        Raises an IndexError exception when idx is out of range.
+        Raises an :exc:`IndexError` exception when *idx* is out of range.
         """
-        
         if idx<0:
             idx = self.numCount()+idx
         if idx<0 or idx>=self.numCount():
@@ -368,8 +387,8 @@ class SeqString:
     def setNumWidths(self, widths):
         """Set the number of digits for all numbers.
         
-        widths must be a list of integers. The number of values may not
-        exceed the number count in the string, otherwise an IndexError
+        *widths* must be a list of integers. The number of values may not
+        exceed the number count in the string, otherwise an :exc:`IndexError`
         exception is thrown.
         """
         for i,w in enumerate(widths):
@@ -378,20 +397,23 @@ class SeqString:
     def deleteNum(self, idx):
         """Delete a number inside the string.
 
-        idx is the index of the number (0-based) which may also be
+        This is the same as replacing the number by an empty string.
+        
+        *idx* is the index of the number (0-based) which may also be
         negative.
-        Raises an IndexError exception when idx is out of range.
+        Raises an :exc:`IndexError` exception when *idx* is out of range.
         """
         self.replaceNum(idx, "")
 
     def replaceNum(self, idx, txt):
         """Replace a number by a string.
 
-        idx is the index of the number (0-based) which may also be
-        negative. txt is a string that will replace the number.
-        Raises an IndexError exception when idx is out of range.
-        """
+        The string is merged with the surrounding string parts.
         
+        *idx* is the index of the number (0-based) which may also be
+        negative. *txt* is a string that will replace the number.
+        Raises an :exc:`IndexError` exception when *idx* is out of range.
+        """
         if idx<0:
             idx = self.numCount()+idx
         if idx<0 or idx>=self.numCount():
@@ -408,9 +430,9 @@ class SeqString:
     def replaceStr(self, idx, txt):
         """Replace a string part by another string.
 
-        idx is the index of the sub-string (0-based) which may also be
-        negative. txt is a string that will replace the sub-string.
-        Raises an IndexError exception when idx is out of range.
+        *idx* is the index of the sub-string (0-based) which may also be
+        negative. *txt* is a string that will replace the sub-string.
+        Raises an :exc:`IndexError` exception when *idx* is out of range.
         """
         
         if idx<0:
@@ -426,18 +448,19 @@ class SeqString:
             raise IndexError, "index out of range"
 
         # Replace the text
-        self._value[idx2] = txt
+        self._value[idx2] = str(txt)
 
 class Sequence:
     """A list of names/objects that all belong to the same sequence.
     
     The sequence can store the original objects that are associated with a
-    name or it can only store the names (as SeqString) objects. If the
-    original objects are available or not depends on how the sequence was
-    built. If the getNameFunc parameter was used when building the sequence
-    (see Sequences), then the original objects will be available.
+    name or it can only store the names (as :class:`SeqString` objects). 
+    Whether the original objects are available or not depends on how the
+    sequence was built. If the *nameFunc* parameter was used when building
+    the sequence (see :func:`buildSequences`), then the original objects will be available.
     
-    The class can be used like a list (using len(), index operator or iteration).
+    The class can be used like a list (using :func:`len()`, index operator or
+    iteration).
     """
     
     def __init__(self):
@@ -455,7 +478,13 @@ class Sequence:
         if len(ranges)==0:
             return placeholder
         else:
-            return "%s (%s)"%(placeholder, "; ".join(ranges))
+            infoStr = "; ".join(ranges)
+            if len(infoStr)>20:
+                infoStr = "%d items"%len(self._names) 
+            return "%s (%s)"%(placeholder, infoStr)
+
+    def __repr__(self):
+        return "<Sequence %s>"%self.__str__()
     
     def __len__(self):
         """Return the length of the sequence.
@@ -475,17 +504,17 @@ class Sequence:
             return self._objects[idx]
     
     def iterNames(self):
-        """Iterate over the names.
+        """Iterates over the object names.
         
-        Yields SeqString objects.
+        Yields :class:`SeqString` objects.
         """
         return iter(self._names)
     
     def iterObjects(self):
-        """Yield over the objects.
+        """Iterate over the objects.
         
-        Yields the original objects or the names as SeqStrings if the
-        objects haven't been stored in the sequence.
+        Yields the original objects or the names as :class:`SeqString` objects
+        if the objects haven't been stored in the sequence.
         Using this method is equivalent to iterating over the sequence
         object directly.
         """
@@ -497,25 +526,47 @@ class Sequence:
     def match(self, name, numPos=None):
         """Check if a name matches the names in this sequence.
         
+        *name* is a string or :class:`SeqString` object that is tested if
+        it matches the names in the sequence.
         If the sequence doesn't contain any name at all yet, then any name
         will match.
+        
+        *numPos* is an integer that specifies which number is allowed to
+        vary. If *numPos* is ``None``, all numbers may vary.
         """
+        # Turn the name into a SeqString
+        if not isinstance(name, SeqString):
+            name = SeqString(name)
+        
         if len(self._names)==0:
             return True
         else:
             return self._names[0].match(name, numPos)
 
     def append(self, name, obj=None):
-        """Add a file name to the group.
+        """Append a name/object to the end of the sequence.
         
-        name can be a SeqString object or a regular string.
-        The name is added unconditionally, so it's the callers responsibility
-        to make sure the file really belongs to this sequence.
+        *name* can be a :class:`SeqString` object or a regular string.
+        The name must match the names in the sequence, otherwise a
+        :exc:`ValueError` exception is thrown.
         
-        This is called internally when sequences are built!
+        *obj* can be any Python object that is stored alongside the name
+        (this is supposed to be the actual object that has the given name).
+        In any sequence, either all or none of the names must be associated
+        with an object. An attempt to append a name without an object to a
+        sequence that has objects will trigger a :exc:`ValueError` exception.
+        
+        Usually, you won't call this method manually to build a sequence
+        but instead use the :func:`buildSequences()` function which returns
+        initialized ``Sequence`` objects.
         """
+        # Turn the name into a SeqString
         if not isinstance(name, SeqString):
             name = SeqString(name)
+
+        if not self.match(name):
+            placeholder,ranges = self.sequenceName()
+            raise ValueError("Cannot add '%s' to sequence %s. The name doesn't match the sequence."%(name, placeholder))
 
         if obj is not None:
             if self._objects is None:
@@ -524,6 +575,8 @@ class Sequence:
                 else:
                     raise ValueError("objects must be given for all or none of the names")
             self._objects.append(obj)
+        elif self._objects is not None:
+            raise ValueError("objects must be given for all or none of the names")
             
         self._names.append(name)
         
@@ -531,9 +584,9 @@ class Sequence:
         """Return the index of the sequence number.
         
         Returns the index of the number that has the most variation among its
-        values. If two numbers have the same amount of values, the last
-        number is used.
-        Returns None if there is no number at all.
+        values. If two number positions have the same variation, then the last
+        number is returned.
+        Returns ``None`` if there is no number at all.
         """
         ranges = self.ranges()
         
@@ -549,9 +602,9 @@ class Sequence:
         return seqNumIdx
         
     def ranges(self):
-        """Return a list of all the number ranges in the sequence.
+        """Returns a list of all the number ranges in the sequence.
         
-        The return value is a list of Range objects. There are as many
+        The return value is a list of :class:`Range` objects. There are as many
         ranges as there are separate numbers in the names. The ranges
         are given in the same order as the corresponding number appears in
         the names.
@@ -562,15 +615,15 @@ class Sequence:
     def sequenceName(self):
         """Return a sequence placeholder and range strings.
         
-        Returns a tuple (placeholder, ranges) where placeholder is the
+        Returns a tuple (*placeholder*, *ranges*) where *placeholder* is the
         name of a member of the sequence where all numbers have been replaced
-        by '#' (=0-padded number with 4 digits) or one or more '@' (=padded
-        number with as many digits as there are '@' characters. Just a single
-        '@' represents an unpadded number). If the sequence contains inconsistent
-        padding, the number is replaced by '*'.
+        by ``'#'`` (0-padded number with 4 digits) or one or more ``'@'`` (padded
+        number with as many digits as there are ``'@'`` characters. Just a single
+        ``'@'`` represents an unpadded number). If the sequence contains inconsistent
+        padding, the number is replaced by ``'*'``.
         The number is not replaced at all if there is only one single value
         among all file names anyway.
-        ranges is a list of strings where each string describes the range
+        *ranges* is a list of strings where each string describes the range
         of values of the corresponding number in the placeholder string.
         
         The returned information is meant to be displayed to the user as
@@ -653,118 +706,45 @@ class Sequence:
             
         return str(res), rangeStrs
 
-class Sequences:
-    """A collection of sequences.
-    """
-    
-    def __init__(self, names=[], assumeFiles=False, getNameFunc=None):
-        """Constructor.
-        
-        names is a list of strings that will be grouped into sequences.
-        """
-        # A list of FileSequence objects
-        self._sequences = []
-        
-        # Create the sequences
-        self.setFiles(names, assumeFiles=assumeFiles, getNameFunc=getNameFunc)
-
-    def __str__(self):
-        return "<Sequences: %d sequences>"%len(self._sequences)
-
-    def __len__(self):
-        return len(self._sequences)
-
-    def __getitem__(self, key):
-        """Return the Sequence object with the given index.
-        """
-        return self._sequences[key]
-
-    # clear
-    def clear(self):
-        """Remove all sequences.
-        """
-        self._sequences = []
-
-    # setFiles
-    def setFiles(self, names, numPos=None, assumeFiles=False, getNameFunc=None):
-        """Initialize the sequences given a flat list of names.
-        
-        names is a list of objects (usually strings) that are turned into
-        SeqString objects and grouped into sequences.
-        if assumeFiles is True, the input strings are assumed to be file
-        names. In this case, it will be ensured that files from different
-        directories are put into different sequences and any number occurring
-        in the directory part is "frozen" (turned into a string).
-        
-        getNameFunc can be a callable that gets called for every item in names.
-        The function has to return the actual name of that object. This can
-        be used if the input list contains object that are not strings but
-        some other (compound) objects.
-        """
-
-        self.clear()
-
-        # Create the objects list which contains 2-tuples (seqString,obj).
-        # obj is the original object from the "names" list or None.
-        if getNameFunc is None:
-            objects = map(lambda name: (SeqString(name),None), names)
-        else:
-            objects = map(lambda obj: (SeqString(getNameFunc(obj)),obj), names)
-        # Sort the objects according to their seqString
-        # The order of the result is already so that members of the same
-        # sequence are together, we just don't know yet where a sequence ends
-        # and the next one begins.
-        objects.sort(key=lambda tup: tup[0])
-        
-        # Build sequences...
-        currentSeq = Sequence()
-        currentPath = None
-        for name,obj in objects:
-            # Are we dealing with file names? Then freeze directory numbers...
-            if assumeFiles:
-                path,n = os.path.split(str(name))
-                pathseq = SeqString(path)
-                # n: The number count in the path (these numbers have to be frozen)
-                n = pathseq.numCount()
-                for i in range(n):
-                    name.replaceNum(i, name.getNumStr(i))
-                
-            sequenceSplit = False
-            
-            # Check if the current name has a different structure or different
-            # text parts as the names in the current sequence. If so, we
-            # have to begin a new sequence            
-            if not currentSeq.match(name, numPos):
-                sequenceSplit = True
-                
-            # If we are dealing with file names, then make sure files in
-            # different directories are put into separate sequences (even
-            # when the names have the same structure).
-            if assumeFiles:
-                # path has been set above where the directory numbers were frozen
-                if currentPath is not None and path!=currentPath:
-                    sequenceSplit = True
-                    currentPath = path
-                                        
-            # Do we have to begin a new sequence?
-            if sequenceSplit:
-                self._sequences.append(currentSeq)
-                currentSeq = Sequence()
-                
-            # Add the current name to the current sequence
-            currentSeq.append(name, obj)
-
-        # Also store the last sequence generated (if it isn't empty)
-        if len(currentSeq)>0:
-            self._sequences.append(currentSeq)
-
 
 class Range:
     """Range class.
     
-    This class represents a sequence of integer values (frame numbers).
+    This class represents a sorted sequence of integer values (frame numbers).
     The sequence is composed of a number of sub-ranges which have a begin,
-    an optional end and a step number.
+    an optional end and an optional step number. If the end is omitted,
+    the sequence will be infinite.
+
+    Examples:
+    
+      >>> list(Range("1,5,10"))
+      [1, 5, 10]
+      >>> list(Range("1-5"))
+      [1, 2, 3, 4, 5]
+      >>> list(Range("2-8x2"))
+      [2, 4, 6, 8]
+      >>> list(Range("1-3,10-13"))
+      [1, 2, 3, 10, 11, 12, 13]
+
+    The range object supports the :func:`len()` operator, comparison operators,
+    the :keyword:`in` operator and iteration. Examples:
+    
+      >>> rng = Range("1-2,5")
+      >>> len(rng)
+      3
+      >>> for i in rng: print i
+      ... 
+      1
+      2
+      5
+      >>> 3 in rng
+      False
+      >>> 5 in rng
+      True
+      >>> Range("1-3")==Range("1,2,3")
+      True
+      >>> Range("1-5")==Range("2-6")
+      False
     """
     
     def __init__(self, rangeStr=None):
@@ -802,11 +782,27 @@ class Range:
                     endStr = str(end)
                     
                 rangeStrs.append("%s-%s%s"%(begin,endStr,stepStr))
-                                
+        
         return ",".join(rangeStrs)
     
     __repr__ = __str__
-            
+    
+    def __eq__(self, other):
+        """Equality operator
+        """
+        if not isinstance(other, Range):
+            return False
+        
+        return self._ranges==other._ranges
+
+    def __ne__(self, other):
+        """Inequality operator
+        """
+        if not isinstance(other, Range):
+            return True
+        
+        return self._ranges!=other._ranges
+    
     def __len__(self):
         """Return the number of values in the sequence.
         
@@ -853,49 +849,54 @@ class Range:
                     
             # Remove the deleted items (the ones that are None)
             currentValues = filter(lambda x: x is not None, currentValues)
-                
+    
+    def __contains__(self, val):
+        """Check if a value is inside the range.
+        
+        *val* is an integer that is checked against the range. The method
+        returns ``True`` when the value is part of the range.
+        """
+        for begin,end,step in self._ranges:
+            if val>=begin and (end is None or val<=end) and (val-begin)%step==0:
+                return True
+        return False
+    
     def isInfinite(self):
         """Check if the range is infinite.
+        
+        Examples:
+        
+          >>> Range("1-5").isInfinite()
+          False
+          >>> Range("1-").isInfinite()
+          True
         """
         for begin,end,step in self._ranges:
             if end is None:
                 return True
             
-        return False        
-                
-    def contains(self, val):
-        """Check if a value is inside the range.
-        
-        val is an integer that is checked against the range. The method
-        returns True when the value is part of the range.
-        """
-        for begin,end,step in self._ranges:
-            if val>=begin and (end is None or val<=end) and (val-begin)%step==0:
-                return True
         return False
 
     def setRange(self, rangeStr):
         """Initialize the range object with a new range string.
         
         The range string may contain individual numbers or ranges separated by
-        comma. The individual ranges are specified by a begin, an end (inclusive)
-        and an optional step number.
-        This is the opposite function to compactRange().
+        comma. The individual ranges are specified by a begin, an optional
+        end (inclusive) and an optional step number. Passing ``None`` is
+        equivalent to passing an empty string.
         
-        Examples:
-        
-        "1,5,10" -> [1,5,10]
-        "1-5" -> [1,2,3,4,5]
-        "2-8x2" -> [2,4,6,8]
-        "1-3,10-13" -> [1,2,3,10,11,12,13] 
+        This is the opposite operation to e :func:`compactRange()` function.
         """
         
         if rangeStr is None:
             rangeStr = ""
 
+        if type(rangeStr) is not str:
+            raise TypeError("The rangeStr argument must be a string")
+
         reRange = re.compile(r"([0-9]+)(?:-([0-9]*)(?:x([0-9]+))?)?$")
 
-        self._ranges = []
+        ranges = []
         for rs in rangeStr.split(","):
             rs = rs.strip()
             if rs=="":
@@ -921,18 +922,192 @@ class Range:
                         # sequence (i.e. 1-10x2 -> 1-9x2)
                         end -= (end-begin)%step
                 if end is None or end>=begin:
-                    self._ranges.append((begin,end,step))
+                    ranges.append((begin,end,step))
             else:
                 raise ValueError("Invalid range string: %s"%rs)
 
-        self._ranges.sort()
+        ranges = self._normalizeRanges(ranges)
+        self._ranges = ranges
         
+    def _normalizeRanges(self, ranges):
+        """Normalize the given ranges.
         
-class SeqTemplate:
-    """Sequence template class.
+        ranges is a list of range tuples (just like self._ranges).
+        Sorts the ranges, merges them if possible (1,2,3 -> 1-3) or
+        splits them up so that they don't overlap (2-20x2,11 -> 2-10x2,11,12-20x2).
+        Returns a new range list (the input list gets destroyed).
+        """
+        if len(ranges)==0:
+            return []
+
+        ranges.sort()
+        
+        newRanges = []
+        # The current range
+        rng = ranges.pop(0)
+        while len(ranges)>0:
+            # Get the next range
+            nextRng = ranges.pop(0)
+            
+            # Handle range overlaps
+            rngs = self._resolveRangeOverlap(rng, nextRng)
+            if rngs is not None:
+                rng = rngs[0]
+                # Only 1 range? Then nextRange was completely contained in rng, so get a new range
+                if len(rngs)>1:
+                    # Continue with the adjusted ranges (insert them into the range
+                    # list and sort again because the order may have changed)
+                    ranges.extend(rngs[1:])
+                    ranges.sort()
+                continue
+            
+            # Merge the ranges if possible...
+            rng,nextRng = self._mergeRanges(rng, nextRng)
+            if nextRng is not None:
+                newRanges.append(rng)
+                rng = nextRng
+            
+        # Append the last range
+        newRanges.append(rng)
+        
+        # Final step that moves end values to the subsequent range if this
+        # makes the sub-ranges "nicer".
+        for i in range(len(newRanges)-1):
+            begin1,end1,step1 = newRanges[i]
+            begin2,end2,step2 = newRanges[i+1]
+            # Can the last value of the current range be moved into the subsequent
+            # range and the current range would then only be one single value?
+            # (Example: 1-5x4,6-10 -> 1,5-10)
+            if end1==begin2-step2 and begin1+step1==end1:
+                newRanges[i] = (begin1,begin1,1)
+                newRanges[i+1] = (end1,end2,step2)
+        
+        return newRanges
     
-    An instance of this class represents a template string to create numbered
-    sequences.
+    def _resolveRangeOverlap(self, rng1, rng2):
+        """Resolve overlapping ranges.
+        
+        rng1 and rng2 are two adjacent ranges in sorted order (rng2 must
+        not be before rng1).
+        Returns a list of 1-3 ranges where the first range is guaranteed
+        to be non-overlapping. The other ranges are in sort order but may
+        still overlap (they will be handled in a subsequent iteration).
+        Returns None when rng1 and rng2 don't overlap at all. 
+        
+        This is a helper method for _normalizeRanges().
+        """
+        begin1,end1,step1 = rng1
+        begin2,end2,step2 = rng2
+        
+        # No overlap? Then don't modify anything
+        if end1 is not None and begin2>end1:
+            return None
+        
+        # The ranges overlap...
+        
+        # Remove all initial values from rng2 that are also part of rng1.
+        # First check if begin2 is part of rng1
+        if (begin2-begin1)%step1==0:
+            # Does rng2 use a step size that is a multiple of the step size of rng1?
+            if step2%step1==0:  #step1==step2:
+                # Does rng2 completely lie within rng1? Then just ignore rng2
+                if end1 is None or (end2 is not None and end2<=end1):
+                    return [rng1]
+                else:
+                    # Set the begin of rng2 to the first value behind the end of rng1
+                    n = int((end1-begin2)/step2)+1
+                    begin2 += n*step2
+            # Different steps, so only the first value is identical
+            else:
+                # Is rng2 just one single value? Then we can ignore rng2
+                # (because this value is also part of rng1)
+                if begin2==end2:
+                    return [rng1]
+                else:
+                    begin2 += step2
+
+            # If the ranges don't overlap anymore, then we are done.
+            if end1 is not None and begin2>end1:
+                return [rng1,(begin2,end2,step2)]
+
+        
+        # At this point, it is guaranteed that...
+        # - ...rng1 and rng2 don't begin with the same value (i.e. begin1<begin2 is always true)
+        # - ...begin2 is not part of rng1
+        # - ...rng1 and the adjusted rng2 still overlap
+        
+        res = []
+        # Split off the first part of rng1 (everything that is before rng2)
+        # -> adjust rng1 so that it only contains the remaining range
+        n = int((begin2-begin1-1)/step1)
+        e1 = begin1+n*step1
+        res.append((begin1,e1,step1))
+        begin1 = e1+step1
+
+        # begin1 is now greater than begin2 (they can't be equal because we know
+        # that begin2 is not part of the initial rng1)
+
+        res.append((begin2,end2,step2))
+        res.append((begin1,end1,step1))
+        
+        # res now contains 3 ranges. The first one is guaranteed to be unique
+        # and doesn't overlap anymore. The other two may still overlap but
+        # this is dealt with in a subsequent iteration.
+        
+        return res
+    
+    def _mergeRanges(self, rng1, rng2):
+        """Merge two ranges if possible.
+        
+        Returns the new ranges. The second range may become None if it was
+        entirely consumed by the first range.
+        
+        The input ranges must be sorted (i.e. rng2 must not be *before* rng1).
+        
+        This is a helper method for _normalizeRanges().
+        """
+        begin1,end1,step1 = rng1
+        begin2,end2,step2 = rng2
+        
+        # If range1 is just a single value, then we can always merge at least
+        # the first value of range2 (as we are free to change the step).
+        if begin1==end1:
+            step1 = begin2-end1
+            
+        # If range2 does not start right behind range1, then there is nothing to merge
+        if end1 is None or begin2!=end1+step1:
+            return rng1,rng2
+        
+        # Can the entire range2 be merged into range1? (this is the case if
+        # the step size is identical or range2 is just a single value anyway)
+        if step1==step2 or begin2==end2:
+            return (begin1,end2,step1),None
+        # Only put the first value of range2 into range1
+        else:
+            return (begin1,begin2,step1), (begin2+step2, end2, step2)
+
+
+class SeqTemplate:
+    """Sequence name template class.
+    
+    An instance of this class represents a template string that may contain
+    patterns that will be substituted by numbers.
+    This can be used to generate the individual names for an output sequence.
+    
+    Example:
+    
+      >>> tmpl = SeqTemplate("foo#.tif")
+      >>> tmpl([17])
+      'foo0017.tif'
+      >>> tmpl=SeqTemplate("foo@@_#.tif")
+      >>> tmpl([2,17])
+      'foo02_0017.tif'
+      >>> tmpl=SeqTemplate("foo@@[2]_#[1].tif")
+      >>> tmpl([2,17])
+      'foo17_0002.tif'
+      >>> tmpl=SeqTemplate("foo{2*#+1}.tif")
+      >>> tmpl([5])
+      'foo0011.tif'
     """
     
     def __init__(self, template):
@@ -965,13 +1140,15 @@ class SeqTemplate:
         """Return a string that uses the given input numbers.
         
         The substitution patterns in the template string are replaced by
-        the given numbers. values must be a list of objects that can be
+        the given numbers. *values* must be a list of objects that can be
         turned into integers.
-        It is the callers responsibility to make sure that values contains
+        It is the callers responsibility to make sure that *values* contains
         enough numbers.
-        If any number expression fails, a ValueError exception is thrown
-        (this is also the case when the expressions refers to a value in
+        If any number expression fails, a :exc:`ValueError` exception is thrown
+        (this is also the case when an expression refers to a value in
         the input list that is not available).
+        
+        Calling this method is equivalent to using the object as a callable.
         """
         # Make sure we have integers
         values = [int(v) for v in values]
@@ -991,13 +1168,24 @@ class SeqTemplate:
     def expressionIndices(self, inputSize):
         """Return the indices of the source values that the number expressions refer to.
         
-        inputSize is the length of the value sequence that will get passed
-        to substitute(). This is used to resolve negative indices. The
+        *inputSize* is the length of the value sequence that will get passed
+        to :meth:`substitute()`. This is used to resolve negative indices. The
         result may still contain negative indices if any index in the expressions
         is out of range. The order of the values in the list is the same
         order as the expressions appear in the template.
         The return value can be used to check if an expression would produce
-        an IndexError exception.
+        an :exc:`IndexError` exception.
+        
+        Example:
+        
+          >>> t=SeqTemplate("foo#_#")
+          >>> t.expressionIndices(2)
+          [0, 1]
+          >>> t=SeqTemplate("foo#[-1]_#[1]")
+          >>> t.expressionIndices(2)
+          [1, 0]
+          >>> t.expressionIndices(3)
+          [2, 0]
         """
         res = []
         for i in self._exprIndices:
@@ -1132,15 +1320,40 @@ class OutputNameGenerator:
     output file sequence based on an input sequence but where the numbers in
     the output sequence may be different than the numbers in the input sequence.
     For example, the class is used by the sequence utilities (seqmv, seqcp,
-    seqrm, seqln).
+    seqrm).
     
-    An OutputNameGenerator has one public attribute called numberMergeFlag
-    which is True when the output name pattern ended in a digit but didn't
+    An :class:`OutputNameGenerator` has one public attribute called :attr:`numberMergeFlag`
+    which is ``True`` when the output name pattern ended in a digit but didn't
     contain any number pattern. In this case, the class will append a 4-padded
     number but because the name already ended in a digit, the combination
     of the pattern and the number results in a larger number which is
     not necessarily what the user intended. The flag can be used by an
     application to check whether it should ask the user for confirmation.
+    
+    Example:
+    
+      >>> seqs = buildSequences(["spam1_1.tif", "spam1_2.tif", "spam1_5.tif"])
+      >>> 
+      >>> for src,dst in OutputNameGenerator(seqs, "foo"):
+      ...   print src,"->",dst
+      ... 
+      spam1_1.tif -> foo0001.tif
+      spam1_2.tif -> foo0002.tif
+      spam1_5.tif -> foo0005.tif
+      >>> 
+      >>> for src,dst in OutputNameGenerator(seqs, "foo@_#.tif", dstRange=Range("10-")):
+      ...   print src,"->",dst
+      ... 
+      spam1_1.tif -> foo1_0010.tif
+      spam1_2.tif -> foo1_0011.tif
+      spam1_5.tif -> foo1_0012.tif
+      >>> 
+      >>> for src,dst in OutputNameGenerator(seqs, "foo_#[2]_{@[1]+2}.tif"):
+      ...   print src,"->",dst
+      ... 
+      spam1_1.tif -> foo_0001_3.tif
+      spam1_2.tif -> foo_0002_3.tif
+      spam1_5.tif -> foo_0005_3.tif
     """
     
     def __init__(self, srcSequences, dstName, srcRanges=None, dstRange=None, keepExt=True,
@@ -1238,6 +1451,8 @@ class OutputNameGenerator:
         for srcSeq in self._srcSequences:
             self._outputNameSpec(srcSeq, dstName, dstRangeIter is not None)
 
+    def __iter__(self):
+        return self.iterNames()
         
     def iterNames(self):
         """Iterate over input/output name pairs.
@@ -1246,6 +1461,8 @@ class OutputNameGenerator:
         name from the input sequences and dstName is the generated output name
         (as specified by the output pattern and additional arguments that
         were passed to the constructor).
+        
+        This is equivalent to iterating directly over the object.
         """
     
         # Iterate over all input sequences
@@ -1280,6 +1497,27 @@ class OutputNameGenerator:
         res = self._outputNameSpec(srcSequence, dstName, dstRangeIter is not None)
         dstTemplate, numIdxs, seqNumIdx = res
         
+        # Check what indices are used by the expressions (the result may not be
+        # accurate when negative numbers are used because the integer we pass
+        # to expressionIndices() may not be the correct one, but we are only
+        # really interested in the simpler case were no explicit indices have
+        # been provided anyway).
+        ei = dstTemplate.expressionIndices(len(numIdxs))
+        # Adjust the index of the main sequence number if it is not in the
+        # list of used indices. Otherwise providing a destination range would
+        # be useless because it would affect an unused number.
+        # This can happen when an input sequence has at least two varying numbers
+        # and the output sequence has only one number pattern and a destination
+        # range has been specified.
+        # Example: "spam1_1", "spam1_2", "spam2_5", "spam2_6" -> "foo#" (2-)
+        # The main sequence number will be the second one, but the pattern
+        # in the output name would refer to the first number, so the destination
+        # range would have no effect and the output would be "foo1", "foo1",
+        # "foo2", "foo2". The following if sets the main sequence number to be
+        # the first one and then everything is fine again.
+        if seqNumIdx not in ei:
+            seqNumIdx = max(ei)
+        
         srcIter = iter(srcSequence)
         
         # Assign output names to the input names...
@@ -1310,7 +1548,7 @@ class OutputNameGenerator:
             nums = map(lambda i: allNums[i], numIdxs)
     
             # Only queue this file when it is part of the source range
-            if len(nums)==0 or srcRange.contains(nums[seqNumIdx]):
+            if len(nums)==0 or (nums[seqNumIdx] in srcRange):
                 # If a destination range was specified then replace the
                 # main file number with the next number in the range, otherwise
                 # the number from the input file is used
@@ -1319,7 +1557,7 @@ class OutputNameGenerator:
                         nums[seqNumIdx] = dstRangeIter.next()
                     except StopIteration:
                         break
-                # Create the file names and add them to the list
+                # Create the file names
                 dstName = dstTemplate.substitute(nums)
                 if keepExt and os.path.splitext(dstName)[1]!=ext:
                     dstName += ext
@@ -1392,7 +1630,7 @@ class OutputNameGenerator:
             for i,rng in enumerate(ranges):
                 if len(rng)>1:
                     numIdxs.append(i)
-        # Do we have too little patterns? (and the user did not specify any
+        # Do we have too few patterns? (and the user did not specify any
         # index explicitly?)
         # If so, throw an error because it's not clear which number should be
         # mapped to which pattern.
@@ -1427,7 +1665,16 @@ class _SequenceProcessor:
     """Base class for move/copy/link.
     """
     
-    def __init__(self, srcSequences, dstName, srcRanges=None, dstRange=None, keepExt=True, enforceDstRange=False, verbose=False):
+    def __init__(self, srcSequences, dstName, srcRanges=None, dstRange=None,
+                 keepExt=True, enforceDstRange=False, verbose=False,
+                 resolveSrcLinks=False):
+        """Constructor.
+        
+        See the derived classes for documentation on most arguments.
+        
+        resolveSrcLinks: If true, the source file names will be replaced by
+        their real paths.
+        """
         ong = OutputNameGenerator(srcSequences,
                                   dstName,
                                   srcRanges = srcRanges,
@@ -1441,8 +1688,10 @@ class _SequenceProcessor:
         # Create the file table
         fileTab = []
         for uiSrc,uiDst in ong.iterNames():
-            src = os.path.realpath(uiSrc)
-            dst = os.path.realpath(uiDst)
+            src = os.path.abspath(uiSrc)
+            dst = os.path.abspath(uiDst)
+            if resolveSrcLinks:
+                src = os.path.realpath(uiSrc)
             fileTab.append((src,dst,uiSrc,uiDst))
             
         # Resolve internal collisions
@@ -1454,11 +1703,11 @@ class _SequenceProcessor:
     def mergesNumbers(self):
         """Check if a trailing number on the output sequence and a file number would get merged.
         
-        This method returns True when the base output sequence name ends in
+        This method returns ``True`` when the base output sequence name ends in
         a number and a sequence number would be appended as well which results
         in a new number (for example, writing a sequence with the base name
-        out2 can produce output files out20001, out20002, ... which may not
-        be what the user intended). The result of this call can be used to
+        ``out2`` can produce output files ``out20001``, ``out20002``, ... which
+        may not be what the user intended). The result of this call can be used to
         check if the application should ask the user for confirmation.
         """
         return self._mergesNumbers
@@ -1468,7 +1717,7 @@ class _SequenceProcessor:
         
         Only iterates over the files that are not part of the input sequence.
         The returned files are those that would get overwritten when the
-        move operation would be carried out.
+        operation would be carried out.
         This can be used to check if the user should be asked for confirmation.
         """
         srcDict = {}
@@ -1485,22 +1734,28 @@ class _SequenceProcessor:
     def sequences(self):
         """Iterate over the input/output sequences.
         
-        Yields tuples (srcSeq, dstSeq) where each item is a Sequence()
+        Yields tuples (*srcSeq*, *dstSeq*) where each item is a :class:`Sequence`
         object. The result can be used to show an overview of what the
-        move operation will do.
+        operation will do.
         """
         # Print the final source and destination sequences (just for user info)
-        seqs = Sequences(self._fileTab, getNameFunc=lambda t:t[2])
+        
+        # We use _buildSequences() instead of buildSequences() so that the
+        # fileTab doesn't get sorted again (it is already sorted). This
+        # ensures that the sequences are yielded in the same order in which
+        # they will get processed.
+        objects = map(lambda obj: (SeqString(obj[2]),obj), self._fileTab)
+        seqs = _buildSequences(objects)
         for srcSeq in seqs:
             dstFiles = map(lambda t: t[3], srcSeq)
-            dstSeq = Sequences(dstFiles)[0]
+            dstSeq = buildSequences(dstFiles)[0]
             yield srcSeq, dstSeq
 
     def dryRun(self, outStream=None):
         """Print what would get done when run() was called.
         
-        outStream is an object with a write() method that will receive
-        the text. If None is passed, sys.stdout is used.
+        *outStream* is an object with a :meth:`write()` method that will
+        receive the text. If ``None`` is passed, ``sys.stdout`` is used.
         """
         if outStream is None:
             outStream = sys.stdout
@@ -1512,8 +1767,9 @@ class _SequenceProcessor:
     def run(self, outStream=None):
         """Do the operation.
 
-        outStream is an object with a write() and flush() method that will receive
-        the text (only in verbose mode). If None is passed, sys.stdout is used.
+        *outStream* is an object with a :meth:`write()` and :meth:`flush()`
+        method that will receive the text (only in verbose mode). If ``None``
+        is passed, ``sys.stdout`` is used.
         """
         if outStream is None:
             outStream = sys.stdout
@@ -1679,7 +1935,8 @@ class CopySequence(_SequenceProcessor):
     """This class copies one or more sequences of files.
     """
     
-    def __init__(self, srcSequences, dstName, srcRanges=None, dstRange=None, keepExt=True, verbose=False):
+    def __init__(self, srcSequences, dstName, srcRanges=None, dstRange=None,
+                 keepExt=True, verbose=False, resolveSrcLinks=False):
         """Constructor.
         
         srcSequences is a list of Sequence objects that contain the source
@@ -1718,8 +1975,13 @@ class CopySequence(_SequenceProcessor):
         
         The verbose flag determines whether each file is printed during the
         actual operation.
+        
+        resolveSrcLinks determines whether source links are resolved before
+        processing the sequence.
         """
-        _SequenceProcessor.__init__(self, srcSequences, dstName, srcRanges, dstRange, keepExt, enforceDstRange=True, verbose=verbose)
+        _SequenceProcessor.__init__(self, srcSequences, dstName, srcRanges, dstRange,
+                                    keepExt, enforceDstRange=True, verbose=verbose,
+                                    resolveSrcLinks=resolveSrcLinks)
             
     def _fileOperation(self, src, dst):
         """Do the copy operation.
@@ -1788,18 +2050,111 @@ class SymLinkSequence(CopySequence):
         os.symlink(src, dst)
 
 
+def buildSequences(names, numPos=None, assumeFiles=False, nameFunc=None):
+    """Create sorted sequences from a list of names/objects.
+    
+    *names* is a list of objects (usually strings) that are grouped into sequences.
+    If *assumeFiles* is ``True``, the input strings are assumed to be file
+    names. In this case, it will be ensured that files from different
+    directories are put into different sequences and any number occurring
+    in the directory part is "frozen" (turned into a string).
+    
+    *numPos* can be set to a number index which defines the position of the
+    numbers that are allowed to vary per sequence. If not given, all numbers
+    may vary (for example, if you want the files ``clip1_#.tif`` to be a different
+    sequence than ``clip2_#.tif`` you have to set numPos to 1 or -1).
+    
+    *nameFunc* can be a callable that gets called for every item in *names*.
+    The function has to return the actual name of that object. This can
+    be used if the input list contains objects that are not strings but
+    some other (compound) objects.
+    
+    Returns a list of :class:`Sequence<cgkit.sequence.Sequence>` objects.
+    The sequences and the files within the sequences are sorted.
+    """
+    # Create the objects list which contains 2-tuples (seqString,obj).
+    # obj is the original object from the "names" list or None.
+    if nameFunc is None:
+        objects = map(lambda name: (SeqString(name),None), names)
+    else:
+        objects = map(lambda obj: (SeqString(nameFunc(obj)),obj), names)
+    # Sort the objects according to their seqString
+    # The order of the result is already so that members of the same
+    # sequence are together, we just don't know yet where a sequence ends
+    # and the next one begins.
+    objects.sort(key=lambda tup: tup[0])
+    
+    return _buildSequences(objects, numPos, assumeFiles)
+    
+def _buildSequences(objects, numPos=None, assumeFiles=False):
+    """Helper function for buildSequences().
+    
+    objects is a sorted list of (name,obj) tuples.
+    """
+    res = []
+    
+    # Build sequences...
+    currentSeq = Sequence()
+    currentPath = None
+    for name,obj in objects:
+        # Are we dealing with file names? Then freeze directory numbers...
+        if assumeFiles:
+            path,n = os.path.split(str(name))
+            pathseq = SeqString(path)
+            # n: The number count in the path (these numbers have to be frozen)
+            n = pathseq.numCount()
+            for i in range(n):
+                name.replaceNum(i, name.getNumStr(i))
+            
+        sequenceSplit = False
+        
+        # Check if the current name has a different structure or different
+        # text parts as the names in the current sequence. If so, we
+        # have to begin a new sequence            
+        if not currentSeq.match(name, numPos):
+            sequenceSplit = True
+            
+        # If we are dealing with file names, then make sure files in
+        # different directories are put into separate sequences (even
+        # when the names have the same structure).
+        if assumeFiles:
+            # path has been set above where the directory numbers were frozen
+            if currentPath is not None and path!=currentPath:
+                sequenceSplit = True
+                currentPath = path
+                                    
+        # Do we have to begin a new sequence?
+        if sequenceSplit:
+            res.append(currentSeq)
+            currentSeq = Sequence()
+            
+        # Add the current name to the current sequence
+        currentSeq.append(name, obj)
+
+    # Also store the last sequence generated (if it isn't empty)
+    if len(currentSeq)>0:
+        res.append(currentSeq)
+        
+    return res
+
+
 def compactRange(values):
     """Build the range string that lists all values in the given list in a compacted form.
     
-    values is a list of integers (may contain duplicate values and doesn't have
+    *values* is a list of integers (may contain duplicate values and does not have
     to be sorted). The return value is a string that lists all values (sorted)
-    in a compacted form (using the same syntax that Shake accepts as time values).
-    The returned range string can be passed to a Range object to create the
-    expanded integer sequence again.
+    in a compacted form.
+    The returned range string can be passed into a :class:`Range` object to create
+    the expanded integer sequence again.
     
-    Example: [1,2,3,4,5,6]    -> "1-6"
-             [2,4,6,8]        -> "2-8x2"
-             [1,2,3,10,11,12] -> "1-3,10-12"
+    Examples:
+    
+      >>> compactRange([1,2,3,4,5,6])
+      '1-6'
+      >>> compactRange([2,4,6,8])
+      '2-8x2'
+      >>> compactRange([1,2,3,12,11,10])
+      '1-3,10-12'
     """
     if len(values)==0:
         return ""
@@ -1870,12 +2225,14 @@ def compactRange(values):
     return ",".join(rs)
 
 def glob(name):
-    """Create file sequences.
+    """Create file sequences from a name pattern.
     
-    name is a file pattern that will get a '*' appended. The pattern is then
-    passed to the regular glob() function to obtain a list of files which
-    are then grouped into sequences.
-    Returns a Sequences objects that contains all file sequences found.
+    *name* is a file pattern that will get a ``'*'`` appended. The pattern is then
+    passed to the regular :func:`glob()` function from the standard :mod:`glob`
+    module to obtain a list of files which are then grouped into sequences.
+    
+    Returns a list of :class:`Sequence<cgkit.sequence.Sequence>` objects.
+    The sequences and the files within the sequences are sorted.
     """
     globpattern = name
     if not globpattern.endswith("*"):
@@ -1926,7 +2283,7 @@ def glob(name):
     # Remove files that don't have any number in their name (without ext)
     fileNames = filter(lambda n: SeqString(os.path.splitext(n)[0]).numCount()>0, fileNames)
     
-    return Sequences(fileNames, assumeFiles=True)
+    return buildSequences(fileNames, assumeFiles=True)
 
 
 # The following function is obsolete and replaced by the SeqTemplate class.

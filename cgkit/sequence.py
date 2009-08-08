@@ -2234,6 +2234,7 @@ def glob(name):
     Returns a list of :class:`Sequence<cgkit.sequence.Sequence>` objects.
     The sequences and the files within the sequences are sorted.
     """
+    name = os.path.normpath(name)
     globpattern = name
     if not globpattern.endswith("*"):
         globpattern += "*"

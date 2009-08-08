@@ -535,12 +535,25 @@ class MAImporter(mayaascii.DefaultMAReader):
         fl = node.getAttrValue("focalLength", "fl", "float", 1, 35.0)
         res["focallength"] = fl
         cap = node.getAttrValue("cameraAperture", "cap", "double2", 1, (1.41732, 0.94488))
+        filmFit = node.getAttrValue("filmFit", "ff", "int", 1, 1)
 
-        fov = degrees(2*atan((cap[0]*25.4)/(2*fl)))
-        # Convert the FOV from horizontal to vertical direction
-        # (Todo: What aspect ratio to use?)
-        fov = degrees(atan(480/640.0*tan(radians(fov/2.0))))*2.0
-        res["fov"] = fov
+        xfov = degrees(2*atan((cap[0]*25.4)/(2*fl)))
+        yfov = degrees(2*atan((cap[1]*25.4)/(2*fl)))
+        
+        # Horizontal
+        if filmFit==1:
+            # Convert the FOV from horizontal to vertical direction
+            # (Todo: What aspect ratio to use?)
+            yfov = degrees(atan(480/640.0*tan(radians(xfov/2.0))))*2.0
+            yfov = xfov
+        # Vertical
+        elif filmFit==2:
+            pass
+        # Fill and overscan not supported yet
+        else:
+            pass
+        
+        res["fov"] = yfov
         res["fstop"] = node.getAttrValue("fStop", "fs", "float", 1, 5.6)
         return res
 

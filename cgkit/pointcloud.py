@@ -606,16 +606,19 @@ class PtcWriter:
 def open(fileName, mode="r", libName=None, **kwargs):
     """Open a point cloud file for reading or writing.
     
-    fileName is the name of the point cloud file. mode is either "r"
-    for reading a file or "w" for writing a new point cloud file.
-    libName is the library name that implements the point cloud API.
-    When mode is "w", the following additional keyword arguments must
+    *fileName* is the name of the point cloud file. *mode* is either ``"r"``
+    for reading a file or ``"w"`` for writing a new point cloud file.
+    *libName* is the library name that implements the point cloud API.
+    When mode is ``"w"``, the following additional keyword arguments must
     be present:
     
-    - vars: A list of tuples (type, name) that defines what additional variables to write
-    - world2eye: The world2eye matrix 
-    - world2ndc: The world2ndc matrix
-    - format: A tuple (xres, yres, aspect) 
+    - ``vars``: A list of tuples (*type*, *name*) that defines what additional variables to write
+    - ``world2eye``: The world2eye matrix 
+    - ``world2ndc``: The world2ndc matrix
+    - ``format``: A tuple (*xres*, *yres*, *aspect*)
+    
+    Depending on the mode, the function either returns a :class:`PtcReader` or
+    :class:`PtcWriter` object.
     """
     if mode=="r":
         return PtcReader(fileName, libName, **kwargs)

@@ -327,38 +327,38 @@ class _GLSLangParser:
 def glslangparams(shader=None, cpp=None, cpperrstream=sys.stderr):
     """Extracts the shader parameters from an OpenGL 2 shader source file.
 
-    The argument shader is either the name of the shader source file
+    The argument *shader* is either the name of the shader source file
     or a file-like object that provides the shader sources.
-    cpp determines how the shader source is preprocessed. It
+    *cpp* determines how the shader source is preprocessed. It
     can either be a string containing the name of an external
-    preprocessor tool (such as 'cpp') that must take the file name as
+    preprocessor tool (such as ``cpp``) that must take the file name as
     parameter and dump the preprocessed output to stdout or it can be
-    a callable that takes shader and cpperrstream as input and returns
+    a callable that takes *shader* and *cpperrstream* as input and returns
     the preprocessed sources as a string. If the external
-    preprocessor does not produce any data a PreprocessorNotFound
+    preprocessor does not produce any data a :exc:`PreprocessorNotFound`
     exception is thrown.
     The error stream of the preprocessor is written to the object
-    that is specified by cpperrstream which must have a write()
-    method. If cpperrstream is None, the error stream is ignored.
+    that is specified by *cpperrstream* which must have a :meth:`write()`
+    method. If *cpperrstream* is ``None``, the error stream is ignored.
 
-    If cpp is None a simple internal preprocessor based on the
-    simplecpp module is used.
+    If *cpp* is ``None`` a simple internal preprocessor based on the
+    :mod:`simplecpp` module is used.
 
-    The function returns three lists (uniform, attribute, varying)
+    The function returns three lists (*uniform*, *attribute*, *varying*)
     that contain the variables with the corresponding qualifier.
 
-    A uniform variable is a 5-tuple (type, identifier, arraysize,
-    structname, struct). arraysize is a string containing the
+    A uniform variable is a 5-tuple (*type*, *identifier*, *arraysize*,
+    *structname*, *struct*). *arraysize* is a string containing the
     expression for the length of the array (i.e. the value between
-    the square brackets). If the variable is no array, arraysize is None.
-    When the variable is a struct, type has the value 'struct'. In this
-    case, the struct is given in struct (which is itself a list of
+    the square brackets). If the variable is no array, *arraysize* is ``None``.
+    When the variable is a struct, *type* has the value ``'struct'``. In this
+    case, the struct is given in *struct* (which is itself a list of
     variables as 5-tuples). If the struct has a name, this name is
-    given in structname, otherwise structname is None.
+    given in *structname*, otherwise *structname* is ``None``.
 
-    An attribute variable is a 2-tuple (type, identifier) and a
-    varying variable is a 3-tuple (type, identifier, arraysize) where
-    arraysize is defined as in the uniform case.
+    An attribute variable is a 2-tuple (*type*, *identifier*) and a
+    varying variable is a 3-tuple (*type*, *identifier*, *arraysize*) where
+    *arraysize* is defined as in the uniform case.
     """
 
     # Run the preprocessor on the input file...

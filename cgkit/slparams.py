@@ -228,59 +228,89 @@ class _SLfilter:
 def slparams(slfile=None, cpp=None, cpperrstream=sys.stderr, slname=None, includedirs=None, defines=None):
     """Extracts the shader parameters from a RenderMan Shader file.
 
-    The argument slfile is either the name of a compiled shader, the name of
-    the shader source file (*.sl) or a file-like object that provides the
-    shader sources.  cpp determines how the shader source is preprocessed.
+    The argument *slfile* is either the name of a compiled shader, the name of
+    the shader source file (``*.sl``) or a file-like object that provides the
+    shader sources.
+    
+    *cpp* determines how the shader source is preprocessed.
     It can either be a string containing the name of an external
-    preprocessor tool (such as 'cpp') that must take the file name as
+    preprocessor tool (such as ``cpp``) that must take the file name as
     parameter and dump the preprocessed output to stdout or it can be
-    a callable that takes slfile and cpperrstream as input and returns
+    a callable that takes *slfile* and *cpperrstream* as input and returns
     the preprocessed sources as a string. If the external
-    preprocessor does not produce any data a PreprocessorNotFound
+    preprocessor does not produce any data a :exc:`PreprocessorNotFound`
     exception is thrown.
     The error stream of the preprocessor is written to the object
-    that's specified by cpperrstream which must have a write()
-    method. If cpperrstream is None, the error stream is ignored.
+    specified by *cpperrstream* which must have a :meth:`write()`
+    method. If *cpperrstream* is ``None``, the error stream is ignored.
 
-    If cpp is None a simple internal preprocessor based on the
-    simplecpp module is used.
-    The slname argument is an alias for slfile, it's only available
+    If *cpp* is ``None`` a simple internal preprocessor based on the
+    :mod:`simplecpp` module is used.
+    The *slname* argument is an alias for *slfile*, it is only available
     for backwards compatibility.
     
-    includedirs is a list of strings that contain directories where to
-    look for include files. defines is a list of tuples (name, value)
+    *includedirs* is a list of strings that contain directories where to
+    look for include files. *defines* is a list of tuples (*name*, *value*)
     that specify the predefined symbols to use.
     
     The function returns a list of shader info objects. These objects have
-    4 attributes:
+    four attributes:
     
-    - type: The type of the shader (surface, displacement, etc.)
-    - name: The name of the shader
-    - params: The shader parameters (see below)
-    - meta: The shader meta data. How exactly meta data is specified depends
-            on the renderer you are using.
+    - ``type``: The type of the shader (surface, displacement, etc.)
+    - ``name``: The name of the shader
+    - ``params``: The shader parameters (see below)
+    - ``meta``: The shader meta data. How exactly meta data is specified depends
+      on the renderer you are using.
      
     The parameters are given as a list of shader parameter objects
     describing each parameter. A shader parameter object has the
     following attributes:
 
-    - outputSpec: The output specifier (either "output" or an empty string)
-    - storage: The storage class ("uniform" or "varying")
-    - type: The parameter type
-    - size: The array length or None if the parameter is not an array
-    - name: The name of the parameter
-    - space: The space in which a point-like type was defined
-    - default: The "raw" default value. If the input was a shader source file,
+    - ``outputSpec``: The output specifier (either ``"output"`` or an empty string)
+    - ``storage``: The storage class (``"uniform"`` or ``"varying"``)
+    - ``type``: The parameter type
+    - ``size``: The array length or ``None`` if the parameter is not an array
+    - ``name``: The name of the parameter
+    - ``space``: The space in which a point-like type was defined
+    - ``default``: The "raw" default value. If the input was a shader source file,
       this will always be a string containing an expression. If the input was
       a compiled shader this will already be an appropriate Python value.
-      You should never use this value directly, but always use convertdefault()
+      You should never use this value directly, but always use :func:`convertdefault()`
       to obtain a value which can be further processed. This way, your code
       will work for both, compiled shaders and shader source files.
     
     For backwards compatibility, the shader info object behaves like a
-    3-tuple (type, name, params). The meta data can only be accessed via name
-    though. The shader parameter objects can also be used like 7-tuples
+    3-tuple (*type*, *name*, *params*). The meta data can only be accessed via
+    name though. The shader parameter objects can also be used like 7-tuples
     containing the above data (in the order given above).
+    
+    Example (output slightly reformatted for better readability)::
+
+      >>> from cgkit import slparams
+      >>> shaders = lparams.slparams("plastic.sl")
+      >>> print shaders
+      [('surface', 'plastic', 
+        [('', 'uniform', 'float', None, 'Ka', None, '1'),
+         ('', 'uniform', 'float', None, 'Kd', None, '0.5'),
+         ('', 'uniform', 'float', None, 'Ks', None, '0.5'),
+         ('', 'uniform', 'float', None, 'roughness', None, '0.1'),
+         ('', 'uniform', 'color', None, 'specularcolor', 'rgb', '1')])]
+      >>> shaders[0].type
+      'surface'
+      >>> shaders[0].name
+      'plastic'
+      >>> for param in shaders[0].params: print param.name
+      ... 
+      Ka
+      Kd
+      Ks
+      roughness
+      specularcolor
+      >>> shaders[0].meta
+      {}
+
+    The parser used inside this function was generated using the parser generator
+    `Yapps <http://theory.stanford.edu/~amitp/Yapps/>`_  by Amit Patel.
     """
 
     if slname is not None:
@@ -433,22 +463,33 @@ exec "from cgkit.sl import *" in _local_namespace
 def convertdefault(paramtuple):
     """Converts the default value of a shader parameter into a Python type.
 
-    paramtuple must be a 7-tuple (or parameter object) as returned by slparams().
+    *paramtuple* must be a 7-tuple (or parameter object) as returned by 
+    :func:`slparams()`.
     The function returns a Python object that corresponds to the default
     value of the parameter. If the default value can't be converted
-    then None is returned. Only the functions that are present in the
-    sl module are evaluated. If a default value calls a user defined
-    function then None is returned.
+    then ``None`` is returned. Only the functions that are present in the
+    :mod:`sl<cgkit.sl>` module are evaluated. If a default value calls a user defined
+    function then ``None`` is returned.
 
     The SL types will be converted into the following Python types:
 
-    - float  -> float
-    - string -> string
-    - color  -> vec3
-    - point  -> vec3
-    - vector -> vec3
-    - normal -> vec3
-    - matrix -> mat4
+        +------------+-------------+
+        | SL type    | Python type |
+        +============+=============+
+        | ``float``  | ``float``   |
+        +------------+-------------+
+        | ``string`` | ``string``  |
+        +------------+-------------+
+        | ``color``  | ``vec3``    |
+        +------------+-------------+
+        | ``point``  | ``vec3``    |
+        +------------+-------------+
+        | ``vector`` | ``vec3``    |
+        +------------+-------------+
+        | ``normal`` | ``vec3``    |
+        +------------+-------------+
+        | ``matrix`` | ``mat4``    |
+        +------------+-------------+
 
     Arrays will be converted into lists of the corresponding type.
     """

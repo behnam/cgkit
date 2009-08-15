@@ -52,21 +52,35 @@ QUALIFIER  = 8
 def tokenize(readline, tokeater):
     """Reads a Shading Language input stream and creates tokens.
 
-    The first parameter, readline, must be a callable object which
-    provides the same interface as the readline() method of built-in
+    The first parameter, *readline*, must be a callable object which
+    provides the same interface as the :meth:`readline()` method of built-in
     file objects. Each call to the function should return one line of
     input as a string.
 
-    The second parameter, tokeneater, must also be a callable object.
+    The second parameter, *tokeater*, must also be a callable object.
     It is called with six parameters: the token type, the token
-    string, a tuple (srow, scol) specifying the row and column where
-    the token begins in the source, a tuple (erow, ecol) giving the
+    string, a tuple (*srow*, *scol*) specifying the row and column where
+    the token begins in the source, a tuple (*erow*, *ecol*) giving the
     ending position of the token, the line on which the token was
     found and the filename of the current file.
 
-    By default the filename argument is an empty string. It will only
+    The token type can be one of
+
+    * ``WHITESPACE``: This is a series of blanks and/or tabs.
+    * ``NAME``: A valid identifier name or keyword.
+    * ``NUMBER``: An integer or float.
+    * ``STRING``: A string enclosed in ``'"'``.
+    * ``NEWLINE``: A newline character.
+    * ``OPERATOR``: An operator such as ``'+', '-', '!', '==', '!='``, etc.
+    * ``CHARACTER``: A single character that doesn't fit anything else.
+    * ``TYPE``: A language type (``void``, ``bool``, ``float``, ``int``, ``vec2``,
+      ``vec3``, ``vec4``, etc.)
+    * ``QUALIFIER``: A type qualifier (``const``, ``attribute``, ``uniform``,
+      ``varying``, ``in``, ``out``, ``inout``)
+
+    By default, the filename argument is an empty string. It will only
     be the actual filename if you provide a preprocessed file stream
-    as input (so you should first run cpp on any shader). The
+    as input (so you should first run ``cpp`` on any shader). The
     tokenizer actually expects preprocessed data as it doesn't handle
     comments.
     """

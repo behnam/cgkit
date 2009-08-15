@@ -518,10 +518,10 @@ _sloArgsInstances = {}
 _sloLibNames = {}
 
 def registerSloArgs(sloSuffix, sloArgsCls):
-    """Register a SloArgs class for a particular renderer.
+    """Register a :class:`SloArgs` class for a particular renderer.
     
-    sloSuffix is the suffix (without dot) that is used for the compiled
-    shaders of this renderer. sloArgsCls is the SloArgs class that
+    *sloSuffix* is the suffix (without dot) that is used for the compiled
+    shaders of this renderer. *sloArgsCls* is the :class:`SloArgs` class that
     can read compiled shaders for this renderer.
     """
     global _sloArgsClasses
@@ -532,9 +532,15 @@ def registerSloArgs(sloSuffix, sloArgsCls):
 def getSloLib(sloSuffix):
     """Return the library name that manages a particular type of compiled shaders.
     
-    sloSuffix is the suffix of the compiled shaders.
+    *sloSuffix* is the suffix of the compiled shader.
     The return value is the library name that is used to read the parameters
     from compiled shaders of the given suffix.
+    
+    When called before a shader was parsed, the return value is the
+    library name that will be used when the library is loaded. This value can be
+    set by calling :func:`setSloLib()`. When the function is called after a
+    shader was already parsed, the return value is the absolute path to the
+    actual library that is used to read parameters.
     """
     global _sloArgsClasses, _sloArgsInstances
     
@@ -549,10 +555,10 @@ def getSloLib(sloSuffix):
 def setSloLib(sloSuffix, libName):
     """Set the library name that should be used for reading shader parameters.
     
-    Shaders with the given suffix (case-insensitive) will be handled by
-    the given library. This function has no effect if a shader of the given
+    Shaders with the suffix *sloSuffix* (case-insensitive) will be handled by
+    the library *libName*. This function has no effect if a shader of the given
     suffix has already been read. You must call this function at the beginning
-    of your application when slparams() hasn't been called yet.
+    of your application when :func:`slparams()` hasn't been called yet.
     """
     global _sloLibNames
     
@@ -561,7 +567,7 @@ def setSloLib(sloSuffix, libName):
 def slparams(shader):
     """Read shader parameters.
     
-    See slparams.slparams() for more details.
+    See :func:`slparams.slparams()<cgkit.slparams.slparams>` for more details.
     """
     global _sloArgsClasses, _sloArgsInstances, _sloLibNames
     

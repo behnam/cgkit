@@ -48,7 +48,7 @@ binding was written to be compliant to v3.2 of Pixar's RenderMan
 Interface specification. However, it also supports some newer features
 such as string handles for light sources or object instances.
 
-It is safe to import the module using 
+It is safe to import the module using::
 
   from cgkit.ri import *
 
@@ -57,7 +57,7 @@ constants start with RI_ or RIE_, so you probably won't get into a
 naming conflict.
 
 After importing the module this way you can use the functions just as
-you are used to from the C API (well, almost).
+you are used to from the C API::
 
   from cgkit.ri import *
 

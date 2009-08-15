@@ -21,6 +21,10 @@ class TestPointCloud(unittest.TestCase):
         self.libName = "3delight"
 #        self.libName = "prman"
         self.accuracy = 3
+        
+    def setUp(self):
+        if not os.path.exists("tmp"):
+            os.mkdir("tmp")
     
     def testSinglePoints(self):
         """Test writing/reading individual points.

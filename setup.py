@@ -301,7 +301,8 @@ scripts = ["viewer.py",
            "utilities/convert3d.py",
            "utilities/seqls.py",
            "utilities/seqmv.py",
-           "utilities/seqrm.py",]
+           "utilities/seqrm.py",
+           "utilities/seqcp.py"]
 
 # Lib3ds
 if LIB3DS_AVAILABLE:
@@ -658,7 +659,10 @@ setup(name = PACKAGE_NAME,
                   PACKAGE_NAME+".Interfaces",
                   PACKAGE_NAME+".wintab",
                   PACKAGE_NAME+".spacedevice",
-                  PACKAGE_NAME+".glove"],
+                  PACKAGE_NAME+".glove",
+                  PACKAGE_NAME+".jobqueue",
+                  PACKAGE_NAME+".jobqueue.defaultprocs",
+                  ],
 
       # Stick all extension modules into the main package
       ext_package = PACKAGE_NAME,

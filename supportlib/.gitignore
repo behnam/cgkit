@@ -1,0 +1,6 @@
+obj
+lib
+.sconf_temp
+.sconsign.dblite
+cpp_config.cfg
+config.log

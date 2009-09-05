@@ -642,7 +642,7 @@ if INSTALL_CGKIT_LIGHT:
 convertPyxFiles()
 
 setup(name = PACKAGE_NAME,
-      version = "2.0.0alpha8cvs",
+      version = "2.0.0alpha9dev",
       description = "Python Computer Graphics Kit",
       author = "Matthias Baas",
       author_email = "mbaas@users.sourceforge.net",

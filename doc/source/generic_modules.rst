@@ -29,5 +29,5 @@ Generic Modules
    hammersley
    stitch
    sequence
-..  jobqueue::
+   jobqueue
    

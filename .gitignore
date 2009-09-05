@@ -4,3 +4,4 @@ www
 project_web
 config.cfg
 dev.sh
+*.pyc

@@ -177,8 +177,8 @@ def _createRiConstants(ri):
         try:
             value = ri.RtBasis.in_dll(ri, basis)
         except ValueError:
-            raise ValueError, 'The RenderMan implementation "%s" does not define the standard basis "%s"'%(getattr(ri, "_name", "?"), basis)
-        setattr(ri, basis, value)    
+            raise ValueError('The RenderMan implementation "%s" does not define the standard basis "%s"'%(getattr(ri, "_name", "?"), basis))
+        setattr(ri, basis, value)
     
 def _createRiTokens(ri):
     """Create the RenderMan tokens.
@@ -320,7 +320,7 @@ def _createRiFunctions(ri):
     # "Import" the types (so that we can write RtInt instead of ri.RtInt)...
     for name in dir(ri):
         if name.startswith("Rt"):
-            exec "%s = ri.%s"%(name, name)
+            exec("%s = ri.%s"%(name, name))
     
     ri.RiArchiveRecord.argtypes = [RtToken, c_char_p]
     ri.RiAreaLightSource.argtypes = [RtToken]

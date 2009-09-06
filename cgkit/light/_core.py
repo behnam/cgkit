@@ -39,7 +39,7 @@ light version. It just raises an exception so that the user knows this
 is the light version.
 """
 
-raise ImportError, """This is the 'light' version of cgkit. The module you were
+raise ImportError("""This is the 'light' version of cgkit. The module you were
 trying to import is not available in this version. Please upgrade to the
-regular version."""
+regular version.""")
 

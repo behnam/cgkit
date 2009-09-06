@@ -103,7 +103,7 @@ class quat:
                 self.y = dummy.y
                 self.z = dummy.z
             else:
-                raise TypeError, "quat() arg can't be converted to quat"
+                raise TypeError("quat() arg can't be converted to quat")
 
         # 2 arguments (angle & axis)
         elif len(args)==2:
@@ -119,15 +119,14 @@ class quat:
             self.z = float(z)
 
         else:
-            raise TypeError, "quat() arg can't be converted to quat"
+            raise TypeError("quat() arg can't be converted to quat")
         
 
     def __repr__(self):
-        return 'quat('+`self.w`+', '+`self.x`+', '+`self.y`+', '+`self.z`+')'
+        return 'quat(%r, %r, %r, %r)'%(self.w, self.x, self.y, self.z)
 
     def __str__(self):
-        fmt="%1.4f"
-        return '('+fmt%self.w+', '+fmt%self.x+', '+fmt%self.y+', '+fmt%self.z+')'
+        return '(%1.4f, %1.4f, %1.4f, %1.4f)'%(self.w, self.x, self.y, self.z)
 
     def __eq__(self, other):
         """== operator
@@ -177,7 +176,7 @@ class quat:
             return quat(self.w+other.w, self.x+other.x,
                         self.y+other.y, self.z+other.z)
         else:
-            raise TypeError, "unsupported operand type for +"
+            raise TypeError("unsupported operand type for +")
 
     def __sub__(self, other):
         """Subtraction.
@@ -190,7 +189,7 @@ class quat:
             return quat(self.w-other.w, self.x-other.x,
                         self.y-other.y, self.z-other.z)
         else:
-            raise TypeError, "unsupported operand type for +"
+            raise TypeError("unsupported operand type for +")
 
     def __mul__(self, other):
         """Multiplication.
@@ -221,7 +220,7 @@ class quat:
             if getattr(other,"__rmul__",None)!=None:
                 return other.__rmul__(self)
             else:
-                raise TypeError, "unsupported operand type for *"
+                raise TypeError("unsupported operand type for *")
 
     __rmul__ = __mul__
 
@@ -238,7 +237,7 @@ class quat:
             return quat(self.w/other, self.x/other, self.y/other, self.z/other)
         # unsupported
         else:
-            raise TypeError, "unsupported operand type for /"
+            raise TypeError("unsupported operand type for /")
         
     def __pow__(self, other):
         """Return self**q."""
@@ -438,7 +437,7 @@ class quat:
             res.y = 0.0
             res.z = 0.0
             if self.w<=_epsilon:
-                raise ValueError, "math domain error"
+                raise ValueError("math domain error")
             res.w = math.log(self.w)
         else:
             t = math.atan2(b, self.w)
@@ -448,10 +447,10 @@ class quat:
             res.z = f*self.z
             ct = math.cos(t)
             if abs(ct)<=_epsilon:
-                raise ValueError, "math domain error"
+                raise ValueError("math domain error")
             r = self.w/ct
             if r<=_epsilon:
-                raise ValueError, "math domain error"            
+                raise ValueError("math domain error")
             res.w = math.log(r)
 
         return res
@@ -541,7 +540,7 @@ def squad(t, a, b, c, d):
 def _test():
     import doctest, quat
     failed, total = doctest.testmod(quat)
-    print "%d/%d failed" % (failed, total)
+    print ("%d/%d failed" % (failed, total))
 
 if __name__=="__main__":
 

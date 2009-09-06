@@ -100,7 +100,7 @@ def atan(*args):
     elif len(args)==2:
         return math.atan2(args[0],args[1])
     else:
-        raise TypeError,"atan only takes 1 or 2 arguments."
+        raise TypeError("atan only takes 1 or 2 arguments.")
 
 def log(*args):
     """Returns the natural logarithm of x or the logarithm to the specified base."""
@@ -110,7 +110,7 @@ def log(*args):
     elif len(args)==2:
         return math.log(args[0])/math.log(args[1])
     else:
-        raise TypeError,"log only takes 1 or 2 arguments."
+        raise TypeError("log only takes 1 or 2 arguments.")
     
 
 # clamp
@@ -174,7 +174,7 @@ def float_noise(*args):
     elif la==4:
         return noise.noise(args[0],args[1],args[2],args[3])
     else:
-        raise TypeError, "the function takes between 1 and 4 arguments ("+`la`+" given)"
+        raise TypeError("the function takes between 1 and 4 arguments (%s given)"%(la))
 
 
 def point_noise(*args):
@@ -193,7 +193,7 @@ def point_noise(*args):
         elif a==3:
             return noise.vnoise(args[0])
         else:
-            raise ValueError,"arg1: invalid argument length"            
+            raise ValueError("arg1: invalid argument length")
     elif la==2:
         try:
             a = len(args[0])
@@ -204,14 +204,14 @@ def point_noise(*args):
         elif a==3:
             return noise.vnoise(args[0],args[1])
         else:
-            raise ValueError,"arg1: invalid argument length"
+            raise ValueError("arg1: invalid argument length")
     elif la==3:
         return noise.vnoise(args[0],args[1],args[2])
     elif la==4:
         x,y,z,t = noise.vnoise(args[0],args[1],args[2],args[3])
         return _vec3(x,y,z)
     else:
-        raise TypeError, "the function takes between 1 and 4 arguments ("+`la`+" given)"
+        raise TypeError("the function takes between 1 and 4 arguments (%s given)"%(la))
    
 color_noise = point_noise
 vector_noise = point_noise
@@ -238,7 +238,7 @@ def float_pnoise(*args):
         else:
             return noise.pnoise(args[0],args[1],args[2],args[3])
     else:
-        raise TypeError, "the function takes between 1 and 4 arguments ("+`la`+" given)"
+        raise TypeError("the function takes between 1 and 4 arguments (%s given)"%(la))
 
 def point_pnoise(*args):
     """Returns a point whose value is a periodic (pseudo) random function of its arguments."""
@@ -260,7 +260,7 @@ def point_pnoise(*args):
         else:
             res = noise.vpnoise(args[0],args[1],args[2],args[3])
     else:
-        raise TypeError, "the function takes between 1 and 4 arguments ("+`la`+" given)"
+        raise TypeError("the function takes between 1 and 4 arguments (%s given)"%(la))
 
     return _tovec3(res)
 
@@ -284,7 +284,7 @@ def float_cellnoise(*args):
     elif la==4:
         return noise.cellnoise(args[0],args[1],args[2],args[3])
     else:
-        raise TypeError, "the function takes between 1 and 4 arguments ("+`la`+" given)"
+        raise TypeError("the function takes between 1 and 4 arguments (%s given)"%(la))
 
 def point_cellnoise(*args):
     """Returns a point whose value is a (pseudo) random function of its arguments.
@@ -305,7 +305,7 @@ def point_cellnoise(*args):
         elif a==3:
             return noise.vcellnoise(args[0])
         else:
-            raise ValueError,"arg1: invalid argument length"            
+            raise ValueError("arg1: invalid argument length")
     elif la==2:
         try:
             a = len(args[0])
@@ -316,15 +316,15 @@ def point_cellnoise(*args):
         elif a==3:
             return noise.vcellnoise(args[0],args[1])
         else:
-            raise ValueError,"arg1: invalid argument length"
+            raise ValueError("arg1: invalid argument length")
     elif la==3:
         return noise.vcellnoise(args[0],args[1],args[2])
     elif la==4:
         x,y,z,t = noise.vcellnoise(args[0],args[1],args[2],args[3])
         return _vec3(x,y,z)
     else:
-        raise TypeError, "the function takes between 1 and 4 arguments ("+`la`+" given)"
-   
+        raise TypeError("the function takes between 1 and 4 arguments (%s given)"%(la))
+
 color_cellnoise = point_cellnoise
 vector_cellnoise = point_cellnoise
 
@@ -382,7 +382,7 @@ def spline(x, knots):
     nspans = nknots-3
  
     if nspans<1:
-        raise ValueError, "spline(): there must be at least 4 control points ("+`nknots`+" given)"
+        raise ValueError("spline(): there must be at least 4 control points (%s given)"%nknots)
 
     x = clamp(x, 0.0, 1.0)*nspans
     span = int(x)
@@ -543,7 +543,7 @@ def format(pattern, *args, **keyargs):
 
 def printf(pattern, *args):
     """Prints the values of the specified variables."""
-    print format(pattern,args=args)
+    print (format(pattern,args=args))
 
 ######################################################################
 

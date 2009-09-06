@@ -44,7 +44,7 @@
 """High level cri module that can be used pretty much like the cgkit.ri module.
 """
 
-import types, re
+import sys, types, re
 import ri
 from cgtypes import vec3
 try:
@@ -399,9 +399,9 @@ class _RenderManAPI:
         nRGB = self._toCArray(self._ri.RtFloat, nRGB)
         RGBn = self._toCArray(self._ri.RtFloat, RGBn)
         if len(nRGB)!=len(RGBn):
-            raise ValueError, "The conversion matrices must have the same number of elements."
+            raise ValueError("The conversion matrices must have the same number of elements.")
         if len(nRGB)%3!=0:
-            raise ValueError, "Invalid number of elements in the conversion matrices."
+            raise ValueError("Invalid number of elements in the conversion matrices.")
         n = len(nRGB)/3
         self._ri.RiColorSamples(n, nRGB, RGBn)
 
@@ -513,7 +513,7 @@ class _RenderManAPI:
         decl = "%s %s"%(declaration, name)
         m = self._declRe.match(decl)
         if m is None:
-            raise ValueError, "Invalid declaration: %s"%decl
+            raise ValueError("Invalid declaration: %s"%decl)
         # Groups is a 4-tuple (class, type, n, name)
         grps = m.groups()
         self._declarations[grps[3]] = grps[:3]
@@ -1023,11 +1023,11 @@ class _RenderManAPI:
             if params[i]=="P":
                 n = len(params[i+1])
                 if n%3!=0:
-                    raise ValueError, 'Invalid number of floats in the "P" parameter.'
+                    raise ValueError('Invalid number of floats in the "P" parameter.')
                 n /= 3  
                 break
         else:
-            raise ValueError, 'Parameter "P" is missing.'  
+            raise ValueError('Parameter "P" is missing.')
         self._ri.RiPoints(n, *params)
 
     def RiPointsGeneralPolygons(self, nloops, nverts, vertids, *paramlist, **keyparams):
@@ -1085,11 +1085,11 @@ class _RenderManAPI:
             if params[i]=="P":
                 n = len(params[i+1])
                 if n%3!=0:
-                    raise ValueError, 'Invalid number of floats in the "P" parameter.'
+                    raise ValueError('Invalid number of floats in the "P" parameter.')
                 n /= 3  
                 break
         else:
-            raise ValueError, 'Parameter "P" is missing.'  
+            raise ValueError('Parameter "P" is missing.')
         self._ri.RiPolygon(n, *params)
 
     def RiProcedural(self, data, bound, subdividefunc, freefunc=None):
@@ -1469,15 +1469,15 @@ class _RenderManAPI:
         # Is the value already a ctypes array? Then there's nothing to do
         if isinstance(seq, ctypes.Array):
             if seq._type_!=ctype:
-                raise TypeError, "ctypes array should be of type %s instead of %s"%(getattr(ctype, "__name__", "?"), getattr(seq._type_, "__name__", "?"))
+                raise TypeError("ctypes array should be of type %s instead of %s"%(getattr(ctype, "__name__", "?"), getattr(seq._type_, "__name__", "?")))
             return seq
         
         # Is the sequence a numpy array?
         if hasattr(seq, "ctypes"):
             try:
                 self._assertNumPyArrayType(seq, ctype)
-            except TypeError, e:
-                raise TypeError("numpy error: %s"%e)
+            except TypeError:
+                raise TypeError("numpy error: %s"%sys.exc_info()[1])
             n = seq.size
             Cls = (n*ctype)
             seq = Cls.from_address(seq.ctypes.data)
@@ -1496,7 +1496,7 @@ class _RenderManAPI:
         """
         dtype = self._numpyTypes.get(ctype, None)
         if dtype is None:
-            raise TypeError, "numpy arrays cannot be used for this parameter type (%s)"%getattr(ctype, "__name__", "?")
+            raise TypeError("numpy arrays cannot be used for this parameter type (%s)"%getattr(ctype, "__name__", "?"))
         np = ndpointer(dtype=dtype, flags='CONTIGUOUS')
         # Just call from_param() to test the type. The actual return value is not needed.
         np.from_param(seq)
@@ -1547,9 +1547,9 @@ class _RenderManAPI:
                 if token.find(" ")==-1:
                     decl = self._declarations.get(token, None)
                     if decl is None:
-                        raise ValueError, 'Token "%s" is not declared.'%token
+                        raise ValueError('Token "%s" is not declared.'%token)
                 else:
-                    raise ValueError, 'Invalid inline declaration: %s'%token
+                    raise ValueError('Invalid inline declaration: %s'%token)
             else:
                 decl = m.groups()[:3]
                 
@@ -1576,8 +1576,8 @@ class _RenderManAPI:
             # must be converted)...
             try:
                 res[i+1] = self._toCArray(ctype, res[i+1])
-            except TypeError, e:
-                raise TypeError('Parameter "%s": %s'%(res[i], e))
+            except TypeError:
+                raise TypeError('Parameter "%s": %s'%(res[i], sys.exc_info()[1]))
 
         res.append(None)
         return res

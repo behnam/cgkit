@@ -678,8 +678,7 @@ def RiHyperboloid(point1, point2, thetamax, *paramlist, **keyparams):
 
     p1 = _seq2list(point1, 3)
     p2 = _seq2list(point2, 3)
-    _ribout.write('Hyperboloid '+p1[1:-1]+' '+p2[1:-1]+' '+`thetamax`+ \
-                 _paramlist2string(paramlist, keyparams)+"\n")
+    _ribout.write('Hyperboloid %s %s %s%s\n'%(p1[1:-1], p2[1:-1], thetamax, _paramlist2string(paramlist, keyparams)))
 
 # RiParaboloid
 def RiParaboloid(rmax, zmin, zmax, thetamax, *paramlist, **keyparams):
@@ -1357,7 +1356,7 @@ def RiTranslate(*translation):
         _ribout.write('Translate %s %s %s\n'%(dx,dy,dz))
     # Invalid argument size
     else:
-        raise TypeError, "RiTranslate() only takes a sequence or three scalars as arguments"
+        raise TypeError("RiTranslate() only takes a sequence or three scalars as arguments")
 
 # RiRotate
 def RiRotate(angle, *axis):
@@ -1378,7 +1377,7 @@ def RiRotate(angle, *axis):
         _ribout.write('Rotate %s %s %s %s\n'%(angle, ax, ay, az))
     # Invalid argument size
     else:
-        raise TypeError, "RiRotate() only takes 2 or 4 arguments ("+`len(axis)+1`+" given)"
+        raise TypeError("RiRotate() only takes 2 or 4 arguments (%s given)"%(len(axis)+1))
 
 
 # RiScale
@@ -1399,7 +1398,7 @@ def RiScale(*scaling):
         _ribout.write('Scale %s %s %s\n'%(sx, sy, sz))
     # Invalid argument size
     else:
-        raise TypeError, "RiScale() only takes a sequence or three scalars as arguments"
+        raise TypeError("RiScale() only takes a sequence or three scalars as arguments")
 
 
 # RiSkew
@@ -1424,7 +1423,7 @@ def RiSkew(angle, *vecs):
         _ribout.write('Skew %s %s %s %s %s %s %s\n'%(angle, dx1, dy1, dz1, dx2, dy2, dz2))
     # Invalid argument size
     else:
-        raise TypeError, "RiSkew() only takes 3 or 7 arguments ("+`len(vecs)+1`+" given)"
+        raise TypeError("RiSkew() only takes 3 or 7 arguments (%s given)"%(len(vecs)+1))
 
 
 # RiPerspective
@@ -2213,15 +2212,14 @@ def _error(code, severity, message):
         file   = inspect.stack(1)[j+1][1]
         line   = inspect.stack(1)[j+1][2]
         if file==None: file="?"
-        where = 'In file "'+file+'", line '+`line`+' - '+call+"():\n"
+        where = 'In file "%s", line %s - %s():\n'%(file, line, call)
 
     _errorhandler(code,severity,where+message)
 
 def _seq2col(seq):
     """Convert a sequence containing a color into a string."""
     if len(seq)<_colorsamples:
-        _error(RIE_INVALIDSEQLEN, RIE_ERROR, "Invalid sequence length ("+\
-               `len(seq)`+" instead of "+`_colorsamples`+")")
+        _error(RIE_INVALIDSEQLEN, RIE_ERROR, "Invalid sequence length (%s instead of %s)"%(len(seq), _colorsamples))
     colseq = tuple(seq)
     return '['+string.join( map(lambda x: str(x), colseq[:_colorsamples]) )+']'
 
@@ -2270,8 +2268,7 @@ def _seq2list(seq, count=None):
     f = _flatten(seq)
     # Has the sequence an incorrect length? then generate an error
     if count!=None and len(f)!=count:
-        _error(RIE_INVALIDSEQLEN, RIE_ERROR, "Invalid sequence length ("+\
-               `len(f)`+" instead of "+`count`+")")
+        _error(RIE_INVALIDSEQLEN, RIE_ERROR, "Invalid sequence length (%s instead of %s)"%(len(f), count))
         
     return '[%s]'%" ".join(f)
 
@@ -2330,10 +2327,10 @@ def _merge_paramlist(paramlist, keyparams):
        if res[-1] is None:
            res = res[:-1]
        else:
-           raise ValueError, "The parameter list must contain an even number of values" 
+           raise ValueError("The parameter list must contain an even number of values")
 
     # Append the params from the keyparams dict to the parameter list
-    map(lambda param: res.extend(param), keyparams.iteritems())
+    map(lambda param: res.extend(param), keyparams.items())
     return res
     
 
@@ -2364,7 +2361,7 @@ def _paramlist2string(paramlist, keyparams={}):
         tokname = f[-1:][0]
         inline  = f[:-1]
 
-        if not (_declarations.has_key(tokname) or inline!=[]):
+        if not (tokname in _declarations or inline!=[]):
             _error(RIE_UNDECLARED,RIE_ERROR,'Parameter "'+tokname+
                    '" is not declared.')
         

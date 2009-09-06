@@ -1,7 +1,12 @@
+build
 dist
 tmp
 www
 project_web
 config.cfg
 dev.sh
+dev*.bat
+config_py25.cfg
+config_py26.cfg
+config_py31.cfg
 *.pyc

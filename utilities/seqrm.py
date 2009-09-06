@@ -47,7 +47,7 @@ def promptUser(question):
     Returns True when the user entered 'y'.
     """
     while 1:
-        print question,
+        sys.stdout.write(question+" ")
         answer = raw_input()
         answer = answer.lower()
         if answer=="n":

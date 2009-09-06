@@ -5,6 +5,14 @@ import os, os.path
 import glob as globmod
 from cgkit.sequence import *
 
+def cmp(a, b):
+    if a<b:
+        return -1
+    elif a>b:
+        return 1
+    else:
+        return 0
+
 class TestSeqString(unittest.TestCase):
     """Test the SeqString class.
     """

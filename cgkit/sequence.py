@@ -100,7 +100,25 @@ class SeqString:
                 res += a%val
         return res
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
+        return self._cmp(other)==0
+    
+    def __ne__(self, other):
+        return self._cmp(other)!=0
+    
+    def __lt__(self, other):
+        return self._cmp(other)<0
+    
+    def __le__(self, other):
+        return self._cmp(other)<=0
+
+    def __gt__(self, other):
+        return self._cmp(other)>0
+    
+    def __ge__(self, other):
+        return self._cmp(other)>=0
+
+    def _cmp(self, other):
         """Comparison operator.
 
         The text parts are treated as strings, the number parts as numbers
@@ -139,7 +157,14 @@ class SeqString:
 
         # If we are here everything has been equal so far, but maybe
         # one string has one component more in _value
-        return cmp(len(selfStr._value), len(other._value))
+        s1 = len(selfStr._value)
+        s2 = len(other._value)
+        if s1<s2:
+            return -1
+        elif s1>s2:
+            return 1
+        else:
+            return 0
         
     def _initSeqString(self, s):
         """Initialize the sequence string with a string.
@@ -241,7 +266,12 @@ class SeqString:
         """
         a = self.groupRepr()
         b = template.groupRepr()
-        return cmp(a,b)
+        if a<b:
+            return -1
+        elif a>b:
+            return 1
+        else:
+            return 0
 
     def groupRepr(self, numChar="*"):
         """Return a template string where the numbers are replaced by the given character.
@@ -278,7 +308,7 @@ class SeqString:
         if idx<0:
             idx = self.numCount()+idx
         if idx<0 or idx>=self.numCount():
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
 
         return self._value[idx*2+1][0]
 
@@ -294,7 +324,7 @@ class SeqString:
         if idx<0:
             idx = self.numCount()+idx
         if idx<0 or idx>=self.numCount():
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
 
         val,ndigits = self._value[idx*2+1]
         a = '%'+"0%dd"%ndigits
@@ -327,7 +357,7 @@ class SeqString:
         if idx<0:
             idx = self.numCount()+idx
         if idx<0 or idx>=self.numCount():
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
 
         if width is None:
             width = self._value[idx*2+1][1]
@@ -353,7 +383,7 @@ class SeqString:
         if idx<0:
             idx = self.numCount()+idx
         if idx<0 or idx>=self.numCount():
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
 
         return self._value[idx*2+1][1]
 
@@ -367,7 +397,7 @@ class SeqString:
         if idx<0:
             idx = self.numCount()+idx
         if idx<0 or idx>=self.numCount():
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
 
         width = int(width)
         val = self._value[idx*2+1][0]
@@ -417,7 +447,7 @@ class SeqString:
         if idx<0:
             idx = self.numCount()+idx
         if idx<0 or idx>=self.numCount():
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
 
         # Insert the text
         self._value[idx*2] += str(txt)
@@ -445,7 +475,7 @@ class SeqString:
         
         # Check if the index is valid
         if idx2<0 or idx2>=len(self._value):
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
 
         # Replace the text
         self._value[idx2] = str(txt)
@@ -824,7 +854,7 @@ class Range:
         """
         # Copy the _ranges list and convert the tuples to lists.
         # The "begin" value will be increased during the iteration.
-        currentValues = map(lambda x: list(x), self._ranges)
+        currentValues = list(map(lambda x: list(x), self._ranges))
         
         # Advance all sub-ranges in parallel and always yield the minimum
         # value. The ensures that the iteration is done in order and no value
@@ -848,7 +878,7 @@ class Range:
                         currentValues[i][0] = current
                     
             # Remove the deleted items (the ones that are None)
-            currentValues = filter(lambda x: x is not None, currentValues)
+            currentValues = list(filter(lambda x: x is not None, currentValues))
     
     def __contains__(self, val):
         """Check if a value is inside the range.
@@ -2082,7 +2112,7 @@ def buildSequences(names, numPos=None, assumeFiles=False, nameFunc=None):
     # The order of the result is already so that members of the same
     # sequence are together, we just don't know yet where a sequence ends
     # and the next one begins.
-    objects.sort(key=lambda tup: tup[0])
+    objects = sorted(objects, key=lambda tup: tup[0])
     
     return _buildSequences(objects, numPos, assumeFiles)
     

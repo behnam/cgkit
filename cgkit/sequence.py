@@ -640,7 +640,7 @@ class Sequence:
         the names.
         """
         name,rangeStrs = self._nameAndRangeStrs()
-        return map(lambda x: Range(x), rangeStrs)
+        return list(map(lambda x: Range(x), rangeStrs))
 
     def sequenceName(self):
         """Return a sequence placeholder and range strings.
@@ -1575,7 +1575,7 @@ class OutputNameGenerator:
             # Get all the numbers that are present in the source name
             allNums = baseName.getNums()
             # Only keep the numbers that are actually used in the output name
-            nums = map(lambda i: allNums[i], numIdxs)
+            nums = list(map(lambda i: allNums[i], numIdxs))
     
             # Only queue this file when it is part of the source range
             if len(nums)==0 or (nums[seqNumIdx] in srcRange):
@@ -1628,7 +1628,7 @@ class OutputNameGenerator:
     
         numIdxs = []
         numValues = len(ranges)
-        numVaryingValues = len(filter(lambda rng: len(rng)>1, ranges))
+        numVaryingValues = len(list(filter(lambda rng: len(rng)>1, ranges)))
         
         numIdxs = range(numValues)
         
@@ -1725,7 +1725,7 @@ class _SequenceProcessor:
             fileTab.append((src,dst,uiSrc,uiDst))
             
         # Resolve internal collisions
-        srcFiles = map(lambda t: t[0], fileTab)
+        srcFiles = list(map(lambda t: t[0], fileTab))
         fileTab = self._resolveCollisions(fileTab, srcFiles)
 
         self._fileTab = fileTab
@@ -1910,7 +1910,7 @@ class MoveSequence(_SequenceProcessor):
             srcName = item[0]
             dstName = item[1]
             del fileDict[srcName]
-            if fileDict.has_key(dstName):
+            if dstName in fileDict:
                 return True
             fileDict[dstName] = 1
             

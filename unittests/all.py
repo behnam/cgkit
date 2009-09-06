@@ -10,11 +10,11 @@ ignore = []
 for test in glob.glob("test_*.py"):
     modname, ext = os.path.splitext(test)
     if modname in ignore:
-        print "IGNORE: %s"%modname
+        print ("IGNORE: %s"%modname)
     else:
-        print "Importing %s..."%modname
-        exec "from %s import *"%modname
+        print ("Importing %s..."%modname)
+        exec ("from %s import *"%modname)
 
 # Do the test
-print "Starting test"
+print ("Starting test")
 unittest.main()

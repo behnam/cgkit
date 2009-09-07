@@ -72,7 +72,7 @@ For more details on using the module see the cgkit manual at
 http://cgkit.sourceforge.net/
 """
 
-import sys, types, time, os, os.path, string, getpass, inspect, gzip
+import sys, types, time, os, os.path, getpass, inspect, gzip
 try:
     from _core import vec3 as _vec3
 except:
@@ -981,7 +981,7 @@ def RiColorSamples(nRGB, RGBn):
         _error(RIE_CONSISTENCY, RIE_ERROR,
                "The number of values in the transformation matrices must be a multiple of 3.")
         
-    _colorsamples = len(_flatten(nRGB))/3
+    _colorsamples = int(len(_flatten(nRGB))/3)
     _ribout.write('ColorSamples '+_seq2list(nRGB)+' '+_seq2list(RGBn)+'\n')
 
 # RiColor
@@ -2221,7 +2221,7 @@ def _seq2col(seq):
     if len(seq)<_colorsamples:
         _error(RIE_INVALIDSEQLEN, RIE_ERROR, "Invalid sequence length (%s instead of %s)"%(len(seq), _colorsamples))
     colseq = tuple(seq)
-    return '['+string.join( map(lambda x: str(x), colseq[:_colorsamples]) )+']'
+    return '[%s]'%(" ".join( map(lambda x: str(x), colseq[:_colorsamples]) ))
 
 def _flatten(seq):
     """Return a list of the individual items in a (possibly nested) sequence.

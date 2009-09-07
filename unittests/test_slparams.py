@@ -31,7 +31,7 @@ class TestSlparams(unittest.TestCase):
             res = os.system(cmd)
             os.chdir("..")
             if res!=0:
-                print "WARNING: Skipping slparams test for %s. Shading compiler (%s) is not available."%(renderer, shaderCompiler)
+                print ("WARNING: Skipping slparams test for %s. Shading compiler (%s) is not available."%(renderer, shaderCompiler))
                 continue
             res = slparams.slparams(slcName)
             self.assertTestShaderParams(res)

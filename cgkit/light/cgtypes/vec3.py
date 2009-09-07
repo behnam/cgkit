@@ -40,16 +40,6 @@ import math
 # Comparison threshold
 _epsilon = 1E-12
 
-# The types that are considered real/int numbers
-_real_types = [int, float]
-_int_types = [int]
-_string_types = [str]
-# As of Python 3, the long type is not available anymore
-if sys.version_info.major<3:
-    _real_types.append(long)
-    _int_types.append(long)
-    _string_types.append(unicode)
-
 # vec3
 class vec3:
     """Three-dimensional vector.
@@ -78,7 +68,6 @@ class vec3:
         v = vec3([1,2,3]) -> v = <1,2,3>
         v = vec3("4,5")   -> v = <4,5,0>        
         """
-        global _real_types, _string_types
         
         if len(args)==0:
             self.x, self.y, self.z = (0.0, 0.0, 0.0)
@@ -86,7 +75,7 @@ class vec3:
         elif len(args)==1:
             T = type(args[0])
             # scalar
-            if T in _real_types:
+            if T in [int, float, long]:
                 f = float(args[0])
                 self.x, self.y, self.z = (f, f, f)
             # vec3  
@@ -110,7 +99,7 @@ class vec3:
                 else:
                     raise TypeError("vec3() takes at most 3 arguments")
             # String
-            elif T in _string_types:
+            elif T in [str, unicode]:
                 s=args[0].replace(","," ").replace("  "," ").strip().split(" ")
                 if s==[""]:
                     s=[]
@@ -252,11 +241,10 @@ class vec3:
         >>> print a*b
         -0.825
         """
-        global _real_types
         
         T = type(other)
         # vec3*scalar
-        if T in _real_types:
+        if T in [int, float, long]:
             return vec3(self.x*other, self.y*other, self.z*other)
         # vec3*vec3
         if isinstance(other, vec3):
@@ -278,10 +266,9 @@ class vec3:
         >>> print a/2.0
         (0.5000, 0.2500, -0.9000)
         """
-        global _real_types
         T = type(other)
         # vec3/scalar
-        if T in _real_types:
+        if T in [int, float, long]:
             return vec3(self.x/other, self.y/other, self.z/other)
         # unsupported
         else:
@@ -297,10 +284,9 @@ class vec3:
         >>> print a%2.0
         (1.0000, 0.5000, 0.2000)
         """
-        global _real_types
         T = type(other)
         # vec3%scalar
-        if T in _real_types:
+        if T in [int, float, long]:
             return vec3(self.x%other, self.y%other, self.z%other)
         # vec3%vec3
         if isinstance(other, vec3):
@@ -382,10 +368,9 @@ class vec3:
         >>> print a
         (1.0000, 0.5000, 0.2000)
         """
-        global _real_types
         T = type(other)
         # vec3%=scalar
-        if T in _real_types:
+        if T in [int, float, long]:
             self.x%=other
             self.y%=other
             self.z%=other
@@ -443,10 +428,9 @@ class vec3:
         >>> print a[2]
         -1.8
         """
-        global _int_types
         
         T=type(key)
-        if T not in _int_types:
+        if T not in [int, long]:
             raise TypeError("index must be integer")
 
         if   key==0: return self.x
@@ -463,10 +447,9 @@ class vec3:
         >>> print a
         (1.5000, 0.7000, -0.3000)
         """
-        global _int_types
         
         T=type(key)
-        if T not in _int_types:
+        if T not in [int, long]:
             raise TypeError("index must be integer")
 
         if   key==0: self.x = value

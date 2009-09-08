@@ -402,7 +402,7 @@ class _RenderManAPI:
             raise ValueError("The conversion matrices must have the same number of elements.")
         if len(nRGB)%3!=0:
             raise ValueError("Invalid number of elements in the conversion matrices.")
-        n = len(nRGB)/3
+        n = len(nRGB)//3
         self._ri.RiColorSamples(n, nRGB, RGBn)
 
     def RiConcatTransform(self, transform):
@@ -1024,7 +1024,7 @@ class _RenderManAPI:
                 n = len(params[i+1])
                 if n%3!=0:
                     raise ValueError('Invalid number of floats in the "P" parameter.')
-                n /= 3  
+                n //= 3  
                 break
         else:
             raise ValueError('Parameter "P" is missing.')
@@ -1086,7 +1086,7 @@ class _RenderManAPI:
                 n = len(params[i+1])
                 if n%3!=0:
                     raise ValueError('Invalid number of floats in the "P" parameter.')
-                n /= 3  
+                n //= 3  
                 break
         else:
             raise ValueError('Parameter "P" is missing.')
@@ -1170,7 +1170,7 @@ class _RenderManAPI:
     
         RiExample: RiReadArchive("teapot.rib")
         """
-        if callable(callback):
+        if hasattr(callback, "__call__"):
             callback = self._ri.RtArchiveCallback(callback)
         self._ri.RiReadArchive(filename, callback, *self._createCParamList(paramlist, keyparams))
 
@@ -1414,7 +1414,7 @@ class _RenderManAPI:
         if res==0:
             return None
         
-        return map(lambda p: vec3(p), points)
+        return map(lambda p: vec3(*p), points)
     
     def RiTranslate(self, *translate):
         """Concatenate a translation onto the current transformation.

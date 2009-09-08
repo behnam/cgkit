@@ -294,7 +294,7 @@ class SeqString:
         - ``anim1_018.tif`` -> 2
         - ``anim``          -> 0
         """
-        return int(len(self._value)/2)
+        return len(self._value)//2
 
     def getNum(self, idx):
         """Return a particular number inside the string.
@@ -842,7 +842,7 @@ class Range:
         for begin,end,step in self._ranges:
             if end is None:
                 raise ValueError("Cannot return length of infinite range")
-            res += int((end-begin)/step)+1
+            res += ((end-begin)//step)+1
         return res
             
             
@@ -1045,7 +1045,7 @@ class Range:
                     return [rng1]
                 else:
                     # Set the begin of rng2 to the first value behind the end of rng1
-                    n = int((end1-begin2)/step2)+1
+                    n = ((end1-begin2)//step2)+1
                     begin2 += n*step2
             # Different steps, so only the first value is identical
             else:
@@ -1069,7 +1069,7 @@ class Range:
         res = []
         # Split off the first part of rng1 (everything that is before rng2)
         # -> adjust rng1 so that it only contains the remaining range
-        n = int((begin2-begin1-1)/step1)
+        n = (begin2-begin1-1)//step1
         e1 = begin1+n*step1
         res.append((begin1,e1,step1))
         begin1 = e1+step1
@@ -2216,7 +2216,7 @@ def compactRange(values):
         begin,end,step = rangeList[i]
         # Is this a range containing 2 values? Then check if it's advantageous
         # second value can be moved into the subsequent range
-        if begin!=end and (end-begin)/step==1:
+        if begin!=end and (end-begin)//step==1:
             begin2,end2,step2 = rangeList[i+1]
             # The second range only contains 1 value? Then only move
             # when the new step is smaller than the old step in the first range
@@ -2246,7 +2246,7 @@ def compactRange(values):
             if step==1:
                 rs.append("%s-%s"%(begin,end))
             # This sub-range only consists of two values (and step is not 1)? Then list individually
-            elif (end-begin)/step==1:
+            elif (end-begin)//step==1:
                 rs.append("%s,%s"%(begin,end))
             # Full sub-range, including step
             else:

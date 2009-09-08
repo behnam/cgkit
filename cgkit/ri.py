@@ -981,7 +981,7 @@ def RiColorSamples(nRGB, RGBn):
         _error(RIE_CONSISTENCY, RIE_ERROR,
                "The number of values in the transformation matrices must be a multiple of 3.")
         
-    _colorsamples = int(len(_flatten(nRGB))/3)
+    _colorsamples = len(_flatten(nRGB))//3
     _ribout.write('ColorSamples '+_seq2list(nRGB)+' '+_seq2list(RGBn)+'\n')
 
 # RiColor
@@ -1254,7 +1254,7 @@ def RiPixelFilter(function, xwidth, ywidth):
 
     Example: RiPixelFilter(RiGaussianFilter, 2.0, 1.0)"""
     
-    if callable(function):
+    if hasattr(function, "__call__"):
         _error(RIE_INCAPABLE, RIE_WARNING, "Only the standard filters can be stored in a RIB stream.")
         return
 
@@ -1845,7 +1845,7 @@ def RiMakeTexture(picname, texname, swrap, twrap, filterfunc, swidth, twidth, *p
                            RiGaussianFilter, 2,2)
     """
     
-    if callable(filterfunc):
+    if hasattr(filterfunc, "__call__"):
         _error(RIE_INCAPABLE, RIE_WARNING, "Only the standard filters can be stored in a RIB stream.")
         return
 
@@ -1866,7 +1866,7 @@ def RiMakeLatLongEnvironment(picname, texname, filterfunc, swidth, twidth, *para
                                       RiGaussianFilter, 2,2)
     """
     
-    if callable(filterfunc):
+    if hasattr(filterfunc, "__call__"):
         _error(RIE_INCAPABLE, RIE_WARNING, "Only the standard filters can be stored in a RIB stream.")
         return
 
@@ -1890,7 +1890,7 @@ def RiMakeCubeFaceEnvironment(px,nx,py,ny,pz,nz, texname, fov, filterfunc, swidt
                                         RiGaussianFilter, 2,2)
     """
     
-    if callable(filterfunc):
+    if hasattr(filterfunc, "__call__"):
         _error(RIE_INCAPABLE, RIE_WARNING, "Only the standard filters can be stored in a RIB stream.")
         return
 
@@ -2285,7 +2285,7 @@ def _paramlist2dict(paramlist, keyparams):
         paramlist = ()
     
     # Add the paramlist tuple to the keyword argument dict
-    for i in range(len(paramlist)/2):
+    for i in range(len(paramlist)//2):
         token = paramlist[i*2]
         value = paramlist[i*2+1]
         keyparams[token]=value

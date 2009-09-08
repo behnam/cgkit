@@ -145,6 +145,8 @@ class vec4(object):
     def __str__(self):
         return '(%1.4f, %1.4f, %1.4f, %1.4f)'%(self.x, self.y, self.z, self.w)
 
+    # Make the object unhashable (as it is mutable)
+    __hash__ = None
 
     def __eq__(self, other):
         """== operator

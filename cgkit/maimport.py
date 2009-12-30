@@ -474,7 +474,7 @@ class MAImporter(mayaascii.DefaultMAReader):
         ax = vec3(creator.getAttrValue("axis", "ax", "double3", 1, vec3(0,1,0)))
 
         if ax!=vec3(0,0,1):
-            print "WARNING: Plane %s ignored because axis!=z"%node.getName()
+            print "WARNING: Plane %s ignored because axis!=z"%creator.getName()
             return
 
 #        args["transform"] *= self.axisToTransform(ax)

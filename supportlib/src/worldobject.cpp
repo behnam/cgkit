@@ -254,7 +254,7 @@ TransformSlot::TransformSlot(PositionSlot* apos, RotationSlot* arot, ScaleSlot* 
 }
 
 TransformSlot::~TransformSlot()
-{ 
+{
 //  std::cout<<"0x"<<std::hex<<(long)this<<std::dec<<": TransformSlot<T>::~TransformSlot() begin"<<std::endl;
   if (pos!=0)
   {
@@ -283,7 +283,7 @@ const mat4d& TransformSlot::getValue()
 {
   // Is the value in the cache still valid?
   if (flags & CACHE_VALID)
-    return value; 
+    return value;
 
   // Obtain a new value and store it in the cache
   if (controller!=0)
@@ -315,7 +315,7 @@ void TransformSlot::setValue(const mat4d& val)
     // ...but only mark the cache as valid if no sub slot has a controller set.
     // If there is a controller some parts of the matrix may be invalid.
     // The valid parts will be picked up anyway (even though the cache is
-    // invalid) as by default the transform values dominate the sub slot 
+    // invalid) as by default the transform values dominate the sub slot
     // values if noone has a controller).
     if (pos!=0 && (pos->controller!=0 || rot->controller!=0 || scale->controller!=0))
       flags &= ~CACHE_VALID;
@@ -373,7 +373,7 @@ void TransformSlot::getTransform()
     // Neither rot nor scale have a valid value, so keep the current value
     case 0: break;
     // Only rot has a valid value
-    case 1: { 
+    case 1: {
               try
               {
                 value.decompose(t,r4,s);
@@ -388,7 +388,7 @@ void TransformSlot::getTransform()
 	      break;
             }
     // Only scale has a valid value
-    case 2: { 
+    case 2: {
               try
               {
                 value.decompose(t,r4,s);
@@ -403,7 +403,7 @@ void TransformSlot::getTransform()
 	      break;
             }
     // Both have valid values
-    case 3: { 
+    case 3: {
               r = rot->getValue();
               r.scale(scale->getValue());
               value.setMat3(r);
@@ -428,7 +428,7 @@ void TransformSlot::getPos()
 
   // Has the transform slot a valid value?
   //  if ((flags & CACHE_VALID) || (controller!=0))
-  /* 
+  /*
      The above test is disabled as the method is only called when there's
      no better value anyway. And to deal with the situation when the
      transform slot has no controller but a sub slot has, we must take
@@ -458,7 +458,7 @@ void TransformSlot::getRot()
 
   // Has the transform slot a valid value?
   //  if ((flags & CACHE_VALID) || (controller!=0))
-  /* 
+  /*
      The above test is disabled as the method is only called when there's
      no better value anyway. And to deal with the situation when the
      transform slot has no controller but a sub slot has, we must take
@@ -485,7 +485,7 @@ void TransformSlot::getRot()
   set the CACHE_VALID flag).
 
   \todo Ergebnis von decompose() aus rot/scale zwischenspeichern, so dass nicht 2x zerlegt werden muss.
-  \todo Statt CACHE_VALID und controller selbst zu testen eine entsprechende Methode aufrufen 
+  \todo Statt CACHE_VALID und controller selbst zu testen eine entsprechende Methode aufrufen
         (damit könnte flags und controller wieder protected werden)
  */
 void TransformSlot::getScale()
@@ -495,7 +495,7 @@ void TransformSlot::getScale()
 
   // Has the transform slot a valid value?
   //  if ((flags & CACHE_VALID) || (controller!=0))
-  /* 
+  /*
      The above test is disabled as the method is only called when there's
      no better value anyway. And to deal with the situation when the
      transform slot has no controller but a sub slot has, we must take
@@ -594,14 +594,14 @@ void TransformSlot::onDependentValueChanged()
 
 
 WorldObject::WorldObject(string aname)
-  : Component(aname), 
+  : Component(aname),
     pos(), rot(), scale(),
     transform(&pos, &rot, &scale),
     worldtransform(),
-    cog(), inertiatensor(), mass(), totalmass(),  
+    cog(), inertiatensor(), mass(), totalmass(),
     visible(true, 0),
     linearvel(), angularvel(),
-    parent(0), childs(), geom(), materials(), 
+    parent(0), childs(), geom(), materials(),
     _localTransform(1),
     _offsetTransform(1), _inverseOffsetTransform(1)
 {
@@ -685,7 +685,7 @@ void WorldObject::setName(string aname)
 /**
   Return the local axis aligned bounding box.
 
-  The bounding box is given with respect to the local 
+  The bounding box is given with respect to the local
   transformation L (which is \em not what you get from
   the transform slot of the world object).
 
@@ -695,7 +695,7 @@ BoundingBox WorldObject::boundingBox()
 {
   BoundingBox res;
   BoundingBox childbb;
-  
+
   // Begin with the bounding box of the geom in this object
   if (geom.get()!=0)
   {
@@ -723,7 +723,7 @@ BoundingBox WorldObject::boundingBox()
 
   L = T*P^-1
 
-  where T is the current transform (taken from the transform slot) and 
+  where T is the current transform (taken from the transform slot) and
   P is the offset transform.
 
   \return Local transformation
@@ -851,7 +851,7 @@ void WorldObject::setNumMaterials(int num)
 /**
   Get a stored material.
 
-  The method returns an empty pointer if the given index \a idx is out of range 
+  The method returns an empty pointer if the given index \a idx is out of range
   or there is no material stored at that position.
 
   \param idx The index of the material (can be negative to count from the end of the list)
@@ -1038,7 +1038,7 @@ string WorldObject::makeChildNameUnique(string name) const
   base = name.substr(0, numpos);
 
   // Convert the trailing number to a long
-  num = atol(name.substr(numpos, name.size()-numpos).c_str()); 
+  num = atol(name.substr(numpos, name.size()-numpos).c_str());
 
   // Increase the number until the name is unique
   // (but start with the original name (that might have no number at all))
@@ -1075,7 +1075,7 @@ void WorldObject::onRenameChild(const WorldObject& child, string newname)
   {
     throw EValueError("Object \""+getName()+"\" already has a children called \""+newname+"\".");
   }
-  
+
   boost::shared_ptr<WorldObject> c = childs.find(child.getName())->second;
   childs.erase(child.getName());
   childs[newname] = c;
@@ -1203,7 +1203,7 @@ void WorldObject::computeInertiaTensor(mat3d& tensor)
       childT.getColumn(3, c4);
       vec3d t(c4.x, c4.y, c4.z);
       childI += _translateI(cog, t);
-      
+
       // Add
       tensor += childI;
     }
@@ -1273,12 +1273,9 @@ void WorldObject::computeWorldTransform(mat4d& WT)
   // Start with the local transform of the object itself...
   WT = localTransform();
 
-  // ...and walk up the hierarchy
-  WorldObject* p = parent;
-  while(p!=0)
+  if (parent!=0)
   {
-    WT = p->localTransform()*WT;
-    p = p->parent;
+      WT = parent->worldtransform.getValue()*WT;
   }
 }
 

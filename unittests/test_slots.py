@@ -141,6 +141,28 @@ class TestTransformSlots(unittest.TestCase):
         w.transform = mat4([2,0,0,-1, 0,2,0,0.2, 0,0,2,1.7, 0,0,0,1])
         self.assertEqual(w.pos, vec3(1,2,3))
         self.assertEqual(w.transform, mat4([2,0,0,1, 0,2,0,2, 0,0,2,3, 0,0,0,1]))
+    
+    def testWorldTransform(self):
+        """Test that the worldtransform updates properly in a hierarchy.
+        
+        This is a test for bug 2909382.
+        """
+        a = Box("A")
+        b = Box("B", parent=a)
+        
+        # Access the world transform of B which cleans the cache
+        M = b.worldtransform
+        self.assertEqual(mat4(1), M)
+        
+        # Modify the local transform of A (via the scale slot)
+        a.scale = (2,2,2)
+        
+        S = mat4(1).setMat3(mat3(2))
+        # Check that the world transform of B contains the scale
+        # (before the bug fix, the world transform was still set to the
+        # identity because it was still cached)
+        self.assertEqual(S, b.worldtransform)
+
 
 ######################################################################
 

@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Changes from cgkit-2.0.0alpha9 to cgkit-2.0.0alpha10:
+
+Bug fixes/enhancements:
+
+- Bugfix (2909382): The world transform didn't properly update in certain
+  circumstances. This was because the slot dependency was set between the world
+  transforms, but the computation was actually using all the local transforms.
+
 Changes from cgkit-2.0.0alpha8 to cgkit-2.0.0alpha9:
 
 New features:

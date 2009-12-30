@@ -72,6 +72,7 @@ OutputNameGenerator Objects
     sequence files that the output sequence is based on. The structure of
     the names (i.e. how many separate numbers are within a name) determines
     how many number patterns the output name may have.
+    
     *dstName* is a string containing the name pattern for building the
     output file names. The syntax of the pattern is determined by the
     :class:`SeqTemplate` class (i.e. you can use ``@`` or ``#`` characters to
@@ -82,7 +83,8 @@ OutputNameGenerator Objects
     special characters at all. In this case, a 4-padded number is
     automatically appended which will receive the values from the
     main number sequence in the input files (or the values specified by
-    the destination range).
+    the destination range). If *dstName* refers to a directory, the actual
+    input file names will be maintained and appended to the path.
     
     *srcRanges* is a list of :class:`Range` objects that defines which files from
     the source sequence should be considered, everything outside the range

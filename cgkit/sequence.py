@@ -1384,6 +1384,14 @@ class OutputNameGenerator:
       spam1_1.tif -> foo_0001_3.tif
       spam1_2.tif -> foo_0002_3.tif
       spam1_5.tif -> foo_0005_3.tif
+      >>> 
+      >>> # The following assumes that "targetdir" is an existing directory
+      >>> for src,dst in OutputNameGenerator(seqs, "targetdir"):
+      ...   print src,"->",dst
+      ... 
+      spam1_1.tif -> targetdir/spam1_1.tif
+      spam1_2.tif -> targetdir/spam1_2.tif
+      spam1_5.tif -> targetdir/spam1_5.tif
     """
     
     def __init__(self, srcSequences, dstName, srcRanges=None, dstRange=None, keepExt=True,

@@ -3,6 +3,13 @@ Changelog
 
 Changes from cgkit-2.0.0alpha9 to cgkit-2.0.0alpha10:
 
+New features:
+
+- New module mediafile to read/write video/audio files
+- New sub-package ffmpeg that contains wrappers for the ffmpeg libraries
+  (using ctypes. The ffmpeg libraries themselves are not included, they must
+  already be on the system)
+
 Bug fixes/enhancements:
 
 - Bugfix (2909382): The world transform didn't properly update in certain

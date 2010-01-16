@@ -662,6 +662,7 @@ setup(name = PACKAGE_NAME,
                   PACKAGE_NAME+".glove",
                   PACKAGE_NAME+".jobqueue",
                   PACKAGE_NAME+".jobqueue.defaultprocs",
+                  PACKAGE_NAME+".ffmpeg"
                   ],
 
       # Stick all extension modules into the main package

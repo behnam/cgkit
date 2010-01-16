@@ -244,12 +244,6 @@ Math functions
 
    Returns the tangent. This function is imported from the :mod:`math` module.
 
-
-.. function:: tan(a)
-
-   Returns the tangent. This function is imported from the :mod:`math` module.
-
-
 .. function:: vector_cellnoise(p)
 
    Returns a vector (as a :class:`vec3`) whose value is a (pseudo) random function

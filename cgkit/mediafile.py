@@ -36,33 +36,81 @@
 import sys
 from ffmpeg import avutil, swscale, avformat, avcodec
 import ctypes
+try:
+    import Image
+    _pilImportException = None
+except ImportError, exc:
+    _pilImportException = exc
 
 
-class ImageData:
+class VideoData:
     """Decoded image data.
     
     This class serves as a container for the data that is passed to the
     video callbacks.
     """
-    def __init__(self, pts=None, size=None, data=None):
+    def __init__(self, pts=None, size=None, frame=None, picture=None, pictureSize=None, swsCtx=None):
         # Presentation timestamp (float)
         self.pts =pts
         # Image size (width, height)
         self.size = size
-        # Image data (str)
-        self.data = data
+        
+        # AVFrame object (containing the decoded frame (but not as RGB))
+        self.frame = frame
+        # AVPicture object (for the RGB frame)
+        self.picture = picture
+        # The size in bytes of a full (RGB) picture
+        self.pictureSize = pictureSize
+        
+        self._swsCtx = swsCtx
+    
+    def isKeyFrame(self):
+        """Check whether the current frame is a key frame or not.
+        """
+        return self.frame.key_frame==1
+    
+    def pilImage(self):
+        """Return the current frame as a PIL image.
+        """
+        global _pilImportException
+        if _pilImportException is not None:
+            raise _pilImportException
+
+        # Convert the frame into RGB
+        self.initPicture()
+        # Obtain a Python string containing the RGB image data
+        dataStr = ctypes.string_at(self.picture.data[0], self.pictureSize)
+        # Convert to PIL image
+        return Image.fromstring("RGB", self.size, dataStr)
+
+    def initPicture(self):
+        """Convert the raw frame into a RGB picture.
+        
+        Initializes self.picture.
+        """
+        # Convert the image into RGB format
+        height = self.size[1]
+        swscale.sws_scale(self._swsCtx, self.frame.data, self.frame.linesize, 0, height, self.picture.data, self.picture.linesize)
+
 
 class AudioData:
+    """Decoded audio data.
+    """
     def __init__(self, pts=None, channels=None, framerate=None, samples=None, sampleSize=None):
+        # Presentation timestamp (float)
         self.pts = pts
+        # The number of channels (int)
         self.channels = channels
+        # The framerate in Hz
         self.framerate = framerate
+        # The decoded samples
         self.samples = samples
+        # The number of bytes in the samples buffer
         self.sampleSize = sampleSize
 
 
 class StreamBase_ffmpeg(object):
-    """Base class for audio/video stream.
+    """Base class for the audio/video streams.
     """
     def __init__(self, stream):
         """Constructor.
@@ -77,7 +125,6 @@ class StreamBase_ffmpeg(object):
 
         # Obtain an appropriate decoder...
         self._codec = avcodec.avcodec_find_decoder(self._codecCtx.codec_id)
-        print "CODEC",self._codec
 
         if self._codec is not None:
             # Open the codec
@@ -167,11 +214,7 @@ class AudioStream_ffmpeg(StreamBase_ffmpeg):
     def handlePacket(self, pkt):
         # Decode the frame...
         codecCtx = self._codecCtx
-        try:
-            frameSize,bytesUsed = avcodec.avcodec_decode_audio2(codecCtx, self._sampleBuf, pkt.data, pkt.size)
-        except avcodec.AVCodecError, exc:
-            print "Error decoding audio frame:",exc
-            raise
+        frameSize,bytesUsed = avcodec.avcodec_decode_audio2(codecCtx, self._sampleBuf, pkt.data, pkt.size)
         
         if frameSize>0:
             self._audioData.pts = pkt.dts*self._timebase
@@ -229,7 +272,9 @@ class VideoStream_ffmpeg(StreamBase_ffmpeg):
             
             tb = self._stream.time_base
             self._timebase = float(tb.num)/tb.den
-            self._imageData = ImageData(size=(width, height))
+            self._videoData = VideoData(size=(width, height), frame=self._frame,
+                                        picture=self._picture, pictureSize=self._pictureSize,
+                                        swsCtx=self._swsCtx)
         except:
             self.decodeEnd()
             raise
@@ -250,27 +295,16 @@ class VideoStream_ffmpeg(StreamBase_ffmpeg):
     def handlePacket(self, pkt):
         # Decode the frame...
         codecCtx = self._codecCtx
-        try:
-            hasFrame,bytes = avcodec.avcodec_decode_video(codecCtx, self._frame, pkt.data, pkt.size)
-        except avcodec.AVCodecError, exc:
-            print "Error decoding video frame:",exc
-            hasFrame = False
+        hasFrame,bytes = avcodec.avcodec_decode_video(codecCtx, self._frame, pkt.data, pkt.size)
 
         if hasFrame:
-            # Convert the image into RGB format
-            frame = self._frame
-            pic = self._picture
-            print frame.linesize
-            swscale.sws_scale(self._swsCtx, frame.data, frame.linesize, 0, codecCtx.height, pic.data, pic.linesize)
-            # Obtain a Python string containing the raw image data
-            data = ctypes.string_at(pic.data[0], self._pictureSize)
-            print self._pictureSize
-    
-            #print "PTS:%s  DTS:%s  Duration:%s"%(pkt.pts, pkt.dts, pkt.duration)
-            self._imageData.pts = pkt.dts*self._timebase
-            self._imageData.data = data
+            # Conversion into RGB or creation of a PIL image is done by the
+            # video data object on demand
             
-            self._frameCallback(self._imageData)
+            #print "PTS:%s  DTS:%s  Duration:%s"%(pkt.pts, pkt.dts, pkt.duration)
+            self._videoData.pts = pkt.dts*self._timebase
+            
+            self._frameCallback(self._videoData)
 
     @property
     def width(self):

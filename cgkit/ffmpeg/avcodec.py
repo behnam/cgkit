@@ -159,6 +159,15 @@ class AVFrame(Structure):
     """
     _fields_ = [("data", c_void_p*4),
                 ("linesize", c_int*4),
+                ("base", c_void_p*4),
+                ("key_frame", c_int),
+                ("pict_type", c_int),
+                ("pts", c_longlong),
+                ("coded_picture_number", c_int),
+                ("display_picture_number", c_int),
+                ("quality", c_int),
+                ("age", c_int),
+                ("reference", c_int)
                 #...
                 ]
 

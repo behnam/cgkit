@@ -384,8 +384,54 @@ def av_seek_frame(formatCtx, stream_index, timestamp, flags):
     """
     ret = _lib().av_seek_frame(byref(formatCtx), stream_index, int(timestamp), flags)
     if ret<0:
-        raise RuntimeError, "Error: %s"%ret
+        raise AVFormatError("Error: %s"%ret)
     return ret
+
+def av_write_header(formatCtx):
+    """Allocate stream private data and write the stream header.
+    """
+    ret = _lib().av_write_header(byref(formatCtx))
+    if ret!=0:
+        raise AVFormatError("Error: %s"%ret)
+
+def av_write_trailer(formatCtx):
+    """Writes the stream trailer to an output media file and frees the file private data.
+    
+    May only be called after a successful call to av_write_header().
+    """
+    ret = _lib().av_write_trailer(byref(formatCtx))
+    if ret!=0:
+        raise AVFormatError("Error: %s"%ret)
+ 
+def av_write_frame(formatCtx, pkt):
+    """Writes a packet to an output media file.
+
+    The packet shall contain one audio or video frame.
+    The packet must be correctly interleaved according to the container
+    specification, if not then av_interleaved_write_frame() must be used.
+    Returns 1 if end of stream is wanted, 0 otherwise.
+    """
+    ret = _lib().av_write_frame(byref(formatCtx), byref(pkt))
+    if ret<0:
+        raise AVFormatError("Error: %s"%ret)
+    return ret
+
+def av_interleaved_write_frame(formatCtx, pkt):
+    """Writes a packet to an output media file ensuring correct interleaving.
+
+    The packet must contain one audio or video frame.
+    If the packets are already correctly interleaved, the application should
+    call av_write_frame() instead as it is slightly faster. It is also important
+    to keep in mind that completely non-interleaved input will need huge amounts
+    of memory to interleave with this, so it is preferable to interleave at the
+    demuxer level.
+    Returns 1 if end of stream is wanted, 0 otherwise.
+    """
+    ret = _lib().av_interleaved_write_frame(byref(formatCtx), byref(pkt))
+    if ret<0:
+        raise AVFormatError("Error: %s"%ret)
+    return ret
+
 
 def av_free_packet(pkt):
     """Call the packet's destruct() function.

@@ -39,8 +39,8 @@
 /**
    \file mat4.h
 
-   Contains the declaration of mat4, a 4x4 matrix with 
-   components of type T. 
+   Contains the declaration of mat4, a 4x4 matrix with
+   components of type T.
  */
 
 #include <iostream>
@@ -80,7 +80,7 @@ T _subdet(T m4[16], short i, short j)
       p+=1;
     }
   }
- 
+
   return m3[0]*m3[4]*m3[8]+
          m3[1]*m3[5]*m3[6]+
          m3[2]*m3[3]*m3[7]-
@@ -89,7 +89,7 @@ T _subdet(T m4[16], short i, short j)
          m3[8]*m3[3]*m3[1];
 }
 
-/** 
+/**
    4x4 matrix with components of type T.
 
    mat4 is a 4x4 template matrix with components of type T. Some
@@ -126,18 +126,18 @@ T _subdet(T m4[16], short i, short j)
                    matrix != matrix
    \endverbatim
 
-   @author Matthias Baas 
+   @author Matthias Baas
 */
-template<class T> 
+template<class T>
 class mat4
 {
   public:
   // Constructors
   mat4();
   explicit mat4(T v);
-  mat4(T a, T b, T c, T d, 
-       T e, T f, T g, T h, 
-       T i, T j, T k, T l, 
+  mat4(T a, T b, T c, T d,
+       T e, T f, T g, T h,
+       T i, T j, T k, T l,
        T m, T n, T o, T p);
   mat4(const mat4<T>& A);
 
@@ -227,9 +227,9 @@ class mat4
     friend vec3<T> operator*(const vec3<T>& v, const mat4<T>& M);
   #else
     // Declaration for gcc 3.3
-    template<class T2> 
+    template<class T2>
     friend vec4<T2> operator*(const vec4<T2>& v, const mat4<T2>& M);
-    template<class T2> 
+    template<class T2>
     friend vec3<T2> operator*(const vec3<T2>& v, const mat4<T2>& M);
   #endif
   //friend vec3<T> operator*<>(const vec3<T>& v, const mat4<T>& M);
@@ -257,7 +257,7 @@ template<class T> std::ostream& operator<<(std::ostream &s, const mat4<T>& M);
 
   @return  Product of a scalar and a matrix.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T> operator*(const T s, const mat4<T>& M)
 {
   return M*s;
@@ -268,10 +268,10 @@ inline mat4<T> operator*(const T s, const mat4<T>& M)
 
   @return  Product of a vector and a matrix.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline vec4<T> operator*(const vec4<T>& v, const mat4<T>& M)
 {
-  return vec4<T>( 
+  return vec4<T>(
                  v.x*M.m11 + v.y*M.m21 + v.z*M.m31 + v.w*M.m41,
                  v.x*M.m12 + v.y*M.m22 + v.z*M.m32 + v.w*M.m42,
                  v.x*M.m13 + v.y*M.m23 + v.z*M.m33 + v.w*M.m43,
@@ -286,7 +286,7 @@ inline vec4<T> operator*(const vec4<T>& v, const mat4<T>& M)
 
   @return  Product of a vector and a matrix.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline vec3<T> operator*(const vec3<T>& v, const mat4<T>& M)
 {
   vec3<T> res(v.x*M.m11 + v.y*M.m21 + v.z*M.m31 + M.m41,
@@ -304,7 +304,7 @@ inline vec3<T> operator*(const vec3<T>& v, const mat4<T>& M)
 }
 
 /// Output operator for matrices.
-template<class T> 
+template<class T>
 std::ostream& operator<<(std::ostream &s, const mat4<T>& M)
 {
   T m[16];
@@ -325,13 +325,13 @@ std::ostream& operator<<(std::ostream &s, const mat4<T>& M)
 
        [ 0  0  0  0]
    M = [ 0  0  0  0]
-       [ 0  0  0  0] 
-       [ 0  0  0  0] 
+       [ 0  0  0  0]
+       [ 0  0  0  0]
   \endverbatim
 
  */
 template<class T>
-mat4<T>::mat4() 
+mat4<T>::mat4()
   : m11(0), m12(0), m13(0), m14(0),
     m21(0), m22(0), m23(0), m24(0),
     m31(0), m32(0), m33(0), m34(0),
@@ -346,12 +346,12 @@ mat4<T>::mat4()
 
        [ v  0  0  0]
    M = [ 0  v  0  0]
-       [ 0  0  v  0] 
-       [ 0  0  0  v] 
+       [ 0  0  v  0]
+       [ 0  0  0  v]
   \endverbatim
 */
 template<class T>
-mat4<T>::mat4(T v) 
+mat4<T>::mat4(T v)
   : m11(v), m12(0), m13(0), m14(0),
     m21(0), m22(v), m23(0), m24(0),
     m31(0), m32(0), m33(v), m34(0),
@@ -359,21 +359,21 @@ mat4<T>::mat4(T v)
 {
 }
 
-/** 
+/**
   Constructor with 16 values in row-major order.
 
   \verbatim
 
-       [ a  b  c  d] 
+       [ a  b  c  d]
    M = [ e  f  g  h]
-       [ i  j  k  l] 
-       [ m  n  o  p] 
+       [ i  j  k  l]
+       [ m  n  o  p]
   \endverbatim
 */
 template<class T>
-mat4<T>::mat4(T a, T b, T c, T d, 
-	      T e, T f, T g, T h, 
-	      T i, T j, T k, T l, 
+mat4<T>::mat4(T a, T b, T c, T d,
+	      T e, T f, T g, T h,
+	      T i, T j, T k, T l,
 	      T m, T n, T o, T p)
   : m11(a), m12(b), m13(c), m14(d),
     m21(e), m22(f), m23(g), m24(h),
@@ -382,8 +382,8 @@ mat4<T>::mat4(T a, T b, T c, T d,
 {
 }
 
-/** 
-  Constructor with 1 matrix: 
+/**
+  Constructor with 1 matrix:
   Initialize with matrix A.
 
   \verbatim
@@ -417,7 +417,7 @@ inline T& mat4<T>::at(short i, short j)
   switch(i)
   {
    // Row 0
-   case 0: 
+   case 0:
      switch(j)
      {
      case 0: return m11;
@@ -457,24 +457,24 @@ inline T& mat4<T>::at(short i, short j)
      default: throw EIndexError();
      }
    default: throw EIndexError();
-  }  
+  }
 }
 
 
 /*----------------------------setIdentity------------------------------*//**
-  Set identity matrix. 
+  Set identity matrix.
 
   \verbatim
 
        [ 1  0  0  0]
    M = [ 0  1  0  0]
-       [ 0  0  1  0] 
-       [ 0  0  0  1] 
+       [ 0  0  1  0]
+       [ 0  0  0  1]
   \endverbatim
 
   @return Reference to this.
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::setIdentity()
 {
   m11 = 1; m12 = 0; m13 = 0; m14 = 0;
@@ -487,20 +487,20 @@ inline mat4<T>& mat4<T>::setIdentity()
 
 /*-------------------------------setNull---------------------------------*/
 /**
-  Set all components to 0. 
+  Set all components to 0.
 
   \verbatim
 
        [ 0  0  0  0]
    M = [ 0  0  0  0]
-       [ 0  0  0  0] 
-       [ 0  0  0  0] 
+       [ 0  0  0  0]
+       [ 0  0  0  0]
   \endverbatim
 
   @return Reference to this.
 */
 /*-------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::setNull()
 {
   m11 = 0; m12 = 0; m13 = 0; m14 = 0;
@@ -513,15 +513,15 @@ inline mat4<T>& mat4<T>::setNull()
 
 /*-------------------------------setRow----------------------------------*/
 /**
-  Set row i to r. 
+  Set row i to r.
 
   \verbatim
    Example for i=0:
 
        [ rx ry rz rw]
    M = [ *  *  *  *]
-       [ *  *  *  *]  
-       [ *  *  *  *]  
+       [ *  *  *  *]
+       [ *  *  *  *]
   \endverbatim
 
   @param     i  Row index (0, 1, 2, 3)
@@ -531,7 +531,7 @@ inline mat4<T>& mat4<T>::setNull()
   @see       getRow
 */
 /*-------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setRow(short i, const vec4<T>& r)
 {
   switch(i)
@@ -547,15 +547,15 @@ mat4<T>& mat4<T>::setRow(short i, const vec4<T>& r)
 
 /*-------------------------------setRow----------------------------------*/
 /**
-  Set row i to [a, b, c, d]. 
+  Set row i to [a, b, c, d].
 
   \verbatim
    Example for i=0:
 
        [ a  b  c  d]
    M = [ *  *  *  *]
-       [ *  *  *  *] 
-       [ *  *  *  *] 
+       [ *  *  *  *]
+       [ *  *  *  *]
   \endverbatim
 
   @param     i  Row index (0, 1, 2, 3)
@@ -568,7 +568,7 @@ mat4<T>& mat4<T>::setRow(short i, const vec4<T>& r)
   @see       getRow
 */
 /*-------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setRow(short i, T a, T b, T c, T d)
 {
   switch(i)
@@ -583,15 +583,15 @@ mat4<T>& mat4<T>::setRow(short i, T a, T b, T c, T d)
 }
 
 /*-------------------------------setColumn------------------------------*//**
-  Set column i to c. 
+  Set column i to c.
 
   \verbatim
    Example for i=0:
 
        [ cx *  *  *]
    M = [ cy *  *  *]
-       [ cz *  *  *] 
-       [ cw *  *  *] 
+       [ cz *  *  *]
+       [ cw *  *  *]
   \endverbatim
 
   @param     i  Column index (0, 1, 2, 3)
@@ -600,7 +600,7 @@ mat4<T>& mat4<T>::setRow(short i, T a, T b, T c, T d)
   @exception EIndexError Index is out of range.
   @see       getColumn
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setColumn(short i, const vec4<T>& c)
 {
   switch(i)
@@ -615,15 +615,15 @@ mat4<T>& mat4<T>::setColumn(short i, const vec4<T>& c)
 }
 
 /*-------------------------------setColumn------------------------------*//**
-  Set column i to [a, b, c]. 
+  Set column i to [a, b, c].
 
   \verbatim
    Example for i=0:
 
        [ a  *  *  *]
    M = [ b  *  *  *]
-       [ c  *  *  *] 
-       [ d  *  *  *] 
+       [ c  *  *  *]
+       [ d  *  *  *]
   \endverbatim
 
   @param     i  Column index (0, 1, 2, 3)
@@ -635,7 +635,7 @@ mat4<T>& mat4<T>::setColumn(short i, const vec4<T>& c)
   @exception EIndexError Index is out of range.
   @see       getColumn
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setColumn(short i, T a, T b, T c, T d)
 {
   switch(i)
@@ -651,14 +651,14 @@ mat4<T>& mat4<T>::setColumn(short i, T a, T b, T c, T d)
 
 /*-------------------------------setDiag----------------------------------*/
 /**
-  Set diagonal to d. 
+  Set diagonal to d.
 
   \verbatim
 
        [ dx *  *  *]
    M = [ *  dy *  *]
-       [ *  *  dz *] 
-       [ *  *  *  dw] 
+       [ *  *  dz *]
+       [ *  *  *  dw]
   \endverbatim
 
   @param     d  New diagonal.
@@ -666,7 +666,7 @@ mat4<T>& mat4<T>::setColumn(short i, T a, T b, T c, T d)
   @see       getDiag
 */
 /*-------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::setDiag(const vec4<T>& d)
 {
   m11 = d.x;
@@ -683,8 +683,8 @@ inline mat4<T>& mat4<T>::setDiag(const vec4<T>& d)
 
        [ a  *  *  *]
    M = [ *  b  *  *]
-       [ *  *  c  *] 
-       [ *  *  *  d] 
+       [ *  *  c  *]
+       [ *  *  *  d]
   \endverbatim
 
   @param     a  First diagonal element.
@@ -705,14 +705,14 @@ mat4<T>& mat4<T>::setDiag(T a, T b, T c, T d)
 }
 
 /*-------------------------------getRow--------------------------------*//**
-  Return row with index i. 
+  Return row with index i.
 
   @param     i  Row index (i=0,1,2,3).
   @return    Row i.
   @exception EIndexError Index is out of range.
   @see       setRow
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 vec4<T> mat4<T>::getRow(short i) const
 {
   switch(i)
@@ -726,14 +726,14 @@ vec4<T> mat4<T>::getRow(short i) const
 }
 
 /*-------------------------------getRow--------------------------------*//**
-  Return row with index i. 
+  Return row with index i.
 
   @param     i  Row index (i=0,1,2,3).
   @param     dest  Receives result.
   @exception EIndexError Index is out of range.
   @see       setRow
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 void mat4<T>::getRow(short i, vec4<T>& dest) const
 {
   switch(i)
@@ -747,7 +747,7 @@ void mat4<T>::getRow(short i, vec4<T>& dest) const
 }
 
 /*-------------------------------getRow--------------------------------*//**
-  Return row with index i. 
+  Return row with index i.
 
   @param     i  Row index (i=0,1,2,3)
   @param     a  Element [i,0] (output).
@@ -771,14 +771,14 @@ void mat4<T>::getRow(short i, T& a, T& b, T& c, T& d) const
 }
 
 /*-------------------------------getColumn------------------------------*//**
-  Returns column with index i. 
+  Returns column with index i.
 
   @param     i  Column index (i=0,1,2,3).
   @return    Column i.
   @exception EIndexError Index is out of range.
   @see       setColumn
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 vec4<T> mat4<T>::getColumn(short i) const
 {
   switch(i)
@@ -792,14 +792,14 @@ vec4<T> mat4<T>::getColumn(short i) const
 }
 
 /*-------------------------------getColumn-----------------------------*//**
-  Return column with index i. 
+  Return column with index i.
 
   @param     i  Column index (i=0,1,2,3).
   @param     dest  Receives result.
   @exception EIndexError Index is out of range.
   @see       setColumn
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 void mat4<T>::getColumn(short i, vec4<T>& dest) const
 {
   switch(i)
@@ -813,7 +813,7 @@ void mat4<T>::getColumn(short i, vec4<T>& dest) const
 }
 
 /*-------------------------------getColumn------------------------------*//**
-  Return column with index i. 
+  Return column with index i.
 
   @param     i  Column index (i=0,1,2,3).
   @param     a  Element [0,i] (output).
@@ -837,32 +837,32 @@ void mat4<T>::getColumn(short i, T& a, T& b, T& c, T& d) const
 }
 
 /*-------------------------------getDiag--------------------------------*//**
-  Return diagonal. 
+  Return diagonal.
 
   @return    Diagonal.
   @see       setDiag
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline vec4<T> mat4<T>::getDiag() const
 {
   return vec4<T>(m11, m22, m33, m44);
 }
 
 /*-------------------------------getDiag--------------------------------*//**
-  Return diagonal. 
+  Return diagonal.
 
   @param     dest  Receives result.
   @return    Diagonal.
   @see       setDiag
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline void mat4<T>::getDiag(vec4<T>& dest) const
 {
   dest.set(m11, m22, m33, m44);
 }
 
 /*-------------------------------getDiag--------------------------------*//**
-  Return diagonal. 
+  Return diagonal.
 
   @param     a  Element [0,0] (output).
   @param     b  Element [1,1] (output).
@@ -871,7 +871,7 @@ inline void mat4<T>::getDiag(vec4<T>& dest) const
   @return    Diagonal.
   @see       setDiag
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline void mat4<T>::getDiag(T& a, T& b, T& c, T& d) const
 {
   a = m11;
@@ -886,7 +886,7 @@ inline void mat4<T>::getDiag(T& a, T& b, T& c, T& d) const
   \param t Translation vector.
   \return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setTranslation(const vec3<T>& t)
 {
   m11=1; m12=0; m13=0; m14=t.x;
@@ -897,13 +897,13 @@ mat4<T>& mat4<T>::setTranslation(const vec3<T>& t)
 }
 
 /*---------------------------setRotation-------------------------------*//**
-  Set rotation matrix. 
+  Set rotation matrix.
 
   Sets a matrix which can be used to rotate a point around an axis
   that goes through the origin and has the direction indicated by the
   vector \a axis. The \a angle is given in radians. The rotation is
   actually performed by multiplying the matrix with a vector (the
-  vector must be on the right!). 
+  vector must be on the right!).
   Example: Point \c x is rotated with \c R*x where \c R is the rotation
   matrix.
   You can determine the direction of the positive rotation with the same
@@ -928,7 +928,7 @@ mat4<T>& mat4<T>::setTranslation(const vec3<T>& t)
   @return    Reference to this.
   @exception EZeroDivisionError  Is thrown when length of axis is 0.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setRotation(T angle, const vec3<T>& axis)
 {
   mat3<T> R;
@@ -939,7 +939,7 @@ mat4<T>& mat4<T>::setRotation(T angle, const vec3<T>& axis)
   m14=0;
   m24=0;
   m34=0;
-  m41=0; m42=0; m43=0; m44=1; 
+  m41=0; m42=0; m43=0; m44=1;
   return *this;
 }
 
@@ -949,7 +949,7 @@ mat4<T>& mat4<T>::setRotation(T angle, const vec3<T>& axis)
   \param s Scaling vector.
   \return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setScaling(const vec3<T>& s)
 {
   m11=s.x; m12=0; m13=0; m14=0;
@@ -967,13 +967,13 @@ mat4<T>& mat4<T>::setScaling(const vec3<T>& s)
   \return Reference to this.
   \todo Exceptions wieder aktivieren
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setOrthographic(T left, T right, T bottom, T top, T nearval, T farval)
 {
   double r_l = right-left;
   double t_b = top-bottom;
   double f_n = farval-nearval;
-  
+
   if (r_l<=vec3<T>::epsilon)
   {
     //raise ValueError, "right-value must be greater than left-value";
@@ -1013,7 +1013,7 @@ mat4<T>& mat4<T>::setOrthographic(T left, T right, T bottom, T top, T nearval, T
 
   \return Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setFrustum(T left, T right, T bottom, T top, T near_, T far_)
 {
   T r_l = right-left;
@@ -1060,7 +1060,7 @@ mat4<T>& mat4<T>::setFrustum(T left, T right, T bottom, T top, T near_, T far_)
 
   \return Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setPerspective(T fovy, T aspect, T near_, T far_)
 {
   T top = near_ * tan(fovy * 3.1415926535897931 / 360.0);
@@ -1081,7 +1081,7 @@ mat4<T>& mat4<T>::setPerspective(T fovy, T aspect, T near_, T far_)
 
   \return Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setLookAt(const vec3<T>& pos, const vec3<T>& target, const vec3<T>& up)
 {
   vec3<T> dir = target - pos;
@@ -1131,7 +1131,7 @@ mat4<T>& mat4<T>::setLookAt(const vec3<T>& pos, const vec3<T>& target, const vec
 
   @return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::setMat3(const mat3<T>& m3)
 {
   m3.getRow(0, m11, m12, m13);
@@ -1145,7 +1145,7 @@ mat4<T>& mat4<T>::setMat3(const mat3<T>& m3)
 
   \return Column/row 0-2 of this as a mat3.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T> mat4<T>::getMat3() const
 {
   return mat3<T>(m11, m12, m13, m21, m22, m23, m31, m32, m33);
@@ -1157,7 +1157,7 @@ mat3<T> mat4<T>::getMat3() const
   \param dest  Matrix that receives the value.
   \return A reference to dest.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T>& mat4<T>::getMat3(mat3<T>& dest) const
 {
   dest.setRow(0, m11, m12, m13);
@@ -1172,9 +1172,9 @@ mat3<T>& mat4<T>::getMat3(mat3<T>& dest) const
 
   @return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::operator+=(const mat4<T>& A)
-{ 
+{
   m11+=A.m11;
   m12+=A.m12;
   m13+=A.m13;
@@ -1191,7 +1191,7 @@ inline mat4<T>& mat4<T>::operator+=(const mat4<T>& A)
   m42+=A.m42;
   m43+=A.m43;
   m44+=A.m44;
-  return *this; 
+  return *this;
 }
 
 /*-------------------------------operator-=-----------------------------*//**
@@ -1199,9 +1199,9 @@ inline mat4<T>& mat4<T>::operator+=(const mat4<T>& A)
 
   @return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::operator-=(const mat4<T>& A)
-{ 
+{
   m11-=A.m11;
   m12-=A.m12;
   m13-=A.m13;
@@ -1218,7 +1218,7 @@ inline mat4<T>& mat4<T>::operator-=(const mat4<T>& A)
   m42-=A.m42;
   m43-=A.m43;
   m44-=A.m44;
-  return *this; 
+  return *this;
 }
 
 /*----------------------------operator*= (scalar)-----------------------*//**
@@ -1226,9 +1226,9 @@ inline mat4<T>& mat4<T>::operator-=(const mat4<T>& A)
 
   @return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::operator*=(const T s)
-{ 
+{
   m11*=s;
   m12*=s;
   m13*=s;
@@ -1245,7 +1245,7 @@ inline mat4<T>& mat4<T>::operator*=(const T s)
   m42*=s;
   m43*=s;
   m44*=s;
-  return *this; 
+  return *this;
 }
 
 /*----------------------------operator/= (scalar)-----------------------*//**
@@ -1254,9 +1254,9 @@ inline mat4<T>& mat4<T>::operator*=(const T s)
   @return     Reference to this.
   @exception  EZeroDivisionError  Is thrown when s=0.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::operator/=(const T s)
-{ 
+{
   if (xabs(s) <= vec3<T>::epsilon) throw EZeroDivisionError("mat4: divide by zero");
 
   m11/=s;
@@ -1275,7 +1275,7 @@ inline mat4<T>& mat4<T>::operator/=(const T s)
   m42/=s;
   m43/=s;
   m44/=s;
-  return *this; 
+  return *this;
 }
 
 /*-----------------------------operator%=-------------------------------*//**
@@ -1288,24 +1288,24 @@ template<class T>
 inline mat4<T>& mat4<T>::operator%=(const T r)
 {
   // r=0 ? then throw Exception
-  if ( (r > vec3<T>::epsilon) || (r < -vec3<T>::epsilon) ) 
+  if ( (r > vec3<T>::epsilon) || (r < -vec3<T>::epsilon) )
   {
-    m11 = _fmod(m11,r); 
-    m12 = _fmod(m12,r); 
-    m13 = _fmod(m13,r); 
-    m14 = _fmod(m14,r); 
-    m21 = _fmod(m21,r); 
-    m22 = _fmod(m22,r); 
-    m23 = _fmod(m23,r); 
-    m24 = _fmod(m24,r); 
-    m31 = _fmod(m31,r); 
-    m32 = _fmod(m32,r); 
-    m33 = _fmod(m33,r); 
-    m34 = _fmod(m34,r); 
-    m41 = _fmod(m41,r); 
-    m42 = _fmod(m42,r); 
-    m43 = _fmod(m43,r); 
-    m44 = _fmod(m44,r); 
+    m11 = _fmod(m11,r);
+    m12 = _fmod(m12,r);
+    m13 = _fmod(m13,r);
+    m14 = _fmod(m14,r);
+    m21 = _fmod(m21,r);
+    m22 = _fmod(m22,r);
+    m23 = _fmod(m23,r);
+    m24 = _fmod(m24,r);
+    m31 = _fmod(m31,r);
+    m32 = _fmod(m32,r);
+    m33 = _fmod(m33,r);
+    m34 = _fmod(m34,r);
+    m41 = _fmod(m41,r);
+    m42 = _fmod(m42,r);
+    m43 = _fmod(m43,r);
+    m44 = _fmod(m44,r);
   }
   else
   {
@@ -1340,22 +1340,22 @@ inline mat4<T>& mat4<T>::operator%=(const mat4<T>& b)
        ((b.m43 > vec3<T>::epsilon) || (b.m43 < -vec3<T>::epsilon)) &&
        ((b.m44 > vec3<T>::epsilon) || (b.m44 < -vec3<T>::epsilon)) )
   {
-    m11 = _fmod(m11, b.m11); 
-    m12 = _fmod(m12, b.m12); 
-    m13 = _fmod(m13, b.m13); 
-    m14 = _fmod(m14, b.m14); 
-    m21 = _fmod(m21, b.m21); 
-    m22 = _fmod(m22, b.m22); 
-    m23 = _fmod(m23, b.m23); 
-    m24 = _fmod(m24, b.m24); 
-    m31 = _fmod(m31, b.m31); 
-    m32 = _fmod(m32, b.m32); 
-    m33 = _fmod(m33, b.m33); 
-    m34 = _fmod(m34, b.m34); 
-    m41 = _fmod(m41, b.m41); 
-    m42 = _fmod(m42, b.m42); 
-    m43 = _fmod(m43, b.m43); 
-    m44 = _fmod(m44, b.m44); 
+    m11 = _fmod(m11, b.m11);
+    m12 = _fmod(m12, b.m12);
+    m13 = _fmod(m13, b.m13);
+    m14 = _fmod(m14, b.m14);
+    m21 = _fmod(m21, b.m21);
+    m22 = _fmod(m22, b.m22);
+    m23 = _fmod(m23, b.m23);
+    m24 = _fmod(m24, b.m24);
+    m31 = _fmod(m31, b.m31);
+    m32 = _fmod(m32, b.m32);
+    m33 = _fmod(m33, b.m33);
+    m34 = _fmod(m34, b.m34);
+    m41 = _fmod(m41, b.m41);
+    m42 = _fmod(m42, b.m42);
+    m43 = _fmod(m43, b.m43);
+    m44 = _fmod(m44, b.m44);
   }
   else
   {
@@ -1370,7 +1370,7 @@ inline mat4<T>& mat4<T>::operator%=(const mat4<T>& b)
 
   @return  Sum of two matrices.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T> mat4<T>::operator+(const mat4<T>& A) const
 {
   return mat4<T>(m11+A.m11, m12+A.m12, m13+A.m13, m14+A.m14,
@@ -1384,7 +1384,7 @@ inline mat4<T> mat4<T>::operator+(const mat4<T>& A) const
 
   @return  Difference of two matrices.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T> mat4<T>::operator-(const mat4<T>& A) const
 {
   return mat4<T>(m11-A.m11, m12-A.m12, m13-A.m13, m14-A.m14,
@@ -1398,7 +1398,7 @@ inline mat4<T> mat4<T>::operator-(const mat4<T>& A) const
 
   @return  Negated matrix.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T> mat4<T>::operator-() const
 {
   return mat4<T>(-m11, -m12, -m13, -m14,
@@ -1413,7 +1413,7 @@ inline mat4<T> mat4<T>::operator-() const
 
   @return  Product of two matrices.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T> mat4<T>::operator*(const mat4<T>& A) const
 {
   return mat4<T>(m11*A.m11+m12*A.m21+m13*A.m31+m14*A.m41,
@@ -1444,7 +1444,7 @@ inline mat4<T> mat4<T>::operator*(const mat4<T>& A) const
 
   @return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::operator*=(const mat4<T>& A)
 {
   double _m11 = m11*A.m11+m12*A.m21+m13*A.m31+m14*A.m41;
@@ -1492,7 +1492,7 @@ inline mat4<T>& mat4<T>::operator*=(const mat4<T>& A)
 
   @return  Product of a matrix and a vector.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline vec4<T> mat4<T>::operator*(const vec4<T>& v) const
 {
   return vec4<T>(m11*v.x + m12*v.y + m13*v.z + m14*v.w,
@@ -1508,7 +1508,7 @@ inline vec4<T> mat4<T>::operator*(const vec4<T>& v) const
 
   @return  Product of a matrix and a vector.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline vec3<T> mat4<T>::operator*(const vec3<T>& v) const
 {
   vec3<T> res(m11*v.x + m12*v.y + m13*v.z + m14,
@@ -1530,12 +1530,12 @@ inline vec3<T> mat4<T>::operator*(const vec3<T>& v) const
 
   @return  Product of a matrix and a scalar.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T> mat4<T>::operator*(const T s) const
-{ 
-  return mat4<T>(m11*s, m12*s, m13*s, m14*s,  
-                 m21*s, m22*s, m23*s, m24*s,  
-                 m31*s, m32*s, m33*s, m34*s,  
+{
+  return mat4<T>(m11*s, m12*s, m13*s, m14*s,
+                 m21*s, m22*s, m23*s, m24*s,
+                 m31*s, m32*s, m33*s, m34*s,
                  m41*s, m42*s, m43*s, m44*s);
 }
 
@@ -1545,14 +1545,14 @@ inline mat4<T> mat4<T>::operator*(const T s) const
   @return     Matrix diveded by scalar (component wise).
   @exception  EZeroDivisionError  Is returned when s=0.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T> mat4<T>::operator/(const T s) const
-{ 
+{
   if (xabs(s) <= vec3<T>::epsilon) throw EZeroDivisionError("mat4: divide by zero");
 
-  return mat4<T>(m11/s, m12/s, m13/s, m14/s,  
-                 m21/s, m22/s, m23/s, m24/s,  
-                 m31/s, m32/s, m33/s, m34/s,  
+  return mat4<T>(m11/s, m12/s, m13/s, m14/s,
+                 m21/s, m22/s, m23/s, m24/s,
+                 m31/s, m32/s, m33/s, m34/s,
                  m41/s, m42/s, m43/s, m44/s);
 }
 
@@ -1629,7 +1629,7 @@ inline bool mat4<T>::operator!=(const mat4<T>& A) const
   \param dest The target array (this must be big enough to hold 16 values)
   \param rowmajor If true the values are laid out in row major order
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 void mat4<T>::toList(T* dest, bool rowmajor) const
 {
   if (rowmajor)
@@ -1678,7 +1678,7 @@ void mat4<T>::toList(T* dest, bool rowmajor) const
   \param array  An array with 16 values
   \param rowmajor If true the values are interpreted in row major order
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 void mat4<T>::fromList(T* array, bool rowmajor)
 {
   if (rowmajor)
@@ -1727,38 +1727,38 @@ void mat4<T>::fromList(T* array, bool rowmajor)
 
   @return  Determinant.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline T mat4<T>::determinant() const
 {
-  return m11*m22*m33*m44 
-         -m11*m22*m34*m43 
-         +m11*m23*m34*m42 
-         -m11*m23*m32*m44 
-         +m11*m24*m32*m43 
-         -m11*m24*m33*m42 
-         -m12*m23*m34*m41 
-         +m12*m23*m31*m44 
-         -m12*m24*m31*m43 
-         +m12*m24*m33*m41 
-         -m12*m21*m33*m44 
-         +m12*m21*m34*m43 
-         +m13*m24*m31*m42 
-         -m13*m24*m32*m41 
-         +m13*m21*m32*m44 
-         -m13*m21*m34*m42 
-         +m13*m22*m34*m41 
-         -m13*m22*m31*m44 
-         -m14*m21*m32*m43 
-         +m14*m21*m33*m42 
-         -m14*m22*m33*m41 
-         +m14*m22*m31*m43 
-         -m14*m23*m31*m42 
+  return m11*m22*m33*m44
+         -m11*m22*m34*m43
+         +m11*m23*m34*m42
+         -m11*m23*m32*m44
+         +m11*m24*m32*m43
+         -m11*m24*m33*m42
+         -m12*m23*m34*m41
+         +m12*m23*m31*m44
+         -m12*m24*m31*m43
+         +m12*m24*m33*m41
+         -m12*m21*m33*m44
+         +m12*m21*m34*m43
+         +m13*m24*m31*m42
+         -m13*m24*m32*m41
+         +m13*m21*m32*m44
+         -m13*m21*m34*m42
+         +m13*m22*m34*m41
+         -m13*m22*m31*m44
+         -m14*m21*m32*m43
+         +m14*m21*m33*m42
+         -m14*m22*m33*m41
+         +m14*m22*m31*m43
+         -m14*m23*m31*m42
          +m14*m23*m32*m41;
 }
 
 
 /*--------------------------------inverse--------------------------------*//**
-  Invert matrix. 
+  Invert matrix.
 
   Throws an ESingularMatrix exception if the matrix can't be inverted
   (that is, the determinant is zero). The inverted matrix is stored in
@@ -1766,9 +1766,9 @@ inline T mat4<T>::determinant() const
   *this as destination matrix.
 
   @return     dest.
-  @exception EZeroDivisionError The matrix isn't invertible (det=0).  
+  @exception EZeroDivisionError The matrix isn't invertible (det=0).
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::inverse(mat4<T>& dest) const
 {
   T m4[16];
@@ -1795,7 +1795,7 @@ inline mat4<T>& mat4<T>::inverse(mat4<T>& dest) const
 }
 
 /*--------------------------------inverse--------------------------------*//**
-  Invert matrix. 
+  Invert matrix.
 
   See invert.
 
@@ -1803,7 +1803,7 @@ inline mat4<T>& mat4<T>::inverse(mat4<T>& dest) const
   @exception  ESingularMatrix  The matrix isn't invertible (det=0).
   @see        invert
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T> mat4<T>::inverse() const
 {
   mat4<T> res;
@@ -1812,7 +1812,7 @@ inline mat4<T> mat4<T>::inverse() const
 
 
 /*--------------------------------transpose-----------------------------*//**
-  Transpose matrix. 
+  Transpose matrix.
 
   The transposed matrix is stored in dest.
   matrix *this remains unchanged. It is allowed to pass *this
@@ -1820,7 +1820,7 @@ inline mat4<T> mat4<T>::inverse() const
 
   @return     dest.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::transpose(mat4<T>& dest) const
 {
   if (&dest==this)
@@ -1853,17 +1853,17 @@ inline mat4<T>& mat4<T>::transpose(mat4<T>& dest) const
 }
 
 /*--------------------------------transpose-----------------------------*//**
-  Transpose matrix. 
+  Transpose matrix.
 
   See transpose.
 
   @return     Transposed matrix.
   @see        transpose
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T> mat4<T>::transpose() const
 {
-  return mat4<T>(m11, m21, m31, m41, 
+  return mat4<T>(m11, m21, m31, m41,
 		 m12, m22, m32, m42,
 		 m13, m23, m33, m43,
 		 m14, m24, m34, m44);
@@ -1876,7 +1876,7 @@ inline mat4<T> mat4<T>::transpose() const
 
   \return Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::translate(const vec3<T>& t)
 {
   m14 = m11*t.x + m12*t.y + m13*t.z + m14;
@@ -1893,7 +1893,7 @@ inline mat4<T>& mat4<T>::translate(const vec3<T>& t)
 
   \return Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat4<T>& mat4<T>::scale(const vec3<T>& s)
 {
   T sx=s.x, sy=s.y, sz=s.z;
@@ -1922,7 +1922,7 @@ inline mat4<T>& mat4<T>::scale(const vec3<T>& s)
   \param  angle  Angle in radians
   \return Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::rotate(T angle, const vec3<T>& axis)
 {
   mat4<T> R;
@@ -1941,14 +1941,14 @@ mat4<T>& mat4<T>::rotate(T angle, const vec3<T>& axis)
   \param  dest Destination matrix that receives the result (may be this).
   \return Reference to dest
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T>& mat4<T>::ortho(mat4<T>& dest) const
 {
   mat3<T> M(m11, m12, m13,  m21, m22, m23,  m31, m32, m33);
   M.ortho(M);
-  M.getRow(0, dest.m11, dest.m12, dest.m13); 
-  M.getRow(1, dest.m21, dest.m22, dest.m23); 
-  M.getRow(2, dest.m31, dest.m32, dest.m33); 
+  M.getRow(0, dest.m11, dest.m12, dest.m13);
+  M.getRow(1, dest.m21, dest.m22, dest.m23);
+  M.getRow(2, dest.m31, dest.m32, dest.m33);
   dest.m14 = m14;
   dest.m24 = m24;
   dest.m34 = m34;
@@ -1966,7 +1966,7 @@ mat4<T>& mat4<T>::ortho(mat4<T>& dest) const
 
   \return Matrix with orthogonal vectors.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat4<T> mat4<T>::ortho() const
 {
   mat4<T> res;
@@ -1976,20 +1976,28 @@ mat4<T> mat4<T>::ortho() const
 /*---------------------------------decompose-----------------------------*//**
   Decompose the matrix into a translation, rotation and scaling part.
 
-  If there was a scaling part that was zero then 
-  a EZeroDivisionError exception is thrown.
-
-  \param t  Receives the translation part
-  \param rot  Receives the rotation part
-  \param scale Receives the scaling part
+  \param[out] t  Receives the translation part
+  \param[out] rot  Receives the rotation part
+  \param[out] scale Receives the scaling part
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 void mat4<T>::decompose(vec3<T>& t, mat4<T>& rot, vec3<T>& scale) const
 {
   vec3<T> a,b,c;
   T al, bl, cl;
 
-  ortho(rot);
+  try
+  {
+      ortho(rot);
+  }
+  catch(const EZeroDivisionError&)
+  {
+      t.set(0, 0, 0);
+      rot.setIdentity();
+      scale.set(0, 0, 0);
+      return;
+  }
+
   rot.m14 = 0;
   rot.m24 = 0;
   rot.m34 = 0;

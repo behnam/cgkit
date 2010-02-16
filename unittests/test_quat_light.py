@@ -5,7 +5,7 @@ import unittest
 from cgkit.light.cgtypes import *
 import math, os, pickle
 
-class TestQuat(unittest.TestCase):
+class TestQuat_light(unittest.TestCase):
 
     def testConstructor(self):
         q = quat(1.5,-2,3,2)

@@ -736,7 +736,11 @@ class mat4:
         translation and scaling parts are given as vec3's, the rotation
         is still given as a mat4.
         """
-        dummy = self.ortho()
+        try:
+            dummy = self.ortho()
+        except ZeroDivisionError:
+            return (_vec3(0), mat4(1.0), _vec3(0))
+
         dummy.setRow(3,_vec4(0.0, 0.0, 0.0, 1.0))
         dummy.setColumn(3,_vec4(0.0, 0.0, 0.0, 1.0))
 

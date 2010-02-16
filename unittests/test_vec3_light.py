@@ -5,7 +5,7 @@ import unittest
 from cgkit.light.cgtypes import *
 import math, os, pickle
 
-class TestVec3(unittest.TestCase):
+class TestVec3_light(unittest.TestCase):
     
     def setUp(self):
         self.a = vec3(1.5, 2, 3)

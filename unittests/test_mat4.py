@@ -590,6 +590,12 @@ class TestMat4(unittest.TestCase):
         N=N.scale(s)
         self.assertEqual(N, M)
 
+        M = mat4(0)
+        t,r,s = M.decompose()
+        self.assertEqual(vec3(0), t)
+        self.assertEqual(mat4(1), r)
+        self.assertEqual(vec3(0), s)
+
     ######################################################################
     def testGetSetMat3(self):
         m = mat4(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)

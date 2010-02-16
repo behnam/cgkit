@@ -5,7 +5,7 @@ from cgkit.light.cgtypes import *
 import math, os, pickle, sys
 from cgkit.sl import degrees, radians
 
-class TestMat3(unittest.TestCase):
+class TestMat3_light(unittest.TestCase):
 
     def testConstructor(self):
         m = mat3(1,2,3,4,5,6,7,8,9)
@@ -501,6 +501,11 @@ class TestMat3(unittest.TestCase):
         N=N*R
         N=N.scale(s)
         self.failUnless(N==M, "mat3 decompose: Ergebnis falsch")
+        
+        M = mat3(0)
+        r,s = M.decompose()
+        self.assertEqual(mat3(1), r)
+        self.assertEqual(vec3(0), s)
 
     ######################################################################
     def testEuler(self):

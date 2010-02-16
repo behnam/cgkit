@@ -5,7 +5,7 @@ import unittest
 from cgkit.light.cgtypes import *
 import math, os, pickle
 
-class TestVec4(unittest.TestCase):
+class TestVec4_light(unittest.TestCase):
 
 
     ######################################################################

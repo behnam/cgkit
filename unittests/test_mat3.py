@@ -502,6 +502,11 @@ class TestMat3(unittest.TestCase):
         N=N*R
         N=N.scale(s)
         self.failUnless(N==M, "mat3 decompose: Ergebnis falsch")
+        
+        M = mat3(0)
+        r,s = M.decompose()
+        self.assertEqual(mat3(1), r)
+        self.assertEqual(vec3(0), s)
 
     ######################################################################
     def testEuler(self):

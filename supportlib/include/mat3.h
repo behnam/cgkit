@@ -37,11 +37,11 @@
   ---------------------------------------------------------------------
   Änderungen:
   ---------------------------------------------------------------------
-  06.08.99: Template-Klammern in der Deklaration eingefügt (innerhalb 
+  06.08.99: Template-Klammern in der Deklaration eingefügt (innerhalb
             der mat3-Klasse):
 
   friend vec3<T> operator*<>(const vec3<T>& v, const mat3<T>& M);
-                          ^^ 
+                          ^^
                  Diese Klammern eingefügt
 
   egcs hatte sich über die fehlenden Klammern beschwert (C++ Builder
@@ -57,8 +57,8 @@
 /**
    \file mat3.h
 
-   Contains the declaration of mat3, a 3x3 matrix with 
-   components of type T. 
+   Contains the declaration of mat3, a 3x3 matrix with
+   components of type T.
  */
 
 #include <iostream>
@@ -69,7 +69,7 @@
 
 namespace support3d {
 
-/** 
+/**
    3x3 matrix with components of type T.
 
    mat3 is a 3x3 template matrix with components of type T. Some
@@ -106,9 +106,9 @@ namespace support3d {
                    matrix != matrix
    \endverbatim
 
-   @author Matthias Baas 
+   @author Matthias Baas
 */
-template<class T> 
+template<class T>
 class mat3
 {
   public:
@@ -208,7 +208,7 @@ class mat3
     friend vec3<T> operator*(const vec3<T>& v, const mat3<T>& M);
   #else
     // Declaration for gcc 3.3
-    template<class T2> 
+    template<class T2>
     friend vec3<T2> operator*(const vec3<T2>& v, const mat3<T2>& M);
   #endif
   //friend vec3<T> operator*<>(const vec3<T>& v, const mat3<T>& M);
@@ -246,7 +246,7 @@ template<class T> std::ostream& operator<<(std::ostream &s, const mat3<T>& M);
 
   @return  Product of a scalar and a matrix.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T> operator*(const T s, const mat3<T>& M)
 {
   return M*s;
@@ -257,18 +257,18 @@ inline mat3<T> operator*(const T s, const mat3<T>& M)
 
   @return  Product of a vector and a matrix.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline vec3<T> operator*(const vec3<T>& v, const mat3<T>& M)
 {
-  return vec3<T>( 
-                 v.x*M.r1.x + v.y*M.r2.x + v.z*M.r3.x,                
-                 v.x*M.r1.y + v.y*M.r2.y + v.z*M.r3.y,                
+  return vec3<T>(
+                 v.x*M.r1.x + v.y*M.r2.x + v.z*M.r3.x,
+                 v.x*M.r1.y + v.y*M.r2.y + v.z*M.r3.y,
                  v.x*M.r1.z + v.y*M.r2.z + v.z*M.r3.z
                 );
 }
 
 /// Output operator for matrices.
-template<class T> 
+template<class T>
 std::ostream& operator<<(std::ostream &s, const mat3<T>& M)
 {
   s<<M.getRow(0)<<std::endl;
@@ -286,13 +286,13 @@ std::ostream& operator<<(std::ostream &s, const mat3<T>& M)
 
        [ 0  0  0 ]
    M = [ 0  0  0 ]
-       [ 0  0  0 ] 
+       [ 0  0  0 ]
   \endverbatim
 
  */
 template<class T>
-mat3<T>::mat3() 
-  : r1(0,0,0), r2(0,0,0), r3(0,0,0) 
+mat3<T>::mat3()
+  : r1(0,0,0), r2(0,0,0), r3(0,0,0)
 {
 }
 
@@ -303,12 +303,12 @@ mat3<T>::mat3()
 
        [ v  0  0 ]
    M = [ 0  v  0 ]
-       [ 0  0  v ] 
+       [ 0  0  v ]
   \endverbatim
 */
 template<class T>
-mat3<T>::mat3(T v) 
-  : r1(v,0,0), r2(0,v,0), r3(0,0,v) 
+mat3<T>::mat3(T v)
+  : r1(v,0,0), r2(0,v,0), r3(0,0,v)
 {
 }
 
@@ -319,7 +319,7 @@ mat3<T>::mat3(T v)
 
        [ c1.x  c2.x  c3.x ]
    M = [ c1.y  c2.y  c3.y ]
-       [ c1.z  c2.z  c3.z ] 
+       [ c1.z  c2.z  c3.z ]
   \endverbatim
 */
 /*template<class T>
@@ -330,25 +330,25 @@ mat3<T>::mat3(const vec3<T>& c1, const vec3<T>& c2, const vec3<T>& c3)
 {
 }*/
 
-/** 
-  Constructor with 9 values: 
+/**
+  Constructor with 9 values:
   Each value is one component (each triple is one row).
 
   \verbatim
 
        [ a  b  c ]
    M = [ d  e  f ]
-       [ g  h  i ] 
+       [ g  h  i ]
   \endverbatim
 */
 template<class T>
 mat3<T>::mat3(T a, T b, T c,  T d, T e, T f,  T g, T h, T i)
- : r1(a,b,c), r2(d,e,f), r3(g,h,i) 
+ : r1(a,b,c), r2(d,e,f), r3(g,h,i)
 {
 }
 
-/** 
-  Constructor with 1 matrix: 
+/**
+  Constructor with 1 matrix:
   Initialize with matrix A.
 
   \verbatim
@@ -382,7 +382,7 @@ inline T& mat3<T>::at(short i, short j)
    case 1: return r2[j];
    case 2: return r3[j];
    default: throw EIndexError();
-  }  
+  }
 }
 
 /**
@@ -405,23 +405,23 @@ inline const T& mat3<T>::at(short i, short j) const
    case 1: return r2[j];
    case 2: return r3[j];
    default: throw EIndexError();
-  }  
+  }
 }
 
 
 /*----------------------------setIdentity------------------------------*//**
-  Set identity matrix. 
+  Set identity matrix.
 
   \verbatim
 
        [ 1  0  0 ]
    M = [ 0  1  0 ]
-       [ 0  0  1 ] 
+       [ 0  0  1 ]
   \endverbatim
 
   @return Reference to this.
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::setIdentity()
 {
   r1.set(1,0,0);
@@ -432,19 +432,19 @@ inline mat3<T>& mat3<T>::setIdentity()
 
 /*-------------------------------setNull---------------------------------*/
 /**
-  Set all components to 0. 
+  Set all components to 0.
 
   \verbatim
 
        [ 0  0  0 ]
    M = [ 0  0  0 ]
-       [ 0  0  0 ] 
+       [ 0  0  0 ]
   \endverbatim
 
   @return Reference to this.
 */
 /*-------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::setNull()
 {
   r1.set(0,0,0);
@@ -455,14 +455,14 @@ inline mat3<T>& mat3<T>::setNull()
 
 /*-------------------------------setRow----------------------------------*/
 /**
-  Set row i to r. 
+  Set row i to r.
 
   \verbatim
    Example for i=1:
 
        [ rx ry rz]
    M = [ *  *  * ]
-       [ *  *  * ] 
+       [ *  *  * ]
   \endverbatim
 
   @param     i  Row index (0, 1, 2)
@@ -472,7 +472,7 @@ inline mat3<T>& mat3<T>::setNull()
   @see       getRow
 */
 /*-------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setRow(short i, const vec3<T>& r)
 {
   switch(i)
@@ -487,14 +487,14 @@ mat3<T>& mat3<T>::setRow(short i, const vec3<T>& r)
 
 /*-------------------------------setRow----------------------------------*/
 /**
-  Set row i to [a, b, c]. 
+  Set row i to [a, b, c].
 
   \verbatim
    Example for i=1:
 
        [ a  b  c ]
    M = [ *  *  * ]
-       [ *  *  * ] 
+       [ *  *  * ]
   \endverbatim
 
   @param     i  Row index (0, 1, 2)
@@ -506,7 +506,7 @@ mat3<T>& mat3<T>::setRow(short i, const vec3<T>& r)
   @see       getRow
 */
 /*-------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setRow(short i, const T a, const T b, const T c)
 {
   switch(i)
@@ -520,14 +520,14 @@ mat3<T>& mat3<T>::setRow(short i, const T a, const T b, const T c)
 }
 
 /*-------------------------------setColumn------------------------------*//**
-  Set column i to c. 
+  Set column i to c.
 
   \verbatim
    Example for i=1:
 
        [ cx *  * ]
    M = [ cy *  * ]
-       [ cz *  * ] 
+       [ cz *  * ]
   \endverbatim
 
   @param     i  Column index (0, 1, 2)
@@ -536,7 +536,7 @@ mat3<T>& mat3<T>::setRow(short i, const T a, const T b, const T c)
   @exception EIndexError Index is out of range.
   @see       getColumn
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setColumn(short i, const vec3<T>& c)
 {
   switch(i)
@@ -550,14 +550,14 @@ mat3<T>& mat3<T>::setColumn(short i, const vec3<T>& c)
 }
 
 /*-------------------------------setColumn------------------------------*//**
-  Set column i to [a, b, c]. 
+  Set column i to [a, b, c].
 
   \verbatim
    Example for i=1:
 
        [ a  *  * ]
    M = [ b  *  * ]
-       [ c  *  * ] 
+       [ c  *  * ]
   \endverbatim
 
   @param     i  Column index (0, 1, 2)
@@ -568,7 +568,7 @@ mat3<T>& mat3<T>::setColumn(short i, const vec3<T>& c)
   @exception EIndexError Index is out of range.
   @see       getColumn
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setColumn(short i, const T a, const T b, const T c)
 {
   switch(i)
@@ -583,13 +583,13 @@ mat3<T>& mat3<T>::setColumn(short i, const T a, const T b, const T c)
 
 /*-------------------------------setDiag----------------------------------*/
 /**
-  Set diagonal to d. 
+  Set diagonal to d.
 
   \verbatim
 
        [ dx *  * ]
    M = [ *  dy * ]
-       [ *  *  dz] 
+       [ *  *  dz]
   \endverbatim
 
   @param     d  New diagonal.
@@ -597,7 +597,7 @@ mat3<T>& mat3<T>::setColumn(short i, const T a, const T b, const T c)
   @see       getDiag
 */
 /*-------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::setDiag(const vec3<T>& d)
 {
   r1.x=d.x;
@@ -613,7 +613,7 @@ inline mat3<T>& mat3<T>::setDiag(const vec3<T>& d)
 
        [ a  *  * ]
    M = [ *  b  * ]
-       [ *  *  c ] 
+       [ *  *  c ]
   \endverbatim
 
   @param     a  First diagonal element.
@@ -632,14 +632,14 @@ mat3<T>& mat3<T>::setDiag(T a, T b, T c)
 }
 
 /*-------------------------------getRow--------------------------------*//**
-  Return row with index i. 
+  Return row with index i.
 
   @param     i  Row index (i=0,1,2).
   @return    Row i.
   @exception EIndexError Index is out of range.
   @see       setRow
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 vec3<T> mat3<T>::getRow(short i) const
 {
   switch(i)
@@ -652,14 +652,14 @@ vec3<T> mat3<T>::getRow(short i) const
 }
 
 /*-------------------------------getRow--------------------------------*//**
-  Return row with index i. 
+  Return row with index i.
 
   @param     i  Row index (i=0,1,2).
   @param     dest  Receives result.
   @exception EIndexError Index is out of range.
   @see       setRow
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 void mat3<T>::getRow(const short i, vec3<T>& dest) const
 {
   switch(i)
@@ -672,7 +672,7 @@ void mat3<T>::getRow(const short i, vec3<T>& dest) const
 }
 
 /*-------------------------------getRow--------------------------------*//**
-  Return row with index i. 
+  Return row with index i.
 
   @param     i  Row index (i=0,1,2)
   @param     a  Element [i,0] (output).
@@ -694,14 +694,14 @@ void mat3<T>::getRow(short i, T& a, T& b, T& c) const
 }
 
 /*-------------------------------getColumn------------------------------*//**
-  Returns column with index i. 
+  Returns column with index i.
 
   @param     i  Column index (i=0,1,2).
   @return    Column i.
   @exception EIndexError Index is out of range.
   @see       setColumn
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 vec3<T> mat3<T>::getColumn(short i) const
 {
   switch(i)
@@ -714,14 +714,14 @@ vec3<T> mat3<T>::getColumn(short i) const
 }
 
 /*-------------------------------getColumn-----------------------------*//**
-  Return column with index i. 
+  Return column with index i.
 
   @param     i  Column index (i=0,1,2).
   @param     dest  Receives result.
   @exception EIndexError Index is out of range.
   @see       setColumn
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 void mat3<T>::getColumn(short i, vec3<T>& dest) const
 {
   switch(i)
@@ -734,7 +734,7 @@ void mat3<T>::getColumn(short i, vec3<T>& dest) const
 }
 
 /*-------------------------------getColumn------------------------------*//**
-  Return column with index i. 
+  Return column with index i.
 
   @param     i  Column index (i=0,1,2).
   @param     a  Element [0,i] (output).
@@ -756,32 +756,32 @@ void mat3<T>::getColumn(short i, T& a, T& b, T& c) const
 }
 
 /*-------------------------------getDiag--------------------------------*//**
-  Return diagonal. 
+  Return diagonal.
 
   @return    Diagonal.
   @see       setDiag
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline vec3<T> mat3<T>::getDiag() const
 {
   return vec3<T>(r1.x, r2.y, r3.z);
 }
 
 /*-------------------------------getDiag--------------------------------*//**
-  Return diagonal. 
+  Return diagonal.
 
   @param     dest  Receives result.
   @return    Diagonal.
   @see       setDiag
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline void mat3<T>::getDiag(vec3<T>& dest) const
 {
   dest.set(r1.x, r2.y, r3.z);
 }
 
 /*-------------------------------getDiag--------------------------------*//**
-  Return diagonal. 
+  Return diagonal.
 
   @param     a  Element [0,0] (output).
   @param     b  Element [1,1] (output).
@@ -789,7 +789,7 @@ inline void mat3<T>::getDiag(vec3<T>& dest) const
   @return    Diagonal.
   @see       setDiag
 *//*------------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline void mat3<T>::getDiag(T& a, T& b, T& c) const
 {
   a = r1.x;
@@ -798,13 +798,13 @@ inline void mat3<T>::getDiag(T& a, T& b, T& c) const
 }
 
 /*---------------------------setRotation-------------------------------*//**
-  Set rotation matrix. 
+  Set rotation matrix.
 
   Sets a matrix which can be used to rotate a point around an axis
   that goes through the origin and has the direction indicated by the
   vector \a axis. The \a angle is given in radians. The rotation is
   actually performed by multiplying the matrix with a vector (the
-  vector must be on the right!). 
+  vector must be on the right!).
   Example: Point \c x is rotated with \c R*x where \c R is the rotation
   matrix.
   You can determine the direction of the positive rotation with the same
@@ -829,7 +829,7 @@ inline void mat3<T>::getDiag(T& a, T& b, T& c) const
   @return    Reference to this.
   @exception EZeroDivisionError  Is thrown when length of axis is 0.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setRotation(T angle, const vec3<T>& axis)
 {
   T sqr_a = axis.x*axis.x;
@@ -857,7 +857,7 @@ mat3<T>& mat3<T>::setRotation(T angle, const vec3<T>& axis)
   r3.x    = k1ac-k3b;
   r3.y    = k1bc+k3a;
   r3.z    = k1*sqr_c+k2;
- 
+
   return *this;
 }
 
@@ -869,12 +869,12 @@ mat3<T>& mat3<T>::setRotation(T angle, const vec3<T>& axis)
   \param s Scaling vector.
   \return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setScaling(const vec3<T>& s)
 {
   r1.set(s.x,   0,   0);
   r2.set(  0, s.y,   0);
-  r3.set(  0,   0, s.z);  
+  r3.set(  0,   0, s.z);
   return *this;
 }
 
@@ -884,13 +884,13 @@ mat3<T>& mat3<T>::setScaling(const vec3<T>& s)
 
   @return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::operator+=(const mat3<T>& A)
-{ 
-  r1 += A.r1; 
-  r2 += A.r2; 
-  r3 += A.r3; 
-  return *this; 
+{
+  r1 += A.r1;
+  r2 += A.r2;
+  r3 += A.r3;
+  return *this;
 }
 
 /*-------------------------------operator-=-----------------------------*//**
@@ -898,13 +898,13 @@ inline mat3<T>& mat3<T>::operator+=(const mat3<T>& A)
 
   @return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::operator-=(const mat3<T>& A)
-{ 
-  r1 -= A.r1; 
-  r2 -= A.r2; 
+{
+  r1 -= A.r1;
+  r2 -= A.r2;
   r3 -= A.r3;
-  return *this; 
+  return *this;
 }
 
 /*----------------------------operator*= (scalar)-----------------------*//**
@@ -912,13 +912,13 @@ inline mat3<T>& mat3<T>::operator-=(const mat3<T>& A)
 
   @return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::operator*=(const T s)
-{ 
-  r1 *= s; 
-  r2 *= s; 
-  r3 *= s; 
-  return *this; 
+{
+  r1 *= s;
+  r2 *= s;
+  r3 *= s;
+  return *this;
 }
 
 /*----------------------------operator/= (scalar)-----------------------*//**
@@ -927,9 +927,9 @@ inline mat3<T>& mat3<T>::operator*=(const T s)
   @return     Reference to this.
   @exception  EZeroDivisionError  Is thrown when s=0.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::operator/=(const T s)
-{ 
+{
   if (xabs(s) <= vec3<T>::epsilon) throw EZeroDivisionError("mat3: divide by zero");
 
   r1.x /= s;
@@ -941,7 +941,7 @@ inline mat3<T>& mat3<T>::operator/=(const T s)
   r3.x /= s;
   r3.y /= s;
   r3.z /= s;
-  return *this; 
+  return *this;
 }
 
 /*-----------------------------operator%=-------------------------------*//**
@@ -984,7 +984,7 @@ inline mat3<T>& mat3<T>::operator%=(const mat3<T>& b)
 
   @return  Sum of two matrices.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T> mat3<T>::operator+(const mat3<T>& A) const
 {
   return mat3<T>(r1+A.r1, r2+A.r2, r3+A.r3);
@@ -995,7 +995,7 @@ inline mat3<T> mat3<T>::operator+(const mat3<T>& A) const
 
   @return  Difference of two matrices.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T> mat3<T>::operator-(const mat3<T>& A) const
 {
   return mat3<T>(r1-A.r1, r2-A.r2, r3-A.r3);
@@ -1006,7 +1006,7 @@ inline mat3<T> mat3<T>::operator-(const mat3<T>& A) const
 
   @return  Negated matrix.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T> mat3<T>::operator-() const
 {
   return mat3<T>(-r1, -r2, -r3);
@@ -1018,10 +1018,10 @@ inline mat3<T> mat3<T>::operator-() const
 
   @return  Product of two matrices.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T> mat3<T>::operator*(const mat3<T>& A) const
 {
-  return mat3<T>( 
+  return mat3<T>(
                   r1.x*A.r1.x + r1.y*A.r2.x + r1.z*A.r3.x,
                   r1.x*A.r1.y + r1.y*A.r2.y + r1.z*A.r3.y,
                   r1.x*A.r1.z + r1.y*A.r2.z + r1.z*A.r3.z,
@@ -1043,7 +1043,7 @@ inline mat3<T> mat3<T>::operator*(const mat3<T>& A) const
 
   @return  Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::operator*=(const mat3<T>& A)
 {
   double _m11 = r1.x*A.r1.x + r1.y*A.r2.x + r1.z*A.r3.x;
@@ -1068,10 +1068,10 @@ inline mat3<T>& mat3<T>::operator*=(const mat3<T>& A)
 
   @return  Product of a matrix and a vector.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline vec3<T> mat3<T>::operator*(const vec3<T>& v) const
 {
-  return vec3<T>( 
+  return vec3<T>(
                  r1.x*v.x + r1.y*v.y + r1.z*v.z,
                  r2.x*v.x + r2.y*v.y + r2.z*v.z,
                  r3.x*v.x + r3.y*v.y + r3.z*v.z
@@ -1083,10 +1083,10 @@ inline vec3<T> mat3<T>::operator*(const vec3<T>& v) const
 
   @return  Product of a matrix and a scalar.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T> mat3<T>::operator*(const T s) const
-{ 
-  return mat3<T>(s*r1,s*r2,s*r3); 
+{
+  return mat3<T>(s*r1,s*r2,s*r3);
 }
 
 /*--------------------------------operator/-----------------------------*//**
@@ -1095,9 +1095,9 @@ inline mat3<T> mat3<T>::operator*(const T s) const
   @return     Matrix diveded by scalar (component wise).
   @exception  EZeroDivisionError  Is returned when s=0.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T> mat3<T>::operator/(const T s) const
-{ 
+{
   if (xabs(s) <= vec3<T>::epsilon) throw EZeroDivisionError("mat3: divide by zero");
 
   return mat3<T>( r1.x/s, r1.y/s, r1.z/s,
@@ -1159,7 +1159,7 @@ inline bool mat3<T>::operator!=(const mat3<T>& A) const
   \param dest The target array (this must be big enough to hold 9 values)
   \param rowmajor If true the values are laid out in row major order
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 void mat3<T>::toList(T* dest, bool rowmajor) const
 {
   if (rowmajor)
@@ -1194,7 +1194,7 @@ void mat3<T>::toList(T* dest, bool rowmajor) const
 
   @return  Determinant.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline T mat3<T>::determinant() const
 {
   return r1.x*r2.y*r3.z +
@@ -1207,7 +1207,7 @@ inline T mat3<T>::determinant() const
 
 
 /*--------------------------------inverse--------------------------------*//**
-  Invert matrix. 
+  Invert matrix.
 
   Throws an ESingularMatrix exception if the matrix can't be inverted
   (that is, the determinant is zero). The inverted matrix is stored in
@@ -1215,9 +1215,9 @@ inline T mat3<T>::determinant() const
   *this as destination matrix.
 
   @return     dest.
-  @exception EZeroDivisionError The matrix isn't invertible (det=0).  
+  @exception EZeroDivisionError The matrix isn't invertible (det=0).
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::inverse(mat3<T>& dest) const
 {
   T d   = determinant();
@@ -1248,7 +1248,7 @@ inline mat3<T>& mat3<T>::inverse(mat3<T>& dest) const
 }
 
 /*--------------------------------inverse--------------------------------*//**
-  Invert matrix. 
+  Invert matrix.
 
   See invert.
 
@@ -1256,7 +1256,7 @@ inline mat3<T>& mat3<T>::inverse(mat3<T>& dest) const
   @exception  ESingularMatrix  The matrix isn't invertible (det=0).
   @see        invert
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T> mat3<T>::inverse() const
 {
   mat3<T> res;
@@ -1265,7 +1265,7 @@ inline mat3<T> mat3<T>::inverse() const
 
 
 /*--------------------------------transpose-----------------------------*//**
-  Transpose matrix. 
+  Transpose matrix.
 
   The transposed matrix is stored in dest.
   matrix *this remains unchanged. It is allowed to pass *this
@@ -1273,7 +1273,7 @@ inline mat3<T> mat3<T>::inverse() const
 
   @return     dest.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::transpose(mat3<T>& dest) const
 {
   if (&dest==this)
@@ -1305,14 +1305,14 @@ inline mat3<T>& mat3<T>::transpose(mat3<T>& dest) const
 }
 
 /*--------------------------------transpose-----------------------------*//**
-  Transpose matrix. 
+  Transpose matrix.
 
   See transpose.
 
   @return     Transposed matrix.
   @see        transpose
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T> mat3<T>::transpose() const
 {
   return mat3<T>(r1.x,r2.x,r3.x, r1.y,r2.y,r3.y, r1.z,r2.z,r3.z);
@@ -1325,17 +1325,17 @@ inline mat3<T> mat3<T>::transpose() const
 
   \return Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 inline mat3<T>& mat3<T>::scale(const vec3<T>& s)
 {
   T sx=s.x, sy=s.y, sz=s.z;
 
   r1.x *= sx;
   r1.y *= sy;
-  r1.z *= sz;  
+  r1.z *= sz;
   r2.x *= sx;
   r2.y *= sy;
-  r2.z *= sz;  
+  r2.z *= sz;
   r3.x *= sx;
   r3.y *= sy;
   r3.z *= sz;
@@ -1349,7 +1349,7 @@ inline mat3<T>& mat3<T>::scale(const vec3<T>& s)
   \param  angle  Angle in radians
   \return Reference to this.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::rotate(T angle, const vec3<T>& axis)
 {
   mat3<T> R;
@@ -1364,7 +1364,7 @@ mat3<T>& mat3<T>::rotate(T angle, const vec3<T>& axis)
   \param  dest Destination matrix that receives the result (may be this).
   \return Reference to dest
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::ortho(mat3<T>& dest) const
 {
   vec3<T> x(r1.x, r2.x, r3.x);
@@ -1398,7 +1398,7 @@ mat3<T>& mat3<T>::ortho(mat3<T>& dest) const
 
   \return Matrix with orthogonal vector.
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 mat3<T> mat3<T>::ortho() const
 {
   mat3<T> res;
@@ -1408,19 +1408,26 @@ mat3<T> mat3<T>::ortho() const
 /*---------------------------------decompose-----------------------------*//**
   Decompose the matrix intro a rotation and scaling part.
 
-  If there was a scaling part that was zero then 
-  a EZeroDivisionError exception is thrown.
-
-  \param rot  Receives the rotation part
-  \param scale Receives the scaling part
+  \param[out] rot  Receives the rotation part
+  \param[out] scale Receives the scaling part
 *//*-----------------------------------------------------------------------*/
-template<class T> 
+template<class T>
 void mat3<T>::decompose(mat3<T>& rot, vec3<T>& scale) const
 {
   vec3<T> a,b,c;
   T al, bl, cl;
 
-  ortho(rot);
+  try
+  {
+      ortho(rot);
+  }
+  catch(const EZeroDivisionError&)
+  {
+      rot.setIdentity();
+      scale.set(0, 0, 0);
+      return;
+  }
+
   rot.getColumn(0, a);
   rot.getColumn(1, b);
   rot.getColumn(2, c);
@@ -1456,7 +1463,7 @@ void mat3<T>::decompose(mat3<T>& rot, vec3<T>& scale) const
   \param y  Angle around y (radians)
   \param z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setRotationYXZ(T x, T y, T z)
 {
   T A = cos(x);
@@ -1483,7 +1490,7 @@ mat3<T>& mat3<T>::setRotationYXZ(T x, T y, T z)
   \param y  Angle around y (radians)
   \param z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setRotationZXY(T x, T y, T z)
 {
   T A = cos(x);
@@ -1510,7 +1517,7 @@ mat3<T>& mat3<T>::setRotationZXY(T x, T y, T z)
   \param y  Angle around y (radians)
   \param z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setRotationZYX(T x, T y, T z)
 {
   T A = cos(x);
@@ -1537,7 +1544,7 @@ mat3<T>& mat3<T>::setRotationZYX(T x, T y, T z)
   \param y  Angle around y (radians)
   \param z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setRotationYZX(T x, T y, T z)
 {
   T A = cos(x);
@@ -1551,7 +1558,7 @@ mat3<T>& mat3<T>::setRotationYZX(T x, T y, T z)
   T BC = B*C;
   T BD = B*D;
 
-  r1.set(C*E, BD-AC*F, BC*F+AD); 
+  r1.set(C*E, BD-AC*F, BC*F+AD);
   r2.set(F, A*E, -B*E);
   r3.set(-D*E, AD*F+BC, AC-BD*F);
   return *this;
@@ -1564,7 +1571,7 @@ mat3<T>& mat3<T>::setRotationYZX(T x, T y, T z)
   \param y  Angle around y (radians)
   \param z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setRotationXZY(T x, T y, T z)
 {
   T A = cos(x);
@@ -1591,7 +1598,7 @@ mat3<T>& mat3<T>::setRotationXZY(T x, T y, T z)
   \param y  Angle around y (radians)
   \param z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::setRotationXYZ(T x, T y, T z)
 {
   T A = cos(x);
@@ -1614,7 +1621,7 @@ mat3<T>& mat3<T>::setRotationXYZ(T x, T y, T z)
 /**
   Helper function for the _getRotation() function.
  */
-template<class T> 
+template<class T>
 void mat3<T>::_eulerIndices(int i, bool neg, bool alt, int& j, int& k, int& h) const
 {
   int next[4] = {1, 2, 0, 1};
@@ -1626,7 +1633,7 @@ void mat3<T>::_eulerIndices(int i, bool neg, bool alt, int& j, int& k, int& h) c
 /**
   Helper function for the _getRotation() function.
  */
-template<class T> 
+template<class T>
 void mat3<T>::_eulerGivens(T a, T b, T& c, T& s, T& r) const
 {
   T absa = xabs(a);
@@ -1693,9 +1700,9 @@ void mat3<T>::_eulerGivens(T a, T b, T& c, T& s, T& r) const
    \param  rev  If true, the first and last angle are exchanged. This toggles between global/local rotations. In all the concrete getRotation*() functions this is always true because all the functions assume local rotations.
    \param[out] r1  Angle around first axis (radians)
    \param[out] r2  Angle around second axis (radians)
-   \param[out] r3  Angle around third axis (radians)   
+   \param[out] r3  Angle around third axis (radians)
  */
-template<class T> 
+template<class T>
 void mat3<T>::_getRotation(int i, bool neg, bool alt, bool rev, T& r1, T& r2, T& r3) const
 {
   int j, k, h;
@@ -1735,7 +1742,7 @@ void mat3<T>::_getRotation(int i, bool neg, bool alt, bool rev, T& r1, T& r2, T&
   \param[out] y  Angle around y (radians)
   \param[out] z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 void mat3<T>::getRotationYXZ(T& x, T& y, T& z) const
 {
   _getRotation(2, 1, 1, 1, y, x, z);
@@ -1748,7 +1755,7 @@ void mat3<T>::getRotationYXZ(T& x, T& y, T& z) const
   \param[out] y  Angle around y (radians)
   \param[out] z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 void mat3<T>::getRotationZXY(T& x, T& y, T& z) const
 {
   _getRotation(1, 0, 1, 1, z, x, y);
@@ -1761,7 +1768,7 @@ void mat3<T>::getRotationZXY(T& x, T& y, T& z) const
   \param[out] y  Angle around y (radians)
   \param[out] z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 void mat3<T>::getRotationZYX(T& x, T& y, T& z) const
 {
   _getRotation(0, 1, 1, 1, z, y, x);
@@ -1774,7 +1781,7 @@ void mat3<T>::getRotationZYX(T& x, T& y, T& z) const
   \param[out] y  Angle around y (radians)
   \param[out] z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 void mat3<T>::getRotationYZX(T& x, T& y, T& z) const
 {
   _getRotation(0, 0, 1, 1, y, z, x);
@@ -1787,7 +1794,7 @@ void mat3<T>::getRotationYZX(T& x, T& y, T& z) const
   \param[out] y  Angle around y (radians)
   \param[out] z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 void mat3<T>::getRotationXZY(T& x, T& y, T& z) const
 {
   _getRotation(1, 1, 1, 1, x, z, y);
@@ -1800,7 +1807,7 @@ void mat3<T>::getRotationXZY(T& x, T& y, T& z) const
   \param[out] y  Angle around y (radians)
   \param[out] z  Angle around z (radians)
  */
-template<class T> 
+template<class T>
 void mat3<T>::getRotationXYZ(T& x, T& y, T& z) const
 {
   _getRotation(2, 0, 1, 1, x, y, z);
@@ -1820,7 +1827,7 @@ void mat3<T>::getRotationXYZ(T& x, T& y, T& z) const
    \param to  Target vector (must be a unit vector)
    \return A reference to this.
  */
-template<class T> 
+template<class T>
 mat3<T>& mat3<T>::fromToRotation(const vec3<T>& from, const vec3<T>& to)
 {
   const T EPSILON = 0.000001;
@@ -1865,9 +1872,9 @@ mat3<T>& mat3<T>::fromToRotation(const vec3<T>& from, const vec3<T>& to)
     T c2 = 2.0/(v*v);
     T c3 = c1*c2*u*v;
 
-    for(int i = 0; i<3; i++) 
+    for(int i = 0; i<3; i++)
     {
-      for(int j = 0; j<3; j++) 
+      for(int j = 0; j<3; j++)
       {
         at(i,j) =  - c1 * u[i] * u[j]
 	           - c2 * v[i] * v[j]

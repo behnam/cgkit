@@ -12,6 +12,9 @@ New features:
 
 Bug fixes/enhancements:
 
+- mat3/mat4: The decompose() method doesn't raise a ZeroDivisionError anymore
+  when called on a null matrix. Instead, it just returns a scaling part that
+  is 0.
 - Bugfix (2909382): The world transform didn't properly update in certain
   circumstances. This was because the slot dependency was set between the world
   transforms, but the computation was actually using all the local transforms.

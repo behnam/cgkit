@@ -457,7 +457,10 @@ class mat3:
         Returns a tuple (rotation, scaling). The scaling part is given
         as a vec3, the rotation is still a mat3.
         """
-        dummy = self.ortho()
+        try:
+            dummy = self.ortho()
+        except ZeroDivisionError:
+            return (mat3(1.0), _vec3(0))
 
         x = dummy.getColumn(0)
         y = dummy.getColumn(1)

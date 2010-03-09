@@ -12,6 +12,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- viewer: Joystick support was partially broken (copy&paste error). Thanks
+  to Mariano Sospiro for providing a patch.
 - mat3/mat4: The decompose() method doesn't raise a ZeroDivisionError anymore
   when called on a null matrix. Instead, it just returns a scaling part that
   is 0.

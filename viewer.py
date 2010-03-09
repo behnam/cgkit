@@ -512,7 +512,7 @@ class Viewer(Tool):
             # JOYHATMOTION
             elif e.type==JOYHATMOTION:
                 x,y = e.value
-                self.cgkit_joysticks[e.joy].setBall(e.hat, x, y)
+                self.cgkit_joysticks[e.joy].setHat(e.hat, x, y)
 #                e = JoystickHatEvent(e.joy, e.hat, x, y)
 #                print e
 #                eventmanager.event(JOYSTICK_HAT, e)

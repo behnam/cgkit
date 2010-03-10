@@ -2142,7 +2142,7 @@ def _buildSequences(objects, numPos=None, assumeFiles=False):
             # n: The number count in the path (these numbers have to be frozen)
             n = pathseq.numCount()
             for i in range(n):
-                name.replaceNum(i, name.getNumStr(i))
+                name.replaceNum(0, name.getNumStr(0))
             
         sequenceSplit = False
         

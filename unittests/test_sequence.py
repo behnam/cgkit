@@ -476,6 +476,10 @@ class TestBuildSequences(unittest.TestCase):
         self.assertEqual(["dir1/spam1"], list(seqs[0]))
         self.assertEqual(["dir2/spam1"], list(seqs[1]))
 
+        seqs = buildSequences(["/dir1/dir2/spam1", "/dir1/dir2/spam2"], assumeFiles=True)
+        self.assertEqual(1, len(seqs))
+        self.assertEqual(("/dir1/dir2/spam@", ["1-2"]), seqs[0].sequenceName())
+
 class TestSeqTemplate(unittest.TestCase):
     """Test the SeqTemplate class.
     """

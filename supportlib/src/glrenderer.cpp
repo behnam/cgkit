@@ -285,6 +285,15 @@ void GLRenderInstance::paint(WorldObject& root)
   glVertex2d(0,0);
   glVertex2d(1,1);
   glEnd();*/
+
+  // Clear the error flag (glGetError could return (and clear!) one of several
+  // error flags, so do it repeatedly until everything is clean (but don't
+  // do it forever)
+  for(int i=0; i<10; i++)
+  {
+      if (glGetError()==GL_NO_ERROR)
+          break;
+  }
 }
 
 void GLRenderInstance::drawScene(WorldObject& root, const mat4d& viewmat)

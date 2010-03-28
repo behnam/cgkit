@@ -9,6 +9,9 @@ New features:
 - New sub-package ffmpeg that contains wrappers for the ffmpeg libraries
   (using ctypes. The ffmpeg libraries themselves are not included, they must
   already be on the system)
+- ODEDynamics: New option use_quick_step (patch 2977479). This can be used
+  to select whether the ODE quickStep() or the step() method should be
+  used for the simulation.
 - The viewer tool window is now resizable (patch 2977469).
 
 Bug fixes/enhancements:

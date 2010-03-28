@@ -5,7 +5,7 @@
 ===========================================================================
 
 
-.. class:: ODEDynamics(name = "ODEDynamics",  gravity = 9.81,  substeps = 1,  enabled = True,  erp = None,  cfm = None,  defaultcontactproperties = None,  collision_events = False,  auto_add = False,  show_contacts = False,  contactmarkersize = 0.1,  contactnormalsize = 1.0,  auto_insert = True)
+.. class:: ODEDynamics(name = "ODEDynamics",  gravity = 9.81,  substeps = 1,  enabled = True,  erp = None,  cfm = None,  defaultcontactproperties = None,  collision_events = False,  auto_add = False,  show_contacts = False,  contactmarkersize = 0.1,  contactnormalsize = 1.0, use_quick_step = True, auto_insert = True)
 
    *gravity* is the acceleration due to gravity. The direction of the acceleration
    is in negative "up" direction (as specified by the scene).
@@ -37,6 +37,10 @@
    or not (this is mainly for debugging purposes). The size of the contact point
    markers and the length of the normals can be specified via the
    *contactmarkersize* and *contactnormalsize* arguments.
+   
+   *use_quick_step* is a flag that determines whether the ODE quickStep()
+   or the regular step() method will be used. The latter is slower but more
+   accurate.
 
 
 .. method:: ODEDynamics.add(objects, categorybits=None, collidebits=None)

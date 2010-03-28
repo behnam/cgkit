@@ -129,11 +129,14 @@ class ODEDynamics(Component):
                  contactmarkersize = 0.1,
                  contactnormalsize = 1.0,
                  collision_events = False,
+                 use_quick_step = True,
                  auto_add = False,
-                 auto_insert=True):
+                 auto_insert = True):
         """Constructor.
 
         \param name (\c str) Component name
+        \param use_quick_step (\c bool) if True, use QuickStep method for ODE
+               stepping (default); if False, use Step (slower, but more accurate)
         \param auto_add (\c bool) Automatically add the world objects to the simulation
         \param auto_insert (\c bool) Automatically add the component to the scene
         """
@@ -141,6 +144,8 @@ class ODEDynamics(Component):
 
         scene = getScene()
 
+        self.use_quick_step = use_quick_step
+        
         self.substeps = substeps
         self.collision_events = collision_events
 
@@ -399,9 +404,13 @@ class ODEDynamics(Component):
             # Detect collisions and create contact joints
             self.space.collide(None, self.nearCallback)
 #            print "#Contacts:",self.numcontacts
+
             # Simulation step
-#            self.world.step(subdt)
-            self.world.quickStep(subdt)
+            if self.use_quick_step:
+                self.world.quickStep(subdt)
+            else:
+                self.world.step(subdt)
+
             # Remove all contact joints
             self.contactgroup.empty()
             

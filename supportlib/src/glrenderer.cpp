@@ -63,6 +63,26 @@ GLRenderInstance::GLRenderInstance()
 }
 
 /**
+  Clear the OpenGL error flag (ignoring the error).
+
+  Clear the error flag (glGetError could return (and clear!) one of several
+  error flags, so do it repeatedly until everything is clean (max 10 times).
+  
+  Should be called between C++ GL and Python GL calls.
+   
+  Otherwise, if a GL error occurs in C++ code, the next Python GL call
+  would throw an exception.
+*/
+void clearGLError()
+{
+  for(int i=0; i<10; i++)
+  {
+      if (glGetError()==GL_NO_ERROR)
+          break;
+  }
+}
+
+/**
   Set the projection matrix.
 
   The projection usually comes from the camera object and should be
@@ -188,6 +208,8 @@ void GLRenderInstance::paint(WorldObject& root)
     glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
   else
     glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SINGLE_COLOR);
+  
+  clearGLError();  // GL_LIGHT_MODEL_COLOR_CONTROL is not supported in OpenGL 1.1
 
   glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
   glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
@@ -286,14 +308,7 @@ void GLRenderInstance::paint(WorldObject& root)
   glVertex2d(1,1);
   glEnd();*/
 
-  // Clear the error flag (glGetError could return (and clear!) one of several
-  // error flags, so do it repeatedly until everything is clean (but don't
-  // do it forever)
-  for(int i=0; i<10; i++)
-  {
-      if (glGetError()==GL_NO_ERROR)
-          break;
-  }
+  clearGLError();  // final cleanup 
 }
 
 void GLRenderInstance::drawScene(WorldObject& root, const mat4d& viewmat)
@@ -389,6 +404,7 @@ bool GLRenderInstance::drawNode(WorldObject& node, bool draw_blends)
 
         if (draw_solid)
         {
+          clearGLError();
           geom->drawGL();
         }
         // Draw bounding box

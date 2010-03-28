@@ -91,6 +91,13 @@ class Viewer(Tool):
             self.enable_spacedevice = False
             self.enable_wintab = False
 
+        # The window width (this is initially taken from the options)
+        self.width = None
+        # The window height (this is initially taken from the options)
+        self.height = None
+        # The pygame display flags
+        self.flags = None
+
         scene = getScene()
         scene.setGlobal("stereo", self.options.stereo)
         scene.setGlobal("polygonmode", self.options.polygon_mode)
@@ -303,17 +310,17 @@ class Viewer(Tool):
 
         # Get options...
         fps = timer.fps
-        width = self.options.width
-        height = self.options.height
+        self.width = self.options.width       # (width, height) may be changed by a VIDEORESIZE event
+        self.height = self.options.height
 
         # Open a window...
         pygame.display.set_caption("OpenGL viewer")
         if self.stereo_mode==2:
             pygame.display.gl_set_attribute(pygame.GL_STEREO, 1)
-        flags = OPENGL | DOUBLEBUF
+        self.flags = OPENGL | DOUBLEBUF | RESIZABLE  # flags will also be used for handling VIDEORESIZE
         if self.options.full_screen:
-            flags |= FULLSCREEN
-        srf = pygame.display.set_mode((width,height), flags)
+            self.flags |= FULLSCREEN
+        srf = pygame.display.set_mode((self.width,self.height), self.flags)
 
         # Output OpenGL infos...
         if self.options.verbose:
@@ -374,7 +381,7 @@ class Viewer(Tool):
         timer.startClock()
         while self.running:
             # Display the scene
-            self.draw(self.cam, width, height)
+            self.draw(self.cam, self.width, self.height)
             pygame.display.flip()
 
             # Handle events
@@ -432,8 +439,8 @@ class Viewer(Tool):
             # MOUSEBUTTONDOWN
             elif e.type==MOUSEBUTTONDOWN:
                 x,y = e.pos
-                x0 = float(x)/self.options.width
-                y0 = float(y)/self.options.height
+                x0 = float(x)/self.width
+                y0 = float(y)/self.height
                 if e.button==1:
                     eventname = LEFT_DOWN
                     evt = MouseButtonEvent(e.button, x, y, x0, y0)
@@ -456,8 +463,8 @@ class Viewer(Tool):
             # MOUSEBUTTONUP
             elif e.type==MOUSEBUTTONUP:
                 x,y = e.pos
-                x0 = float(x)/self.options.width
-                y0 = float(y)/self.options.height
+                x0 = float(x)/self.width
+                y0 = float(y)/self.height
                 if e.button==1:
                     eventname = LEFT_UP
                     evt = MouseButtonEvent(e.button, x, y, x0, y0)
@@ -486,11 +493,11 @@ class Viewer(Tool):
                 if b2:
                     btns |= 0x2
                 if b3:
-                    btns |= 0x4                
+                    btns |= 0x4
                 x,y = e.pos
                 dx, dy = e.rel
-                width = self.options.width
-                height = self.options.height
+                width = self.width
+                height = self.height
                 x0 = float(x)/width
                 y0 = float(y)/height
                 dx0 = float(dx)/width
@@ -541,6 +548,12 @@ class Viewer(Tool):
 
                 if self.spacedevice!=None:
                     self.handleSpaceEvents(e)
+            # VIDEORESIZE
+            elif e.type==VIDEORESIZE:
+                screen = pygame.display.set_mode(e.dict['size'], self.flags)
+                (self.width, self.height) = pygame.display.get_surface().get_size()
+
+                
                 
     # handleSpaceEvents
     def handleSpaceEvents(self, e):

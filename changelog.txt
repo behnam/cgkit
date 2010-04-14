@@ -16,6 +16,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- eventmanager: Disconnecting/connecting event handlers while an event was handled
+  could result in handlers not being called (patch 2983964).
 - GLRenderer: OpenGL errors could leak through into Python and produce exceptions
   on unrelated PyOpenGL calls. The error flag is now cleared at the end of
   the C++ rendering code (bug #2974422).

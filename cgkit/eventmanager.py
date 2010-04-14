@@ -38,6 +38,7 @@
 ## Contains the EventManager class.
 
 import sys, types, bisect
+from copy import copy
 
 # Receiver
 class _Receiver:
@@ -123,13 +124,13 @@ class EventManager:
 
         # Process system wide connections
         receivers = self.system_connections.get(name, [])
-        for rec in receivers:
+        for rec in copy(receivers):
             if rec.receiver(*params, **keyargs):
                 return True
 
         # Process scene wide connections
         receivers = self.scene_connections.get(name, [])
-        for rec in receivers:
+        for rec in copy(receivers):
             if rec.receiver(*params, **keyargs):
                 return True
 
@@ -203,7 +204,7 @@ class EventManager:
 
         # Has the event any connections at all?
         if not connections.has_key(name):
-            raise KeyError, 'Receiver is not connected to event "%s"'%name
+            raise KeyError('Receiver is not connected to event "%s"'%name)
 
         # Try to remove the connection
 #        try:
@@ -215,7 +216,7 @@ class EventManager:
             if rec.receiver==receiver:
                 break
         else:
-            raise KeyError, 'Receiver is not connected to event "%s"'%name
+            raise KeyError('Receiver is not connected to event "%s"'%name)
 
         del connections[name][i]
 
@@ -253,7 +254,7 @@ class EventManager:
         if callable(receiver):
             return receiver
             
-        raise ValueError, "Receiver argument must be a callable or an object with an %s() method"%methodname
+        raise ValueError("Receiver argument must be a callable or an object with an %s() method"%methodname)
         
 ######################################################################
 

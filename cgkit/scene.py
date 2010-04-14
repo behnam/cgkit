@@ -270,11 +270,13 @@ class Scene(object):
 
 ######################################################################
 
-_scene = Scene()
+_scene = None
 
 # getScene
 def getScene():
     """Return the global %scene instance."""
     global _scene
+    if _scene is None:
+        _scene = Scene()
     return _scene
 

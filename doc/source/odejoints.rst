@@ -4,6 +4,8 @@
 ODE joints --- Joint classes for the ODEDynamics component
 ==========================================================
 
+See the ODE manual (chapter  `Joint Types and Functions <http://opende.sourceforge.net/wiki/index.php/Manual_%28Joint_Types_and_Functions>`_) for a detailed description of joint types.
+
 .. % ----------------------------------------------------------------------
 
 
@@ -48,4 +50,15 @@ ODE joints --- Joint classes for the ODEDynamics component
 
 
 .. class:: ODEUniversalJoint(name = "ODEUniversalJoint",  body1 = None,  body2 = None )
+
+
+:class:`ODEFixedJoint` --- Fixed joint
+--------------------------------------
+
+.. class:: ODEFixedJoint(name = "ODEFixedJoint",  body1 = None,  body2 = None )
+
+   Fixed Joint: Glues two bodies together.
+   
+   It is not recommended by ODE manual, but is useful when a solid body 
+   has different contact properties on different sides.
 

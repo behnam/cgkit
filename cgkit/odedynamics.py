@@ -215,6 +215,29 @@ class ODEDynamics(Component):
                 if isinstance(obj, ODEJointBase):
                     self.add(obj)
 
+    # remove
+    def remove(self, objs):
+        """Remove one or more world objects from the simulation.
+
+        \param objs  World objects to be removed (given as names or objects)
+        """
+        objs = cmds.worldObjects(objs)
+        for obj in objs:
+            self._remove(obj)
+    
+    def _remove(self, obj):
+        for body in self.bodies:
+            if body.obj == obj:
+                # after deleting all the references to the body, 
+                # PyODE will remove it from simulation (in the destructor)
+                self.bodies.remove(body)
+                del(self.body_dict[obj])
+                del(body.odegeoms)
+                del(body.odebody)
+                del(obj.manip)
+                break
+        
+
     # add
     def add(self, objs, categorybits=None, collidebits=None):
         """Add a world object to the simulation.
@@ -281,9 +304,17 @@ class ODEDynamics(Component):
 #        print "New inertia tensor:"
 #        print obj.inertiatensor
 
+
+        # If the mass of a rigid body is <= 0, ODE will crash
+        # Using a more reasonable default: mass = 1
+        if obj.mass <= 0:
+            print "Using default mass=1 for " + str(obj)
+            obj.mass = 1
         body = ODEBody(obj, self, categorybits=categorybits, collidebits=collidebits)
         self.bodies.append(body)
         self.body_dict[obj] = body
+
+        obj.manip = self.createBodyManipulator(obj) # Quick access to manipulator
 
     # reset
     def reset(self):
@@ -312,9 +343,9 @@ class ODEDynamics(Component):
         \param mat2 (\c Material) Material 2
         \param props (\c ODEContactProperties) Contact properties
         """
-        self.contactprops[(mat1,mat2)] = props
-        self.contactprops[(mat2,mat1)] = props
-
+        self.contactprops[(mat1,mat2)] = props  
+        # Collision events are forced to appear in (mat1,mat2) order
+     
     # getContactProperties
     def getContactProperties(self, matpair):
         """Return the contact properties for a material pair.
@@ -336,7 +367,15 @@ class ODEDynamics(Component):
         return bm
 
     # nearCallback
-    def nearCallback(self, args, geom1, geom2):
+    def nearCallback(self, args, geom1, geom2):        
+        try:            
+            # Force collision event to appear in (mat1, mat2) order
+            # (i.e. the order in which the material pair was defined in contactprops)
+            if not (geom1.material, geom2.material) in self.contactprops:
+                (geom1, geom2) = (geom2, geom1)
+        except:
+            pass
+
         # Check if the objects do collide
         contacts = ode.collide(geom1, geom2)
 
@@ -566,15 +605,18 @@ class ODEBodyManipulator(object):
 
         pos must be a 3-sequence of floats.
         """
+        self._odebody.enable()
         self._odebody.setPosition(pos)
 
     # setRot
     def setRot(self, rot):
         """Set the rotation of the body.
 
-        rot must be a mat3 containing the orientation.
+        rot must be a mat3 containing the orientation or a list of 9 values
+        in row-major order.
         """
-        self._odebody.setRotation(rot)
+        self._odebody.enable()
+        self._odebody.setRotation(mat3(rot).toList(True))  # Now setRot really accepts a mat3 (and also a list with 9 elements)
 
     # setLinearVel
     def setLinearVel(self, vel):
@@ -582,6 +624,7 @@ class ODEBodyManipulator(object):
 
         vel must be a 3-sequence of floats.
         """
+        self._odebody.enable()
         self._odebody.setLinearVel(vel)
 
     # setAngularVel
@@ -590,6 +633,7 @@ class ODEBodyManipulator(object):
 
         vel must be a 3-sequence of floats.
         """
+        self._odebody.enable()
         self._odebody.setAngularVel(vel)
 
     # setInitialPos
@@ -683,6 +727,10 @@ class ODEBodyManipulator(object):
         This method is called by the ODEDynamics object during the simulation
         step (once for every sub step).
         """
+        
+        if self._force_flag or self._torque_flag:
+            self._odebody.enable()
+            
         if self._force_flag:
             self._odebody.addForce(self._force)
         if self._torque_flag:
@@ -717,9 +765,10 @@ class ODEBodyManipulator(object):
     body = property(_getBody, None, None, "Rigid body")
 
     # "odebody" property...
-    
-    def _getODEBody(self):
-        """Return the current ODE body.
+    # Someone may think this method would return an ODEBody, not an ode.Body
+    # That's why I changed the case.
+    def _get_odeBody(self):
+        """Return the current ODE body (type ode.Body from PyODE). 
 
         This method is used for retrieving the \a odebody property.
 
@@ -727,8 +776,22 @@ class ODEBodyManipulator(object):
         """
         return self._odebody
 
-    odebody = property(_getODEBody, None, None, "ODE body")
+    odebody = property(_get_odeBody, None, None, "ODE body")
 
+    # odegeoms property
+    
+    def _get_odeGeoms(self):
+        """Return the current ODE geom list.
+
+        This method is used for retrieving the \a odegeoms property.
+
+        \return ODE geom list
+        """
+        return self._body.odegeoms
+
+    odegeoms = property(_get_odeGeoms, None, None, "ODE geoms")
+
+    
     
 ######################################################################
 
@@ -1182,18 +1245,21 @@ class ODEJointBase(WorldObject):
         """
         # This will call the attach() method of the ODE joint
         self.attach(self.body1, self.body2)
-
-        print "***",self.odejoint.getParam(ode.ParamStopCFM)
-
-        self.odejoint.setParam(ode.ParamFMax, self.motorfmax)
-        self.odejoint.setParam(ode.ParamVel, self.motorvel)
-        self.odejoint.setParam(ode.ParamLoStop, self.lostop)
-        self.odejoint.setParam(ode.ParamHiStop, self.histop)
-        self.odejoint.setParam(ode.ParamFudgeFactor, self.fudgefactor)
-        self.odejoint.setParam(ode.ParamBounce, self.bounce)
-        self.odejoint.setParam(ode.ParamCFM, self.cfm)
-        self.odejoint.setParam(ode.ParamStopERP, self.stoperp)
-        self.odejoint.setParam(ode.ParamStopCFM, self.stopcfm)
+        
+        try:
+            print "***",self.odejoint.getParam(ode.ParamStopCFM)
+            
+            self.odejoint.setParam(ode.ParamFMax, self.motorfmax)
+            self.odejoint.setParam(ode.ParamVel, self.motorvel)
+            self.odejoint.setParam(ode.ParamLoStop, self.lostop)
+            self.odejoint.setParam(ode.ParamHiStop, self.histop)
+            self.odejoint.setParam(ode.ParamFudgeFactor, self.fudgefactor)
+            self.odejoint.setParam(ode.ParamBounce, self.bounce)
+            self.odejoint.setParam(ode.ParamCFM, self.cfm)
+            self.odejoint.setParam(ode.ParamStopERP, self.stoperp)
+            self.odejoint.setParam(ode.ParamStopCFM, self.stopcfm)
+        except AttributeError:
+            pass  # not all joints have these attributes
 
     def onLoStopChanged(self):
 #        print "Lostop has been changed to",self.lostop_slot.getValue()
@@ -1338,6 +1404,37 @@ class ODEHingeJoint(ODEJointBase):
         self.odejoint.setAxis((a.x, a.y, a.z))
         self.odejoint.setParam(ode.ParamFMax, self.motorfmax)
         self.odejoint.setParam(ode.ParamVel, self.motorvel)
+
+
+
+# FixedJoint
+class ODEFixedJoint(ODEJointBase):
+    """
+    Fixed Joint: Glues two bodies together.
+    Not recommended by ODE manual, but useful when a solid body has different contact properties on different sides.
+    """
+
+    def __init__(self,
+                 name = "ODEFixedJoint",
+                 body1 = None,
+                 body2 = None,
+                 **params):
+        ODEJointBase.__init__(self, name=name, body1=body1, body2=body2,
+                              **params)
+
+        self._createSlots()
+
+    # _createODEjoint
+    def _createODEjoint(self):
+        # Create the ODE joint
+        self.odejoint = ode.FixedJoint(self.odedynamics.world)
+
+    # _initODEjoint
+    def _initODEjoint(self):
+        ODEJointBase._initODEjoint(self)
+        self.odejoint.setFixed()
+
+
 
 
 # SliderJoint

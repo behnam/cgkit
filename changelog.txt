@@ -16,6 +16,14 @@ New features:
 
 Bug fixes/enhancements:
 
+- ODEDynamics: Objects can now be removed from the simulation. An object that
+  is part of a simulation automatically receives a new attribute "manip" which
+  is its body manipulator. The manipulator has a new attribute "odegeoms" to
+  access the underlying collision geometry. When setting forces, torques, etc
+  on objects, the objects are automatically enabled again if they were disabled.
+  Objects without a mass get a default mass of 1.0. The material setting in
+  collision events now always has a well-defined order. New joint object
+  ODEFixedJoint. (patch 2983970)
 - eventmanager: Disconnecting/connecting event handlers while an event was handled
   could result in handlers not being called (patch 2983964).
 - GLRenderer: OpenGL errors could leak through into Python and produce exceptions

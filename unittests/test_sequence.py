@@ -43,6 +43,14 @@ class TestSeqString(unittest.TestCase):
         self.assertEqual(True, s=="spam1_1")
         s.replaceNum(0, "1")
         self.assertEqual(True, s=="spam1_1")
+
+        s1 = SeqString("P1_z")
+        s2 = SeqString("P2_a")
+        self.assertEqual(True, s1<s2)
+
+        s1 = SeqString("P1_z76a")
+        s2 = SeqString("P2_a")
+        self.assertEqual(True, s1<s2)
     
     def testMatch(self):
         """Test the match method.

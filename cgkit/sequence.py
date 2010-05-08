@@ -136,13 +136,6 @@ class SeqString:
         selfStr = SeqString(self)
         other = SeqString(other)
         
-        # Check the 'structure' of the strings first.
-        # The numeric comparison is only done when the strings have the same
-        # text/num patterns.
-        res = selfStr.match_cmp(other)
-        if res!=0:
-            return res
-
         # Compare the individual components of the values side by side
         for i, (a,b) in enumerate(zip(selfStr._value, other._value)):
             if i%2==1:

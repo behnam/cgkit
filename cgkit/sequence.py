@@ -222,7 +222,7 @@ class SeqString:
         
         *numPos* is the index of the number that is allowed to vary. For example,
         if *numPos* is -1, only the last number in a string may be different for two
-        strings to be in the same sequence. Al other numbers must match exactly
+        strings to be in the same sequence. All other numbers must match exactly
         (including the padding). If *numPos* is ``None``, all numbers may vary.
         """
         if not isinstance(template, SeqString):

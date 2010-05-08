@@ -59,7 +59,7 @@ all events:
    Connect a function or method to an event type. Whenever an event of type *name*
    occurs the event handler specified by *receiver* is called. *receiver* can
    either be a callable such as a function or a method or it can be an instance of
-   a class that must implement an  ``onname()`` method. *priority* determines the
+   a class that must implement an  ``on<name>()`` method. *priority* determines the
    order in  which the receivers are invoked. Receivers with lower values (=high
    priority) are invoked first.
 

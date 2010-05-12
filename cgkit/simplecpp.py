@@ -292,7 +292,7 @@ class PreProcessor:
             return
 
         name = a[0]
-        cond = self.defined.has_key(name)
+        cond = name in self.defined
         self.context.condition_list.append(cond)
         self.context.output_line = cond
 
@@ -306,7 +306,7 @@ class PreProcessor:
             return
         
         name = a[0]
-        cond = not self.defined.has_key(name)
+        cond = name not in self.defined
         self.context.condition_list.append(cond)
         self.context.output_line = cond
 

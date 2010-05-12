@@ -166,7 +166,7 @@ class EventManager:
 
         rec = _Receiver(receiver, priority)
         # Has the event already any connections? then add the new receiver
-        if connections.has_key(name):
+        if name in connections:
             bisect.insort(connections[name], rec)
 #            connections[name].append(receiver)
         # otherwise create a new list
@@ -196,14 +196,14 @@ class EventManager:
 
         # Are all connections to be removed?
         if receiver==None:
-            if connections.has_key(name):
+            if name in connections:
                 del connections[name]
                 return
 
         receiver = self._determine_receiver(name, receiver)
 
         # Has the event any connections at all?
-        if not connections.has_key(name):
+        if name not in connections:
             raise KeyError('Receiver is not connected to event "%s"'%name)
 
         # Try to remove the connection
@@ -251,7 +251,7 @@ class EventManager:
         if hasattr(receiver, methodname):
             return getattr(receiver, methodname)
         
-        if callable(receiver):
+        if hasattr(receiver, "__call__"):
             return receiver
             
         raise ValueError("Receiver argument must be a callable or an object with an %s() method"%methodname)

@@ -104,7 +104,7 @@ class DDDSImporter:
         self.meshes = {}
         m = self.ddds.meshes()
         while m!=None:
-            if self.meshes.has_key(m.name):
+            if m.name in self.meshes:
                 print "Warning: Duplicate mesh names in 3ds file"
             self.meshes[m.name] = m
             m = m.next()
@@ -147,7 +147,7 @@ class DDDSImporter:
             if node.name!="$$$DUMMY" and node.name!="_Quader01":
                 data = node.object_data
                 mesh = self.ddds.meshByName(node.name)
-                if self.meshes.has_key(mesh.name):
+                if mesh.name in self.meshes:
                     del self.meshes[mesh.name]
 #                print "###",node.name,"###"
 #                print "Node matrix:"

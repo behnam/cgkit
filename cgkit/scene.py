@@ -82,7 +82,7 @@ class Scene(object):
         return iter(self.items)
 
     def hasGlobal(self, name):
-        return self._globals.has_key(name)
+        return name in self._globals
             
     def getGlobal(self, name, default=None):
         return self._globals.get(name, default)

@@ -320,7 +320,7 @@ class ASFReader(ReaderBase):
                 # Check for 'limits' which is a special case as it might
                 # span several lines.
                 if a[0]=="limits":
-                    if not data.has_key("dof"):
+                    if "dof" not in data:
                         raise ValueError, "Line %d: 'dof' settings must appear before the 'limits' settings"%(self.linenr)
                     dof = data["dof"]
                     # Put back the line and use the token mechanism

@@ -298,7 +298,7 @@ class PluginManager:
 
     def iterProtoObjects(self, proto):
         """Return an iterator that iterates over all object descriptors supporting a particular protocol."""
-        if self._protocols.has_key(proto):
+        if proto in self._protocols:
             return iter(self._protocols[proto])
         else:
             return iter([])
@@ -492,7 +492,7 @@ class PluginManager:
 
         # Check if the object already exists...
         id = desc.objectIdentifier()
-        if self._objects.has_key(id):
+        if id in self._objects:
             if overwrite:
                 olddesc = self._objects[id]
                 self._removeObjectDesc(olddesc)
@@ -512,7 +512,7 @@ class PluginManager:
         """
         # Check if the object is really managed by the plugin manager
         id = objdesc.objectIdentifier()
-        if not self._objects.has_key(objdesc.objectIdentifier()):
+        if objdesc.objectIdentifier() not in self._objects:
             raise ValueError, "The object '%s' does not exist."%id
 
         self._removeObjectDesc(objdesc)
@@ -579,7 +579,7 @@ class PluginManager:
 
         # Insert the object descriptor into the corresponding protocol dicts
         for prot in desc.object._protocols:
-            if not self._protocols.has_key(prot):
+            if prot not in self._protocols:
                 self._protocols[prot] = []
             self._protocols[prot].append(desc)
 

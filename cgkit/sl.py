@@ -536,7 +536,7 @@ def format(pattern, *args, **keyargs):
         res+=pattern[0:n]+"%s"
         pattern=pattern[n+2:]
 
-    if keyargs.has_key("args"):
+    if "args" in keyargs:
         args=keyargs["args"]
 
     return res % args

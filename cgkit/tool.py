@@ -399,7 +399,7 @@ class Tool:
         else:
             opt2 = opt.lower()
             
-        if dic.has_key(opt2):
+        if opt2 in dic:
             return dic[opt2]
         else:
             raise ValueError, msg%opt

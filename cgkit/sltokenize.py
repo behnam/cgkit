@@ -154,7 +154,7 @@ def _tokeater(type, s, start, end, line, filename):
             "CHARACTER", "TYPE"]
     
 #    print "Token:",type,s, start,end,'\t"%s"'%line.replace("\n",""),filename
-    print "%-30s %-10s %s %s %s"%(s, typs[type], start, end, os.path.basename(filename))
+    print ("%-30s %-10s %s %s %s"%(s, typs[type], start, end, os.path.basename(filename)))
 
 ######################################################################
 

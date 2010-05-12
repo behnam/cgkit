@@ -306,7 +306,7 @@ class PluginManager:
     def iterObjects(self):
         """Return an iterator that iterates over all object descriptors.
         """
-        return self._objects.itervalues()
+        return iter(list(self._objects.values()))
 
     # removeAll
     def removeAll(self):
@@ -314,7 +314,7 @@ class PluginManager:
         """
         
         while len(self._objects)>0:
-            key = self._objects.keys()[0]
+            key = list(self._objects.keys())[0]
             self.remove(self._objects[key])
             
         self._plugins = []
@@ -368,12 +368,12 @@ class PluginManager:
             if overwrite:
                 self.removePlugin(oldpdesc)
             else:
-                raise PluginAlreadyLoaded, "Plugin '%s' is already loaded."%filename
+                raise PluginAlreadyLoaded("Plugin '%s' is already loaded."%filename)
 
         # Find the file description tuple  (suffix, mode, type)
         filedesc = filter(lambda x: x[0]==ext, imp.get_suffixes())
         if filedesc==[]:
-            raise UnknownFileType, 'File "%s" is of unknown type."'%filename
+            raise UnknownFileType('File "%s" is of unknown type."'%filename)
         filedesc = filedesc[0]
 
         # Create a plugin descriptor class where all sorts of
@@ -483,9 +483,9 @@ class PluginManager:
         if name==None:
             name = getattr(obj, "__name__", None)
             if name==None:
-                raise MissingName, "Cannot determine the name of the object."
+                raise MissingName("Cannot determine the name of the object.")
         if not hasattr(obj, "_protocols"):
-            raise ProtocolSpecsMissing, "Attribut '_protocols' in object '%s' is missing."%name
+            raise ProtocolSpecsMissing("Attribut '_protocols' in object '%s' is missing."%name)
 
         # Create an object descriptor
         desc = PluginObjectDescriptor(object=obj, name=name, plugindesc=pdesc)
@@ -497,7 +497,7 @@ class PluginManager:
                 olddesc = self._objects[id]
                 self._removeObjectDesc(olddesc)
             else:                
-                raise DuplicateObject, "Plugin object '%s' already exists."%id
+                raise DuplicateObject("Plugin object '%s' already exists."%id)
 
         # Add the descriptor to the protocol lists...
         self._insertObjectDesc(desc)
@@ -513,7 +513,7 @@ class PluginManager:
         # Check if the object is really managed by the plugin manager
         id = objdesc.objectIdentifier()
         if objdesc.objectIdentifier() not in self._objects:
-            raise ValueError, "The object '%s' does not exist."%id
+            raise ValueError("The object '%s' does not exist."%id)
 
         self._removeObjectDesc(objdesc)
 
@@ -742,16 +742,16 @@ if __name__=="__main__":
 #    pm.importPlugin("testplugin.py", overwrite=True)
 
     for pdesc in pm:
-        print pdesc
+        print (pdesc)
 
     for prot in pm.iterProtocols():
-        print "Protokoll:",prot
+        print ("Protokoll: %s"%prot)
         for odesc in pm.iterProtoObjects(prot):
-            print odesc
+            print (odesc)
 
-    print "Objects:"
+    print ("Objects:")
     for desc in pm.iterObjects():
-        print desc
+        print (desc)
 
 #    print "Plugins:",pm._plugins
 #    print "Objects:",pm._objects

@@ -137,7 +137,7 @@ class ASFReader(asfamc.ASFReader):
                   parent = parent)
 
     def toVec3(self, stup):
-        return vec3(map(lambda x: float(x), stup))
+        return vec3([float(x) for x in stup])
         
 # AMCReader
 class AMCReader(asfamc.AMCReader):
@@ -181,7 +181,7 @@ class AMCReader(asfamc.AMCReader):
     def applyBoneTrack(self, asf, name, track, framerate):
         data = asf.bones[name]
         order = data["dof"]
-        order = map(lambda s: s.lower(), order)
+        order = [s.lower() for s in order]
         vtabx = []
         vtaby = []
         vtabz = []
@@ -216,7 +216,7 @@ class AMCReader(asfamc.AMCReader):
         len_scale = asf.len_scale
         data = asf.bones["root"]
         order = data["order"]
-        order = map(lambda s: s.lower(), order)
+        order = [s.lower() for s in order]
         ao = data["axis_order"]
         axis_order = ao[2]+ao[1]+ao[0]
         vtab = []
@@ -255,7 +255,7 @@ class AMCReader(asfamc.AMCReader):
         Result: {"tx":10, "ty":20, "tz":30}
         """
         if len(values)!=len(order):
-            raise ValueError, "Invalid number of values"
+            raise ValueError("Invalid number of values")
 
         res = {}
         for v,t in zip(values, order):
@@ -320,9 +320,9 @@ class AMCImporter:
                 if len(asflist)==1:
                     asf = asflist[0]
                 elif len(asflist)==0:
-                    raise ValueError, "No skeleton file found."
+                    raise ValueError("No skeleton file found.")
                 else:
-                    raise ValueError, "There are several skeleton files in the directory, please specify one or rename the ASF file so it is identical with the AMC file."
+                    raise ValueError("There are several skeleton files in the directory, please specify one or rename the ASF file so it is identical with the AMC file.")
 
         asf = ASFReader(asf)
         asf.read()

@@ -550,7 +550,7 @@ def getSloLib(sloSuffix):
     elif sloSuffix in _sloArgsClasses:
         return _sloArgsClasses[sloSuffix].defaultLibName()
     else:
-        raise ValueError, "Unknown compiled shader extension: %s"%sloSuffix
+        raise ValueError("Unknown compiled shader extension: %s"%sloSuffix)
     
 def setSloLib(sloSuffix, libName):
     """Set the library name that should be used for reading shader parameters.
@@ -586,7 +586,7 @@ def slparams(shader):
         sloArgs = SloArgs(libName=libName)
         _sloArgsInstances[ext] = sloArgs
     else:
-        raise ValueError, "Unknown compiled shader extension: %s"%shader
+        raise ValueError("Unknown compiled shader extension: %s"%shader)
     
     return sloArgs.getShaderInfo(shader) 
 
@@ -605,15 +605,15 @@ if __name__=="__main__":
         info = cgkit.slparams.slparams("foo.sl")
         if len(info)>0:
             type,name,params = info[0]
-            print "Shader:",name
-            print "Type  :",type
+            print ("Shader: %s"%name)
+            print ("Type  : %s"%type)
             for param in params:
-                print param, cgkit.slparams.convertdefault(param)
+                print ("%s %s"%(param, cgkit.slparams.convertdefault(param)))
     
     info = slparams("foo.sdr")
     if len(info)>0:
         type,name,params = info[0]
-        print "Shader:",name
-        print "Type  :",type
+        print ("Shader: %s"%name)
+        print ("Type  : %s"%type)
         for param in params:
-            print param
+            print (param)

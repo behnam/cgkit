@@ -101,12 +101,12 @@ class Tool:
 
         # Print default options
         if self.options.verbose:
-            print "Python",sys.version
+            print ("Python %s"%sys.version)
             if defaultoptionvar!=None:
                 if defaultoptionvar in os.environ:
-                    print "Default options in %s: %s"%(defaultoptionvar, os.environ[defaultoptionvar])
+                    print ("Default options in %s: %s"%(defaultoptionvar, os.environ[defaultoptionvar]))
                 else:
-                    print "Environment variable %s not set."%defaultoptionvar
+                    print ("Environment variable %s not set."%defaultoptionvar)
 
         # Determine screen resolution...
         self._no_resolution_specified = False
@@ -187,7 +187,7 @@ class Tool:
         # Load the input files...
         for filename in self.args:
             if self.options.verbose:
-                print 'Loading "%s"...'%filename
+                print ('Loading "%s"...'%filename)
             load(filename)
 
         # Convert global settings into command line options
@@ -239,7 +239,7 @@ class Tool:
             elif up=="z":
                 scene.up = (0,0,1)
             else:
-                raise ValueError, "Invalid 'up' direction: '%s' (should be 'y' or 'z')"%self.options.up
+                raise ValueError("Invalid 'up' direction: '%s' (should be 'y' or 'z')"%self.options.up)
 
         # Set the frame rate
         timer.fps = self.options.fps
@@ -287,7 +287,7 @@ class Tool:
             te = "%1.2fs"%self.time_end
             fe = "%d"%self.frame_end
         if self.options.verbose:
-            print "Time range: %1.2fs - %s (frames %d - %s)"%(self.time_start, te, self.frame_start, fe)
+            print ("Time range: %1.2fs - %s (frames %d - %s)"%(self.time_start, te, self.frame_start, fe))
 
 
     # loadPlugins
@@ -335,12 +335,12 @@ class Tool:
                     break
 
         if cname!=None and cam==None:
-            raise ValueError, 'Camera "%s" not found.'%cname
+            raise ValueError('Camera "%s" not found.'%cname)
 
         # No camera? Then create a default camera...
         if cam==None:
             if self.options.verbose:
-                print "No camera set, using a default camera."
+                print ("No camera set, using a default camera.")
             bbmin, bbmax = scene.boundingBox().getBounds()
             dif = bbmax-bbmin
             b1 = scene.up.ortho()
@@ -353,7 +353,7 @@ class Tool:
                                fov = 50)
         else:
             if self.options.verbose:
-                print "Camera:",cam.name
+                print ("Camera: %s"%cam.name)
 
         return cam
 
@@ -377,7 +377,7 @@ class Tool:
             elif len(res)==3:
                 w,h,aspect = res
             else:
-                raise Exception
+                raise Exception()
         except:
             print >>sys.stderr, "Error: Invalid resolution setting:",res
             w,h,aspect = 640,480,1
@@ -402,7 +402,7 @@ class Tool:
         if opt2 in dic:
             return dic[opt2]
         else:
-            raise ValueError, msg%opt
+            raise ValueError(msg%opt)
 
         
     ## protected:
@@ -419,7 +419,7 @@ class Tool:
         if unit=="":
             unit="f"
         if unit not in ["f", "s"]:
-            raise ValueError, "Unknown time unit: '%s'"%unit
+            raise ValueError("Unknown time unit: '%s'"%unit)
         return val,unit
     
 

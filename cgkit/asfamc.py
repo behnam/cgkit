@@ -75,7 +75,7 @@ class ReaderBase:
 
             # Check if the keyword starts with ':' (a new section)
             if tok[0]!=":":
-                raise SyntaxError, "Syntax error in line %d: Invalid keyword '%s'"%(self.linenr, tok)
+                raise SyntaxError("Syntax error in line %d: Invalid keyword '%s'"%(self.linenr, tok))
 
             # Read the current section...
 
@@ -106,7 +106,7 @@ class ReaderBase:
         try:
             return int(tok)
         except ValueError:
-            raise SyntaxError, "Syntax error in line %d: Integer expected, got '%s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: Integer expected, got '%s' instead"%(self.linenr, tok))
 
     # floatToken
     def floatToken(self):
@@ -117,7 +117,7 @@ class ReaderBase:
         try:
             return float(tok)
         except ValueError:
-            raise SyntaxError, "Syntax error in line %d: Float expected, got '%s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: Float expected, got '%s' instead"%(self.linenr, tok))
 
     # token
     def token(self):
@@ -186,7 +186,7 @@ class ReaderBase:
             s = self.fhandle.readline()
             self.linenr += 1
             if s=="":
-                raise StopIteration
+                raise StopIteration()
             if s[0]!="#":
                 self.lastline = s
                 return s
@@ -308,7 +308,7 @@ class ASFReader(ReaderBase):
                 return
             
             if begintok!="begin":
-                raise SyntaxError, "Syntax error in line %d: 'begin' expected, got '%s'"%(self.linenr, begintok)
+                raise SyntaxError("Syntax error in line %d: 'begin' expected, got '%s'"%(self.linenr, begintok))
 
             data = {}
 
@@ -321,7 +321,7 @@ class ASFReader(ReaderBase):
                 # span several lines.
                 if a[0]=="limits":
                     if "dof" not in data:
-                        raise ValueError, "Line %d: 'dof' settings must appear before the 'limits' settings"%(self.linenr)
+                        raise ValueError("Line %d: 'dof' settings must appear before the 'limits' settings"%(self.linenr))
                     dof = data["dof"]
                     # Put back the line and use the token mechanism
                     self.undoLine()
@@ -335,12 +335,12 @@ class ASFReader(ReaderBase):
                             try:
                                 minval = float(minval)
                             except ValueError:
-                                raise SyntaxError, "Syntax error in line %d: Float or '-inf' expected, got '%s'"%(self.linenr, minval)
+                                raise SyntaxError("Syntax error in line %d: Float or '-inf' expected, got '%s'"%(self.linenr, minval))
                         if maxval.lower()!="inf":
                             try:
                                 maxval = float(maxval)
                             except ValueError:
-                                raise SyntaxError, "Syntax error in line %d: Float or 'inf' expected, got '%s'"%(self.linenr, maxval)
+                                raise SyntaxError("Syntax error in line %d: Float or 'inf' expected, got '%s'"%(self.linenr, maxval))
                         limits.append((minval,maxval))
                     data["limits"] = limits
                 else:
@@ -371,7 +371,7 @@ class ASFReader(ReaderBase):
                 return
 
             if begintok!="begin":
-                raise SyntaxError, "Syntax error in line %d: 'begin' expected, got '%s'"%(self.linenr, begintok)
+                raise SyntaxError("Syntax error in line %d: 'begin' expected, got '%s'"%(self.linenr, begintok))
 
             while 1:
                 s = self.readLine().strip()
@@ -438,7 +438,7 @@ class AMCReader(ReaderBase):
                 except ValueError:
                     pass
                 bone = a[0]
-                values = map(lambda x: float(x), a[1:])
+                values = [float(x) for x in a[1:]]
                 data.append((bone, values))
 
 

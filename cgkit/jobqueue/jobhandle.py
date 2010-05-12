@@ -329,7 +329,7 @@ class JobHandle(object):
         """
         subDirs = glob.glob(os.path.join(self._realLocation, "job*"))
         #subDirs = filter(lambda p: os.path.isdir(p), subDirs)
-        jobs = map(lambda jobDir: (jobDir, int(os.path.basename(jobDir)[3:])), subDirs)
+        jobs = [(jobDir, int(os.path.basename(jobDir)[3:])) for jobDir in subDirs]
         jobs.sort(key=lambda a: a[1])
         return [JobHandle(jobDir, self._rootLocation) for jobDir,nr in jobs]
     

@@ -53,7 +53,7 @@ class _ReverseIterator:
 
     def next(self):
         if self._idx==-1:
-            raise StopIteration
+            raise StopIteration()
         res = self._list[self._idx]
         self._idx -= 1
         return res
@@ -153,7 +153,7 @@ class UndoManager:
         are discarded and the exception is propagated to the caller.
         """
         if len(self._undo_stack)==0:
-            raise UndoError, "There is no operation to undo."
+            raise UndoError("There is no operation to undo.")
         u = self._undo_stack.pop()
         try:
             u.undo()
@@ -173,7 +173,7 @@ class UndoManager:
         are discarded and the exception is propagated to the caller.
         """
         if len(self._redo_stack)==0:
-            raise UndoError, "There is no operation to redo."
+            raise UndoError("There is no operation to redo.")
         u = self._redo_stack.pop()
         try:
             u.redo()
@@ -216,7 +216,7 @@ class UndoObject:
     # undo
     def undo(self):
         """Performs an undo operation."""
-        raise UndoError, "No undo operation implemented."
+        raise UndoError("No undo operation implemented.")
 
     # redo
     def redo(self):
@@ -224,7 +224,7 @@ class UndoObject:
 
         This method may only be called if undo() was called previously.
         """
-        raise UndoError, "No redo operation implemented."
+        raise UndoError("No redo operation implemented.")
 
 ######################################################################
 

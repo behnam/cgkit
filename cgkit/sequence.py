@@ -1631,7 +1631,7 @@ class OutputNameGenerator:
         numValues = len(ranges)
         numVaryingValues = len(list(filter(lambda rng: len(rng)>1, ranges)))
         
-        numIdxs = range(numValues)
+        numIdxs = list(range(numValues))
         
         indices = dstTemplate.expressionIndices(numValues)
         numPatterns = len(indices)

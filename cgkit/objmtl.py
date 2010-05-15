@@ -111,7 +111,7 @@ class WavefrontReaderBase:
 
         The default implementation raises a SyntaxError exception.
         """
-        raise SyntaxError, "Unknown statement in line %d: %s"%(self.linenr, self.line)
+        raise SyntaxError("Unknown statement in line %d: %s"%(self.linenr, self.line))
 
 
 # MTLReader
@@ -172,7 +172,7 @@ class MTLReader(WavefrontReaderBase):
                     options[a] = args[1].lower()=="on"
                     args = args[2:]
                 else:
-                    raise SyntaxError, "Unknown map option in line %d: %s"%(self.linenr, a)
+                    raise SyntaxError("Unknown map option in line %d: %s"%(self.linenr, a))
             else:  # no option
                 names.append(a)
                 args = args[1:]
@@ -412,7 +412,7 @@ class OBJReader(WavefrontReaderBase):
         files contains the filenames.
         """
         if len(files)==0:
-            raise SyntaxError, "No material library given in line %d: %s"%(self.linenr, self.line)
+            raise SyntaxError("No material library given in line %d: %s"%(self.linenr, self.line))
         self.mtllib(*files)
 
     def handle_usemtl(self, *name):
@@ -429,7 +429,7 @@ class OBJReader(WavefrontReaderBase):
         """
         if len(groups)==0:
             groups = ("default",)
-#            raise SyntaxError, "No group name given in line %d: %s"%(self.linenr, self.line)
+#            raise SyntaxError("No group name given in line %d: %s"%(self.linenr, self.line))
         self.g(*groups)
 
     def handle_s(self, group_number):
@@ -444,7 +444,7 @@ class OBJReader(WavefrontReaderBase):
         try:
             group_number = int(group_number)
         except:
-            raise SyntaxError, "Invalid smoothing group number in line %d: %s"%(self.linenr, self.line)
+            raise SyntaxError("Invalid smoothing group number in line %d: %s"%(self.linenr, self.line))
         self.s(group_number)
 
     def handle_v(self, x, y, z, w=1):
@@ -475,7 +475,7 @@ class OBJReader(WavefrontReaderBase):
         """Points."""
         
         if len(verts)==0:
-            raise SyntaxError, "At least 1 vertex required in line %d: %s"%(self.linenr, self.line)
+            raise SyntaxError("At least 1 vertex required in line %d: %s"%(self.linenr, self.line))
 
         vlist = []
         for s in verts:
@@ -483,7 +483,7 @@ class OBJReader(WavefrontReaderBase):
             if vert<0:
                 vert = self.v_count+vert+1
             if vert==0:
-                raise ValueError, "0-index in line %d: %s"%(self.linenr, self.line)
+                raise ValueError("0-index in line %d: %s"%(self.linenr, self.line))
             vlist.append(vert)
             
         self.p(*vlist)     
@@ -492,13 +492,13 @@ class OBJReader(WavefrontReaderBase):
         """Line."""
 
         if len(verts)<2:
-            raise SyntaxError, "At least 2 vertices required in line %d: %s"%(self.linenr, self.line)
+            raise SyntaxError("At least 2 vertices required in line %d: %s"%(self.linenr, self.line))
 
         vlist = []
         for s in verts:
             a = s.split("/")
             if len(a)==0 or len(a)>2:
-                raise SyntaxError, "Syntax error in line %d: %s"%(self.linenr, self.line)
+                raise SyntaxError("Syntax error in line %d: %s"%(self.linenr, self.line))
             vert = int(a[0])
             if vert<0:
                 vert = self.v_count+vert+1
@@ -509,7 +509,7 @@ class OBJReader(WavefrontReaderBase):
                     if tvert<0:
                         tvert = self.vt_count+tvert+1
             if vert==0 or tvert==0:
-                raise ValueError, "0-index in line %d: %s"%(self.linenr, self.line)
+                raise ValueError("0-index in line %d: %s"%(self.linenr, self.line))
             vlist.append((vert, tvert))
         self.l(*vlist)
 
@@ -517,13 +517,13 @@ class OBJReader(WavefrontReaderBase):
         """Polygonal face.
         """
         if len(verts)<3:
-            raise SyntaxError, "At least 3 vertices required in line %d: %s"%(self.linenr, self.line)
+            raise SyntaxError("At least 3 vertices required in line %d: %s"%(self.linenr, self.line))
 
         vlist = []
         for s in verts:
             a = s.split("/")
             if len(a)==0 or len(a)>3:
-                raise SyntaxError, "Syntax error in line %d: %s"%(self.linenr, self.line)
+                raise SyntaxError("Syntax error in line %d: %s"%(self.linenr, self.line))
             vert = int(a[0])
             if vert<0:
                 vert = self.v_count+vert+1
@@ -539,7 +539,7 @@ class OBJReader(WavefrontReaderBase):
                     if normal<0:
                         normal = self.vn_count+normal+1
             if vert==0 or tvert==0 or normal==0:
-                raise ValueError, "0-index in line %d: %s"%(self.linenr, self.line)
+                raise ValueError("0-index in line %d: %s"%(self.linenr, self.line))
             vlist.append((vert, tvert, normal))
         self.f(*vlist)
 

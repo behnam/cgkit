@@ -713,7 +713,7 @@ class ILayoutNode(object):
         self._name = None
         if self._layoutRoot().findNodeByName(name)!=None:
             self._name = prevname
-            raise DuplicateNames, 'There is already a node with the name "%s"'%name
+            raise DuplicateNames('There is already a node with the name "%s"'%name)
 
         self._name = name
         
@@ -1002,7 +1002,7 @@ class LayoutNode(ILayoutNode):
         \return Children node (\c ILayoutNode).
         """
         if idx<0 or idx>3:
-            raise IndexError, "Children index out of range (%d)"%idx
+            raise IndexError("Children index out of range (%d)"%idx)
 
         return [self._child00, self._child01, self._child10, self._child11][idx]
 
@@ -1014,7 +1014,7 @@ class LayoutNode(ILayoutNode):
         \todo Pruefen, ob Child tree ok ist (keine doppelten Widgets oder Namen)
         """
         if idx<0 or idx>3:
-            raise IndexError, "Children index out of range (%d)"%idx
+            raise IndexError("Children index out of range (%d)"%idx)
         if child==None:
 #            if self._root!=None:
 #                black = wx.Window(self._root.wx, -1)
@@ -1024,7 +1024,7 @@ class LayoutNode(ILayoutNode):
 #            child = PanelNode(widget=black)
             child = PanelNode()
         if child._parent!=None:
-            raise ValueError, 'The panel layout node is already part of a layout tree.'
+            raise ValueError('The panel layout node is already part of a layout tree.')
             
         if idx==0:
             self.removeChild(self._child00)
@@ -1063,7 +1063,7 @@ class LayoutNode(ILayoutNode):
         elif child==self._child11:
             self._child11 = None
         else:
-            raise ValueError, "Layout node is not a children node."
+            raise ValueError("Layout node is not a children node.")
 
         child._parent = None
         if self.isActive():
@@ -1556,7 +1556,7 @@ class PanelNode(ILayoutNode):
         \param widget (\c PanelWidget) The new panel widget
         """
         if widget.isUsedBy(self._layoutRoot()):
-            raise LayoutError, 'The widget "%s" is already managed by this layout.'%widget.name
+            raise LayoutError('The widget "%s" is already managed by this layout.'%widget.name)
 
         # Hide and disconnect the previous top widget...
         if self.isActive():

@@ -172,7 +172,7 @@ class _GLSLangParser:
                 self.struct = self.named_structs[s]
                 self.switchState(self.typeState)
             else:
-                raise GLSLangParseError, "%s, line %d: Syntax error: %s"%(filename, start[0], s)
+                raise GLSLangParseError("%s, line %d: Syntax error: %s"%(filename, start[0], s))
 
     def qualifierState(self, type, s, start, end, line, filename):
         """A qualifier has been read.
@@ -180,7 +180,7 @@ class _GLSLangParser:
         if type==TYPE and s!="struct":
             self.type = s
             if self.qualifier in ["attribute", "varying"] and s not in ["float", "vec2", "vec3", "vec4", "mat2", "mat3", "mat4"]:
-                raise GLSLangParseError, "%s, line %d: Invalid type for an %s variable: %s"%(filename, start[0], self.qualifier, s)
+                raise GLSLangParseError("%s, line %d: Invalid type for an %s variable: %s"%(filename, start[0], self.qualifier, s))
             self.switchState(self.typeState)
         elif s=="struct":
             self.type = s
@@ -192,10 +192,10 @@ class _GLSLangParser:
                 self.structname = s
                 self.struct = self.named_structs[s]
                 if self.qualifier in ["attribute", "varying"]:
-                    raise GLSLangParseError, "%s, line %d: %s variables cannot be declared as structs"%(filename, start[0], self.qualifier)
+                    raise GLSLangParseError("%s, line %d: %s variables cannot be declared as structs"%(filename, start[0], self.qualifier))
                 self.switchState(self.typeState)
             else:
-                raise GLSLangParseError, "%s, line %d: Syntax error: %s"%(filename, start[0], s)
+                raise GLSLangParseError("%s, line %d: Syntax error: %s"%(filename, start[0], s))
 
     def typeState(self, type, s, start, end, line, filename):
         """The type of a varibale has been read.
@@ -206,7 +206,7 @@ class _GLSLangParser:
         elif s==";":
             self.switchState(self.initialState)
         else:
-            raise GLSLangParseError, "%s, line %d: Syntax error: %s"%(filename, start[0], s)
+            raise GLSLangParseError("%s, line %d: Syntax error: %s"%(filename, start[0], s))
 
     def nameState(self, type, s, start, end, line, filename):
         """The name of a variable/function has been read.
@@ -220,7 +220,7 @@ class _GLSLangParser:
         elif s=="[":
             self.arraysize = ""
             if self.qualifier=="attribute":
-                raise GLSLangParseError, "%s, line %d: attribute variables cannot be declared as arrays"%(filename, start[0])
+                raise GLSLangParseError("%s, line %d: attribute variables cannot be declared as arrays"%(filename, start[0]))
             self.switchState(self.arrayState)
         elif s=="(":
             self.openparen = 1
@@ -228,7 +228,7 @@ class _GLSLangParser:
         elif s=="=":
             self.switchState(self.initState)
         else:
-            raise GLSLangParseError, "%s, line %d: Syntax error: %s"%(filename, start[0], s)
+            raise GLSLangParseError("%s, line %d: Syntax error: %s"%(filename, start[0], s))
 
     def initState(self, type, s, start, end, line, filename):
         """A '=' has been encountered.
@@ -256,7 +256,7 @@ class _GLSLangParser:
             self.arraysize = None
             self.switchState(self.typeState)
         else:
-            raise GLSLangParseError, "%s, line %d: Syntax error: %s"%(filename, start[0], s)
+            raise GLSLangParseError("%s, line %d: Syntax error: %s"%(filename, start[0], s))
 
     def functionState(self, type, s, start, end, line, filename):
         """Skip function args.
@@ -280,12 +280,12 @@ class _GLSLangParser:
             self.openparen += 1
         elif s=="}":
             if self.openparen==0:
-                raise GLSLangParseError, "%s, line %d: '{' expected, got '}'"%(filename, start[0])
+                raise GLSLangParseError("%s, line %d: '{' expected, got '}'"%(filename, start[0]))
             self.openparen -= 1
             if self.openparen==0:
                 self.switchState(self.initialState)
         elif self.openparen==0:
-            raise GLSLangParseError, "%s, line %d: Syntax error: %s"%(filename, start[0], s)
+            raise GLSLangParseError("%s, line %d: Syntax error: %s"%(filename, start[0], s))
 
     def structState(self, type, s, start, end, line, filename):
         """The keyword 'struct' has been read.
@@ -297,7 +297,7 @@ class _GLSLangParser:
         elif s=="{":
             self.switchState(self.structState3)
         else:
-            raise GLSLangParseError, "%s, line %d: Syntax error: %s"%(filename, start[0], s)
+            raise GLSLangParseError("%s, line %d: Syntax error: %s"%(filename, start[0], s))
 
     def structState2(self, type, s, start, end, line, filename):
         """The struct name has been read.
@@ -305,7 +305,7 @@ class _GLSLangParser:
         if s=="{":
             self.switchState(self.structState3)
         else:
-            raise GLSLangParseError, "%s, line %d: Syntax error: %s"%(filename, start[0], s)
+            raise GLSLangParseError("%s, line %d: Syntax error: %s"%(filename, start[0], s))
 
     def structState3(self, type, s, start, end, line, filename):
         """Collect the struct contents.

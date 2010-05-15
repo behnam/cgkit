@@ -84,7 +84,7 @@ def _arrayPointer(a, n):
         return data[0]
     # Unknown array
     else:
-        raise TypeError, "Unknown array type"
+        raise TypeError("Unknown array type")
 
 
 class PtcReader(object):

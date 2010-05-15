@@ -93,7 +93,7 @@ def sws_freeContext(swsCtx):
 def sws_scale(swsCtx, src, srcStride, srcSliceY, srcSliceH, dst, dstStride): 
     ret = _lib().sws_scale(byref(swsCtx), src, srcStride, srcSliceY, srcSliceH, dst, dstStride)
     if ret<0:
-        raise RuntimeError, "Error: %s"%ret
+        raise RuntimeError("Error: %s"%ret)
     return ret
 
 _libname = "swscale.1"

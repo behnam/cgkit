@@ -136,7 +136,7 @@ class GLTexture(_core.GLTexture):
         elif img.mode=="RGBA":
             format = GL_RGBA
         else:
-            raise RuntimeError, "Unsupported texture format (%s)"%img.mode
+            raise RuntimeError("Unsupported texture format (%s)"%img.mode)
         
         self.texData(w, h, format, GL_UNSIGNED_BYTE, img.tostring())
         
@@ -237,7 +237,7 @@ class GLShader(_core.GLShader):
         if attr in self._uniform:
             return None
 
-        raise AttributeError, "shader '%s' has no parameter '%s'"%(self.filename, attr)
+        raise AttributeError("shader '%s' has no parameter '%s'"%(self.filename, attr))
 
     # setattr
     def __setattr__(self, attr, value):
@@ -258,7 +258,7 @@ class GLShader(_core.GLShader):
             slot = self._createSlot(attr, uniform[attr][0])
             slot.setValue(value)
         else:
-            raise AttributeError, "shader '%s' has no parameter '%s'"%(self.filename, attr)
+            raise AttributeError("shader '%s' has no parameter '%s'"%(self.filename, attr))
 
     # iterUniform
     def iterUniform(self):
@@ -293,7 +293,7 @@ class GLShader(_core.GLShader):
                     "sampler2DShadow" : "IntSlot"}
         slotname = slot_lut.get(type, None)
         if slotname==None:
-            raise ValueError, "Invalid parameter type: %s"%type
+            raise ValueError("Invalid parameter type: %s"%type)
         exec "slot = %s()"%slotname
         self.addSlot(param, slot)
         # Store the slot as <param>_slot 

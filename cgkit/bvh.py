@@ -105,22 +105,22 @@ class BVHReader:
             return
         
         if tok!="MOTION":
-            raise SyntaxError, "Syntax error in line %d: 'MOTION' expected, got '%s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: 'MOTION' expected, got '%s' instead"%(self.linenr, tok))
 
         # Read the number of frames
         tok = self.token()
         if tok!="Frames:":
-            raise SyntaxError, "Syntax error in line %d: 'Frames:' expected, got '%s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: 'Frames:' expected, got '%s' instead"%(self.linenr, tok))
 
         frames = self.intToken()
 
         # Read the frame time
         tok = self.token()
         if tok!="Frame":
-            raise SyntaxError, "Syntax error in line %d: 'Frame Time:' expected, got '%s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: 'Frame Time:' expected, got '%s' instead"%(self.linenr, tok))
         tok = self.token()
         if tok!="Time:":
-            raise SyntaxError, "Syntax error in line %d: 'Frame Time:' expected, got 'Frame %s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: 'Frame Time:' expected, got 'Frame %s' instead"%(self.linenr, tok))
 
         dt = self.floatToken()
 
@@ -131,7 +131,7 @@ class BVHReader:
             s = self.readLine()
             a = s.split()
             if len(a)!=self._numchannels:
-                raise SyntaxError, "Syntax error in line %d: %d float values expected, got %d instead"%(self.linenr, self._numchannels, len(a))
+                raise SyntaxError("Syntax error in line %d: %d float values expected, got %d instead"%(self.linenr, self._numchannels, len(a)))
             values = map(lambda x: float(x), a)
             self.onFrame(values)
 
@@ -142,11 +142,11 @@ class BVHReader:
         """
         tok = self.token()
         if tok!="HIERARCHY":
-            raise SyntaxError, "Syntax error in line %d: 'HIERARCHY' expected, got '%s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: 'HIERARCHY' expected, got '%s' instead"%(self.linenr, tok))
 
         tok = self.token()
         if tok!="ROOT":
-            raise SyntaxError, "Syntax error in line %d: 'ROOT' expected, got '%s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: 'ROOT' expected, got '%s' instead"%(self.linenr, tok))
 
         self._root = Node(root=True)
         self._nodestack.append(self._root)
@@ -164,7 +164,7 @@ class BVHReader:
         
         tok = self.token()
         if tok!="{":
-            raise SyntaxError, "Syntax error in line %d: '{' expected, got '%s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: '{' expected, got '%s' instead"%(self.linenr, tok))
 
         while 1:
             tok = self.token()
@@ -180,7 +180,7 @@ class BVHReader:
                     tok = self.token()
                     if tok not in ["Xposition", "Yposition", "Zposition",
                                   "Xrotation", "Yrotation", "Zrotation"]:
-                        raise SyntaxError, "Syntax error in line %d: Invalid channel name: '%s'"%(self.linenr, tok)                        
+                        raise SyntaxError("Syntax error in line %d: Invalid channel name: '%s'"%(self.linenr, tok))                        
                     channels.append(tok)
                 self._numchannels += len(channels)
                 self._nodestack[-1].channels = channels
@@ -200,7 +200,7 @@ class BVHReader:
                 self._nodestack.pop()
                 break
             else:
-                raise SyntaxError, "Syntax error in line %d: Unknown keyword '%s'"%(self.linenr, tok)
+                raise SyntaxError("Syntax error in line %d: Unknown keyword '%s'"%(self.linenr, tok))
         
 
     # intToken
@@ -212,7 +212,7 @@ class BVHReader:
         try:
             return int(tok)
         except ValueError:
-            raise SyntaxError, "Syntax error in line %d: Integer expected, got '%s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: Integer expected, got '%s' instead"%(self.linenr, tok))
 
     # floatToken
     def floatToken(self):
@@ -223,7 +223,7 @@ class BVHReader:
         try:
             return float(tok)
         except ValueError:
-            raise SyntaxError, "Syntax error in line %d: Float expected, got '%s' instead"%(self.linenr, tok)
+            raise SyntaxError("Syntax error in line %d: Float expected, got '%s' instead"%(self.linenr, tok))
 
     # token
     def token(self):

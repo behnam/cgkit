@@ -98,7 +98,7 @@ class EulerAdapter(Component):
         elif outtype=="quat":
             self.output_slot = slots.ProceduralQuatSlot(self.computeQuat)
         else:
-            raise ValueError, "Unknown output type: %s"%outtype
+            raise ValueError("Unknown output type: %s"%outtype)
         
         self.addSlot("output", self.output_slot)
             

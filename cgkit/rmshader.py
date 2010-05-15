@@ -149,7 +149,7 @@ class RMShader(object):
         if self.filename!=None:
             slinfo = slparams.slparams(shader, cpp=cpp, cpperrstream=cpperrstream, includedirs=includedirs, defines=defines)
             if len(slinfo)==0:
-                raise ValueError, "no shader found in %s"%shader
+                raise ValueError("no shader found in %s"%shader)
             if len(slinfo)>1:
                 print "WARNING: There is more than one shader in %s"%shader
 
@@ -179,7 +179,7 @@ class RMShader(object):
         if name in str_params:
             return str_params[name]
     
-        raise AttributeError, 'shader "%s" has no attribute "%s"'%(self.shadername, name)
+        raise AttributeError('shader "%s" has no attribute "%s"'%(self.shadername, name))
 
     # setattr
     def __setattr__(self, name, val):
@@ -308,7 +308,7 @@ class RMShader(object):
             # (it's ok if the new and old declarations are identical)
             if pname in self.shaderparams:
                 if decl!=self.shaderparams[pname]:
-                    raise ValueError, '"%s" is already declared as "%s"'%(pname, self.shaderparams[pname])
+                    raise ValueError('"%s" is already declared as "%s"'%(pname, self.shaderparams[pname]))
                 continue
             # Check if the parameter was specified in the constructor.
             # If so, use the value to initialize the slot            
@@ -365,16 +365,16 @@ class RMShader(object):
             invalid = " []():;'\"'"
             for inv in invalid:
                 if inv in name:
-                    raise ValueError, 'Invalid declaration: "%s"'%name
+                    raise ValueError('Invalid declaration: "%s"'%name)
             # It's probably really just the name, so use the remaining
             # arguments to create a parameter tuple...
             if cls is None:
                 cls = "uniform"
             if type is None:
-                raise ValueError, 'No type for parameter "%s" specified'%name
+                raise ValueError('No type for parameter "%s" specified'%name)
             if type not in ["float", "string", "color", "point", "vector",
                             "normal", "matrix"]:
-                raise ValueError, 'Invalid type for parameter "%s": %s'%(name, type)
+                raise ValueError('Invalid type for parameter "%s": %s'%(name, type))
             params = [("", cls, type, arraysize, name, "", str(default))]
             
         return params
@@ -528,7 +528,7 @@ class RMMaterial(material.Material):
         elif hasattr(self.interior, slotname):
             return getattr(self.interior, name)            
         else:
-            raise AttributeError, 'material "%s" has no attribute "%s"'%(self.name, name)
+            raise AttributeError('material "%s" has no attribute "%s"'%(self.name, name))
 
 
     def __setattr__(self, name, val):
@@ -664,7 +664,7 @@ class RMLightSource(lightsource.LightSource):
         if hasattr(self.shader, slotname):
             return getattr(self.shader, name)
         else:
-            raise AttributeError, 'light source "%s" has no attribute "%s"'%(self.name, name)
+            raise AttributeError('light source "%s" has no attribute "%s"'%(self.name, name))
 
 
     def __setattr__(self, name, val):

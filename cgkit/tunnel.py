@@ -506,7 +506,7 @@ class Tunnel(component.Component):
             idx, w,x,y,z = struct.unpack(">Hdddd", msg[:34])
             return (34, idx, quat(w,x,y,z))
         else:
-            raise ValueError, "Unknown message id (%d)"%id
+            raise ValueError("Unknown message id (%d)"%id)
             
 
     # iterSlotDefs

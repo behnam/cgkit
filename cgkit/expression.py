@@ -127,7 +127,7 @@ class Expression(Component):
             else:
                 typ = "py"
                 valstr = "keyargs[k]"
-#                raise ValueError, "Unsupported type: %s"%T
+#                raise ValueError("Unsupported type: %s"%T)
             # Create slot
             exec "self.%s_slot = %sSlot(%s)"%(k, typ.capitalize(), valstr)
             exec "self.addSlot(k, self.%s_slot)"%k
@@ -201,9 +201,9 @@ class Expression(Component):
                 return "mat3"
             if len(out)==16:
                 return "mat4"
-            raise ValueError, "Unsupported sequence size: %d"%len(out)
+            raise ValueError("Unsupported sequence size: %d"%len(out))
 
-        raise ValueError, "Unknown expression type: %s"%T
+        raise ValueError("Unknown expression type: %s"%T)
         
         
         

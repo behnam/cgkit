@@ -298,15 +298,15 @@ def av_open_input_file(fileName, format=None, buf_size=0, params=None):
     """
     # Check input parameters
     if not isinstance(fileName, basestring):
-        raise ValueError, "fileName must be a string"
+        raise ValueError("fileName must be a string")
     if buf_size is None:
         buf_size = 0
     elif type(buf_size)!=int:
-        raise ValueError, "buf_size must be an int or None"
+        raise ValueError("buf_size must be an int or None")
     if format is not None:
-        raise ValueError, "format parameter is not yet supported"
+        raise ValueError("format parameter is not yet supported")
     if params is not None:
-        raise ValueError, "params parameter is not yet supported"
+        raise ValueError("params parameter is not yet supported")
     
     formatCtxPtr = POINTER(AVFormatContext)()
     ret = _lib().av_open_input_file(byref(formatCtxPtr), fileName, format, buf_size, params)

@@ -72,7 +72,7 @@ class IfsImporter:
         # Check the header...
         s = self.readString(f)
         if s!="IFS":
-            raise ValueError, 'The file "%s" is is not a IFS file.'%filename
+            raise ValueError('The file "%s" is is not a IFS file.'%filename)
 
         # Read (and ignore) the version number
         s = f.read(4)
@@ -87,7 +87,7 @@ class IfsImporter:
         # Read vertices...
         s = self.readString(f)
         if s!="VERTICES":
-            raise ValueError, "Vertices chunk expected, got '%s' instead."%s
+            raise ValueError("Vertices chunk expected, got '%s' instead."%s)
 
         s = f.read(4)
         numverts = int(struct.unpack("<I", s)[0])
@@ -101,7 +101,7 @@ class IfsImporter:
         # Read faces...
         s = self.readString(f)
         if s!="TRIANGLES":
-            raise ValueError, "Triangle chunk expected, got '%s' instead."%s
+            raise ValueError("Triangle chunk expected, got '%s' instead."%s)
             
         s = f.read(4)
         numfaces = int(struct.unpack("<I", s)[0])

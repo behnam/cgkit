@@ -210,7 +210,7 @@ class EventManager:
 #        try:
 #            connections[name].remove(receiver)
 #        except ValueError:
-#            raise KeyError, 'Receiver is not connected to event "%s"'%name
+#            raise KeyError('Receiver is not connected to event "%s"'%name)
         
         for i,rec in enumerate(connections[name]):
             if rec.receiver==receiver:

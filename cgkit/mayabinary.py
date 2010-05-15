@@ -99,7 +99,7 @@ class Chunk:
         If bytes is -1 the entire chunk data is read.
         """
         if self.file is None:
-            raise RuntimeError, "This chunk is not active anymore"
+            raise RuntimeError("This chunk is not active anymore")
 
         maxbytes = self.size-self._bytesRead
         if bytes<0:
@@ -203,7 +203,7 @@ class MBReader:
         header = file.read(12)
         file.seek(0)
         if len(header)!=12 or header[0:4]!="FOR4" or header[8:12]!="Maya":
-            raise ValueError, 'The file "%s" is not a Maya binary file.'%self.filename 
+            raise ValueError('The file "%s" is not a Maya binary file.'%self.filename) 
         
         self._file = file
         self._abortFlag = False
@@ -236,7 +236,7 @@ class MBReader:
                 alignments.append(av)
                 end = pos+self.paddedSize(size, av)
                 if len(pendingGroups)>0 and end>pendingGroups[-1][0]:
-                    raise ValueError, 'Chunk %s at position %s in file "%s" has an invalid size (%d) that goes beyond its contained group chunk.'%(tag,pos-8,os.path.basename(self.filename),size)
+                    raise ValueError('Chunk %s at position %s in file "%s" has an invalid size (%d) that goes beyond its contained group chunk.'%(tag,pos-8,os.path.basename(self.filename),size))
                 pendingGroups.append((end, chunk))
                 pos += 4
                 depth += 1
@@ -271,7 +271,7 @@ class MBReader:
         if len(header)==0:
             return None,None
         if len(header)!=8:
-            raise ValueError, 'Premature end of file "%s" (chunk tag & size expected)'%os.path.basename(self.filename)
+            raise ValueError('Premature end of file "%s" (chunk tag & size expected)'%os.path.basename(self.filename))
         return (header[:4], struct.unpack(">L", header[4:])[0])
         
     def isGroupChunk(self, tag):

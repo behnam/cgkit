@@ -138,19 +138,19 @@ class TriMeshPolyAdapter:
 
     def setNumLoops(self, poly, num):
         if num>1:
-            raise RuntimeError, "Triangles cannot have holes"
+            raise RuntimeError("Triangles cannot have holes")
 
     def getLoop(self, poly, loop):
         if loop==0:
             return self.tm.faces[poly]
         else:
-            raise RuntimeError, "Triangles have no holes"
+            raise RuntimeError("Triangles have no holes")
 
     def setLoop(self, poly, loop, vloop):
         if loop==0:
             self.tm.faces[poly] = vloop
         else:
-            raise RuntimeError, "Triangles cannot have holes"
+            raise RuntimeError("Triangles cannot have holes")
 
     def getPoly(self, poly):
         return [self.tm.faces[poly]]
@@ -190,7 +190,7 @@ def convFaceVarToVar(geom):
             poly = geom.getPoly(i)
             newgeom.setPoly(i, poly)
     else:
-        raise TypeError, "geom must be a TriMeshGeom or PolyhedronGeom"
+        raise TypeError("geom must be a TriMeshGeom or PolyhedronGeom")
 
     # Allocate storage for the vertices
     workinggeom.verts.resize(geom.faceVaryingCount())
@@ -697,7 +697,7 @@ def group(*children, **keyargs):
     # Check the key arguments
     for k in keyargs:
         if k not in ["name"]:
-            raise TypeError, "Unknown keyword argument: '%s'"%k
+            raise TypeError("Unknown keyword argument: '%s'"%k)
 
     # "Flatten" the children list...
     childs = []
@@ -726,7 +726,7 @@ def ungroup(group):
     """
     group = worldObject(group)
     if group.geom!=None:
-        raise ValueError, 'Object "%s" is not a mere group. Remove the geometry before ungrouping.'%group.name
+        raise ValueError('Object "%s" is not a mere group. Remove the geometry before ungrouping.'%group.name)
 
     # Move the children up one level
     newparent = group.parent

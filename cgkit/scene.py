@@ -240,7 +240,7 @@ class Scene(object):
         """
         h = h.lower()
         if h!="l" and h!="r":
-            raise ValueError, "Handedness must be either 'l' or 'r'."
+            raise ValueError("Handedness must be either 'l' or 'r'.")
         self._handedness = h
 
     handedness = property(_getHandedness, _setHandedness, None, "Handedness")

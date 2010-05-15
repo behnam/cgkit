@@ -66,11 +66,11 @@ def splitTileName(name):
     for i in range(4):
         j = n.rfind("_")
         if j==-1:
-            raise ValueError, "no tile name"
+            raise ValueError("no tile name")
         try:
             coords = [float(n[j+1:])]+coords
         except:
-            raise ValueError, "no tile name (invalid coordinate)"
+            raise ValueError("no tile name (invalid coordinate)")
         n = n[:j]
 
     return n,ext,tuple(coords)
@@ -95,13 +95,13 @@ def outputSpecs(tiles):
         w,h = img.size
         if x in xsplits:
             if w!=xsplits[x]:
-                raise ValueError, "%s: Inconsistent tile resolution, expected a width of %d but got %d"%(tilename, xsplits[x], w)
+                raise ValueError("%s: Inconsistent tile resolution, expected a width of %d but got %d"%(tilename, xsplits[x], w))
         else:
             xsplits[x] = w
             xres += w
         if y in ysplits:
             if h!=ysplits[y]:
-                raise ValueError, "%s: Inconsistent tile resolution, expected a height of %d but got %d"%(tilename, ysplits[y], h)
+                raise ValueError("%s: Inconsistent tile resolution, expected a height of %d but got %d"%(tilename, ysplits[y], h))
         else:
             ysplits[y] = h
             yres += h
@@ -171,7 +171,7 @@ def stitch(filename, removetiles=False, infostream=None):
         if mode==None:
             mode = img.mode
         if img.mode!=mode:
-            raise ValueError, "%s: Mode mismatch, %s instead of %s"%(tilename, img.mode, mode)
+            raise ValueError("%s: Mode mismatch, %s instead of %s"%(tilename, img.mode, mode))
 
         tiles.append((tilename, coords, img))
 

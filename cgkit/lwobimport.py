@@ -170,7 +170,7 @@ class _LWOBReader(lwob.LWOBReader):
         the surface. Everything else is ignored so far.
         """
         if surface.name not in self.surface_ids:
-            raise lwob.LWOBError, 'Invalid surface name "%s" (name not available in SRFS chunk)'%surface.name
+            raise lwob.LWOBError('Invalid surface name "%s" (name not available in SRFS chunk)'%surface.name)
         
         id = self.surface_ids[surface.name]
         

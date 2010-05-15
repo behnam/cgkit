@@ -205,7 +205,7 @@ class LWOBReader:
         """Read a PNTS chunk and call the PNTS handler.
         """
         if length%12!=0:
-            raise LWOBError, "Invalid PNTS chunk size (%d)"%length
+            raise LWOBError("Invalid PNTS chunk size (%d)"%length)
         
         numpnts = int(length/12)
         # Read the chunk data...
@@ -339,7 +339,7 @@ class LWOBReader:
     def readSURF_COLR(self, length):
         """COLR chunk."""
         if length!=4:
-            raise LWOBError, "Invalid COLR size (%d instead of 4)"%length
+            raise LWOBError("Invalid COLR size (%d instead of 4)"%length)
         data = self.readNBytes(4)
         color = struct.unpack(">BBB", data[:3])
         self._current_surface.color = color
@@ -347,7 +347,7 @@ class LWOBReader:
     def readSURF_FLAG(self, length):
         """FLAG chunk."""
         if length!=2:
-            raise LWOBError, "Invalid FLAG size (%d instead of 2)"%length
+            raise LWOBError("Invalid FLAG size (%d instead of 2)"%length)
         data = self.readNBytes(2)
         flags = struct.unpack(">H", data)[0]
         self._current_surface.flags = flags
@@ -355,7 +355,7 @@ class LWOBReader:
     def readSURF_LUMI(self, length):
         """LUMI chunk."""
         if length!=2:
-            raise LWOBError, "Invalid LUMI size (%d instead of 2)"%length
+            raise LWOBError("Invalid LUMI size (%d instead of 2)"%length)
         data = self.readNBytes(2)
         lumi = struct.unpack(">H", data)[0]
         if self._current_surface.luminosity==None:
@@ -364,7 +364,7 @@ class LWOBReader:
     def readSURF_VLUM(self, length):
         """VLUM chunk."""
         if length!=4:
-            raise LWOBError, "Invalid VLUM size (%d instead of 4)"%length
+            raise LWOBError("Invalid VLUM size (%d instead of 4)"%length)
         data = self.readNBytes(4)
         lum = struct.unpack(">f", data)[0]
         self._current_surface.luminosity = lum
@@ -372,7 +372,7 @@ class LWOBReader:
     def readSURF_DIFF(self, length):
         """DIFF chunk."""
         if length!=2:
-            raise LWOBError, "Invalid DIFF size (%d instead of 2)"%length
+            raise LWOBError("Invalid DIFF size (%d instead of 2)"%length)
         data = self.readNBytes(2)
         diff = struct.unpack(">H", data)[0]
         if self._current_surface.diffuse==None:
@@ -381,7 +381,7 @@ class LWOBReader:
     def readSURF_VDIF(self, length):
         """VDIF chunk."""
         if length!=4:
-            raise LWOBError, "Invalid VDIF size (%d instead of 4)"%length
+            raise LWOBError("Invalid VDIF size (%d instead of 4)"%length)
         data = self.readNBytes(4)
         diff = struct.unpack(">f", data)[0]
         self._current_surface.diffuse = diff
@@ -389,7 +389,7 @@ class LWOBReader:
     def readSURF_SPEC(self, length):
         """SPEC chunk."""
         if length!=2:
-            raise LWOBError, "Invalid SPEC size (%d instead of 2)"%length
+            raise LWOBError("Invalid SPEC size (%d instead of 2)"%length)
         data = self.readNBytes(2)
         spec = struct.unpack(">H", data)[0]
         if self._current_surface.specular==None:
@@ -398,7 +398,7 @@ class LWOBReader:
     def readSURF_VSPC(self, length):
         """VSPC chunk."""
         if length!=4:
-            raise LWOBError, "Invalid VSPC size (%d instead of 4)"%length
+            raise LWOBError("Invalid VSPC size (%d instead of 4)"%length)
         data = self.readNBytes(4)
         spec = struct.unpack(">f", data)[0]
         self._current_surface.specular = spec
@@ -406,7 +406,7 @@ class LWOBReader:
     def readSURF_REFL(self, length):
         """REFL chunk."""
         if length!=2:
-            raise LWOBError, "Invalid REFL size (%d instead of 2)"%length
+            raise LWOBError("Invalid REFL size (%d instead of 2)"%length)
         data = self.readNBytes(2)
         refl = struct.unpack(">H", data)[0]
         if self._current_surface.reflection==None:
@@ -415,7 +415,7 @@ class LWOBReader:
     def readSURF_VRFL(self, length):
         """VRFL chunk."""
         if length!=4:
-            raise LWOBError, "Invalid VRFL size (%d instead of 4)"%length
+            raise LWOBError("Invalid VRFL size (%d instead of 4)"%length)
         data = self.readNBytes(4)
         refl = struct.unpack(">f", data)[0]
         self._current_surface.reflection = refl
@@ -423,7 +423,7 @@ class LWOBReader:
     def readSURF_TRAN(self, length):
         """TRAN chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TRAN size (%d instead of 2)"%length
+            raise LWOBError("Invalid TRAN size (%d instead of 2)"%length)
         data = self.readNBytes(2)
         tran = struct.unpack(">H", data)[0]
         if self._current_surface.transparency==None:
@@ -432,7 +432,7 @@ class LWOBReader:
     def readSURF_VTRN(self, length):
         """VTRN chunk."""
         if length!=4:
-            raise LWOBError, "Invalid VTRN size (%d instead of 4)"%length
+            raise LWOBError("Invalid VTRN size (%d instead of 4)"%length)
         data = self.readNBytes(4)
         tran = struct.unpack(">f", data)[0]
         self._current_surface.transparency = tran
@@ -440,7 +440,7 @@ class LWOBReader:
     def readSURF_GLOS(self, length):
         """GLOS chunk."""
         if length!=2:
-            raise LWOBError, "Invalid GLOS size (%d instead of 2)"%length
+            raise LWOBError("Invalid GLOS size (%d instead of 2)"%length)
         data = self.readNBytes(2)
         glos = struct.unpack(">H", data)[0]
         self._current_surface.glossiness = glos
@@ -448,7 +448,7 @@ class LWOBReader:
     def readSURF_RFLT(self, length):
         """RFLT chunk."""
         if length!=2:
-            raise LWOBError, "Invalid RFLT size (%d instead of 2)"%length
+            raise LWOBError("Invalid RFLT size (%d instead of 2)"%length)
         data = self.readNBytes(2)
         mode = struct.unpack(">H", data)[0]
         self._current_surface.reflectionmode = mode
@@ -464,7 +464,7 @@ class LWOBReader:
     def readSURF_RSAN(self, length):
         """RSAN chunk."""
         if length!=4:
-            raise LWOBError, "Invalid RSAN size (%d instead of 4)"%length
+            raise LWOBError("Invalid RSAN size (%d instead of 4)"%length)
         data = self.readNBytes(4)
         deg = struct.unpack(">f", data)[0]
         self._current_surface.refmap_seamangle = deg
@@ -472,7 +472,7 @@ class LWOBReader:
     def readSURF_RIND(self, length):
         """RIND chunk."""
         if length!=4:
-            raise LWOBError, "Invalid RIND size (%d instead of 4)"%length
+            raise LWOBError("Invalid RIND size (%d instead of 4)"%length)
         data = self.readNBytes(4)
         ior = struct.unpack(">f", data)[0]
         self._current_surface.refractiveindex = ior
@@ -480,7 +480,7 @@ class LWOBReader:
     def readSURF_EDGE(self, length):
         """EDGE chunk."""
         if length!=4:
-            raise LWOBError, "Invalid EDGE size (%d instead of 4)"%length
+            raise LWOBError("Invalid EDGE size (%d instead of 4)"%length)
         data = self.readNBytes(4)
         edge = struct.unpack(">f", data)[0]
         self._current_surface.edgetransp = edge
@@ -488,7 +488,7 @@ class LWOBReader:
     def readSURF_SMAN(self, length):
         """SMAN chunk."""
         if length!=4:
-            raise LWOBError, "Invalid SMAN size (%d instead of 4)"%length
+            raise LWOBError("Invalid SMAN size (%d instead of 4)"%length)
         data = self.readNBytes(4)
         sman = struct.unpack(">f", data)[0]
         self._current_surface.maxsmoothangle = sman
@@ -580,9 +580,9 @@ class LWOBReader:
     def readSURF_TFLG(self, length):
         """TFLG chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TFLG size (%d instead of 2)"%length
+            raise LWOBError("Invalid TFLG size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFLG chunk"
+            raise LWOBError("Invalid position of the TFLG chunk")
         data = self.readNBytes(2)
         flags = struct.unpack(">H", data)[0]
         self._current_tex.flags = flags
@@ -590,9 +590,9 @@ class LWOBReader:
     def readSURF_TSIZ(self, length):
         """TSIZ chunk."""
         if length!=12:
-            raise LWOBError, "Invalid TSIZ size (%d instead of 12)"%length
+            raise LWOBError("Invalid TSIZ size (%d instead of 12)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TSIZ chunk"
+            raise LWOBError("Invalid position of the TSIZ chunk")
         data = self.readNBytes(12)
         v = vec3(struct.unpack(">fff", data))
         self._current_tex.size = v
@@ -600,9 +600,9 @@ class LWOBReader:
     def readSURF_TCTR(self, length):
         """TCTR chunk."""
         if length!=12:
-            raise LWOBError, "Invalid TCTR size (%d instead of 12)"%length
+            raise LWOBError("Invalid TCTR size (%d instead of 12)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TCTR chunk"
+            raise LWOBError("Invalid position of the TCTR chunk")
         data = self.readNBytes(12)
         v = vec3(struct.unpack(">fff", data))
         self._current_tex.center = v
@@ -610,9 +610,9 @@ class LWOBReader:
     def readSURF_TFAL(self, length):
         """TFAL chunk."""
         if length!=12:
-            raise LWOBError, "Invalid TFAL size (%d instead of 12)"%length
+            raise LWOBError("Invalid TFAL size (%d instead of 12)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFAL chunk"
+            raise LWOBError("Invalid position of the TFAL chunk")
         data = self.readNBytes(12)
         v = vec3(struct.unpack(">fff", data))
         self._current_tex.falloff = v
@@ -620,9 +620,9 @@ class LWOBReader:
     def readSURF_TVEL(self, length):
         """TVEL chunk."""
         if length!=12:
-            raise LWOBError, "Invalid TVEL size (%d instead of 12)"%length
+            raise LWOBError("Invalid TVEL size (%d instead of 12)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TVEL chunk"
+            raise LWOBError("Invalid position of the TVEL chunk")
         data = self.readNBytes(12)
         v = vec3(struct.unpack(">fff", data))
         self._current_tex.velocity = v
@@ -630,9 +630,9 @@ class LWOBReader:
     def readSURF_TCLR(self, length):
         """TCLR chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TCLR size (%d instead of 4)"%length
+            raise LWOBError("Invalid TCLR size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TCLR chunk"
+            raise LWOBError("Invalid position of the TCLR chunk")
         data = self.readNBytes(4)
         col = struct.unpack(">BBB", data[:3])
         self._current_tex.color = v
@@ -640,9 +640,9 @@ class LWOBReader:
     def readSURF_TVAL(self, length):
         """TVAL chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TVAL size (%d instead of 2)"%length
+            raise LWOBError("Invalid TVAL size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TVAL chunk"
+            raise LWOBError("Invalid position of the TVAL chunk")
         data = self.readNBytes(2)
         val = struct.unpack(">H", data)[0]
         self._current_tex.value = val
@@ -650,9 +650,9 @@ class LWOBReader:
     def readSURF_TAMP(self, length):
         """TAMP chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TAMP size (%d instead of 4)"%length
+            raise LWOBError("Invalid TAMP size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TAMP chunk"
+            raise LWOBError("Invalid position of the TAMP chunk")
         data = self.readNBytes(4)
         amp = struct.unpack(">f", data)[0]
         self._current_tex.bumpamplitude = amp
@@ -660,9 +660,9 @@ class LWOBReader:
     def readSURF_TFP0(self, length):
         """TFP0 chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TFP0 size (%d instead of 4)"%length
+            raise LWOBError("Invalid TFP0 size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFP0 chunk"
+            raise LWOBError("Invalid position of the TFP0 chunk")
         data = self.readNBytes(4)
         f = struct.unpack(">f", data)[0]
         self._current_tex.floatparams[0] = f
@@ -670,9 +670,9 @@ class LWOBReader:
     def readSURF_TFP1(self, length):
         """TFP1 chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TFP1 size (%d instead of 4)"%length
+            raise LWOBError("Invalid TFP1 size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFP1 chunk"
+            raise LWOBError("Invalid position of the TFP1 chunk")
         data = self.readNBytes(4)
         f = struct.unpack(">f", data)[0]
         self._current_tex.floatparams[1] = f
@@ -680,9 +680,9 @@ class LWOBReader:
     def readSURF_TFP2(self, length):
         """TFP2 chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TFP2 size (%d instead of 4)"%length
+            raise LWOBError("Invalid TFP2 size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFP2 chunk"
+            raise LWOBError("Invalid position of the TFP2 chunk")
         data = self.readNBytes(4)
         f = struct.unpack(">f", data)[0]
         self._current_tex.floatparams[2] = f
@@ -690,9 +690,9 @@ class LWOBReader:
     def readSURF_TFP3(self, length):
         """TFP3 chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TFP3 size (%d instead of 4)"%length
+            raise LWOBError("Invalid TFP3 size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFP3 chunk"
+            raise LWOBError("Invalid position of the TFP3 chunk")
         data = self.readNBytes(4)
         f = struct.unpack(">f", data)[0]
         self._current_tex.floatparams[3] = f
@@ -700,9 +700,9 @@ class LWOBReader:
     def readSURF_TFP4(self, length):
         """TFP4 chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TFP4 size (%d instead of 4)"%length
+            raise LWOBError("Invalid TFP4 size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFP4 chunk"
+            raise LWOBError("Invalid position of the TFP4 chunk")
         data = self.readNBytes(4)
         f = struct.unpack(">f", data)[0]
         self._current_tex.floatparams[4] = f
@@ -710,9 +710,9 @@ class LWOBReader:
     def readSURF_TFP5(self, length):
         """TFP5 chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TFP5 size (%d instead of 4)"%length
+            raise LWOBError("Invalid TFP5 size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFP5 chunk"
+            raise LWOBError("Invalid position of the TFP5 chunk")
         data = self.readNBytes(4)
         f = struct.unpack(">f", data)[0]
         self._current_tex.floatparams[5] = f
@@ -720,9 +720,9 @@ class LWOBReader:
     def readSURF_TFP6(self, length):
         """TFP6 chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TFP6 size (%d instead of 4)"%length
+            raise LWOBError("Invalid TFP6 size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFP6 chunk"
+            raise LWOBError("Invalid position of the TFP6 chunk")
         data = self.readNBytes(4)
         f = struct.unpack(">f", data)[0]
         self._current_tex.floatparams[6] = f
@@ -730,9 +730,9 @@ class LWOBReader:
     def readSURF_TFP7(self, length):
         """TFP7 chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TFP7 size (%d instead of 4)"%length
+            raise LWOBError("Invalid TFP7 size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFP7 chunk"
+            raise LWOBError("Invalid position of the TFP7 chunk")
         data = self.readNBytes(4)
         f = struct.unpack(">f", data)[0]
         self._current_tex.floatparams[7] = f
@@ -740,9 +740,9 @@ class LWOBReader:
     def readSURF_TFP8(self, length):
         """TFP8 chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TFP8 size (%d instead of 4)"%length
+            raise LWOBError("Invalid TFP8 size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFP8 chunk"
+            raise LWOBError("Invalid position of the TFP8 chunk")
         data = self.readNBytes(4)
         f = struct.unpack(">f", data)[0]
         self._current_tex.floatparams[8] = f
@@ -750,9 +750,9 @@ class LWOBReader:
     def readSURF_TFP9(self, length):
         """TFP9 chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TFP9 size (%d instead of 4)"%length
+            raise LWOBError("Invalid TFP9 size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TFP9 chunk"
+            raise LWOBError("Invalid position of the TFP9 chunk")
         data = self.readNBytes(4)
         f = struct.unpack(">f", data)[0]
         self._current_tex.floatparams[9] = f
@@ -760,9 +760,9 @@ class LWOBReader:
     def readSURF_TIP0(self, length):
         """TIP0 chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TIP0 size (%d instead of 2)"%length
+            raise LWOBError("Invalid TIP0 size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIP0 chunk"
+            raise LWOBError("Invalid position of the TIP0 chunk")
         data = self.readNBytes(2)
         i = struct.unpack(">h", data)[0]
         self._current_tex.intparams[0] = i
@@ -770,9 +770,9 @@ class LWOBReader:
     def readSURF_TIP1(self, length):
         """TIP1 chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TIP1 size (%d instead of 2)"%length
+            raise LWOBError("Invalid TIP1 size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIP1 chunk"
+            raise LWOBError("Invalid position of the TIP1 chunk")
         data = self.readNBytes(2)
         i = struct.unpack(">h", data)[0]
         self._current_tex.intparams[1] = i
@@ -780,9 +780,9 @@ class LWOBReader:
     def readSURF_TIP2(self, length):
         """TIP2 chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TIP2 size (%d instead of 2)"%length
+            raise LWOBError("Invalid TIP2 size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIP2 chunk"
+            raise LWOBError("Invalid position of the TIP2 chunk")
         data = self.readNBytes(2)
         i = struct.unpack(">h", data)[0]
         self._current_tex.intparams[2] = i
@@ -790,9 +790,9 @@ class LWOBReader:
     def readSURF_TIP3(self, length):
         """TIP3 chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TIP3 size (%d instead of 2)"%length
+            raise LWOBError("Invalid TIP3 size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIP3 chunk"
+            raise LWOBError("Invalid position of the TIP3 chunk")
         data = self.readNBytes(2)
         i = struct.unpack(">h", data)[0]
         self._current_tex.intparams[3] = i
@@ -800,9 +800,9 @@ class LWOBReader:
     def readSURF_TIP4(self, length):
         """TIP4 chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TIP4 size (%d instead of 2)"%length
+            raise LWOBError("Invalid TIP4 size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIP4 chunk"
+            raise LWOBError("Invalid position of the TIP4 chunk")
         data = self.readNBytes(2)
         i = struct.unpack(">h", data)[0]
         self._current_tex.intparams[4] = i
@@ -810,9 +810,9 @@ class LWOBReader:
     def readSURF_TIP5(self, length):
         """TIP5 chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TIP5 size (%d instead of 2)"%length
+            raise LWOBError("Invalid TIP5 size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIP5 chunk"
+            raise LWOBError("Invalid position of the TIP5 chunk")
         data = self.readNBytes(2)
         i = struct.unpack(">h", data)[0]
         self._current_tex.intparams[5] = i
@@ -820,9 +820,9 @@ class LWOBReader:
     def readSURF_TIP6(self, length):
         """TIP6 chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TIP6 size (%d instead of 2)"%length
+            raise LWOBError("Invalid TIP6 size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIP6 chunk"
+            raise LWOBError("Invalid position of the TIP6 chunk")
         data = self.readNBytes(2)
         i = struct.unpack(">h", data)[0]
         self._current_tex.intparams[6] = i
@@ -830,9 +830,9 @@ class LWOBReader:
     def readSURF_TIP7(self, length):
         """TIP7 chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TIP7 size (%d instead of 2)"%length
+            raise LWOBError("Invalid TIP7 size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIP7 chunk"
+            raise LWOBError("Invalid position of the TIP7 chunk")
         data = self.readNBytes(2)
         i = struct.unpack(">h", data)[0]
         self._current_tex.intparams[7] = i
@@ -840,9 +840,9 @@ class LWOBReader:
     def readSURF_TIP8(self, length):
         """TIP8 chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TIP8 size (%d instead of 2)"%length
+            raise LWOBError("Invalid TIP8 size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIP8 chunk"
+            raise LWOBError("Invalid position of the TIP8 chunk")
         data = self.readNBytes(2)
         i = struct.unpack(">h", data)[0]
         self._current_tex.intparams[8] = i
@@ -850,9 +850,9 @@ class LWOBReader:
     def readSURF_TIP9(self, length):
         """TIP9 chunk."""
         if length!=2:
-            raise LWOBError, "Invalid TIP9 size (%d instead of 2)"%length
+            raise LWOBError("Invalid TIP9 size (%d instead of 2)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIP9 chunk"
+            raise LWOBError("Invalid position of the TIP9 chunk")
         data = self.readNBytes(2)
         i = struct.unpack(">h", data)[0]
         self._current_tex.intparams[9] = i
@@ -860,7 +860,7 @@ class LWOBReader:
     def readSURF_TIMG(self, length):
         """TIMG chunk."""
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TIMG chunk"
+            raise LWOBError("Invalid position of the TIMG chunk")
         data = self.readNBytes(length)
         n = data.find("\000")
         if n!=-1:
@@ -871,7 +871,7 @@ class LWOBReader:
     def readSURF_TALP(self, length):
         """TALP chunk."""
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TALP chunk"
+            raise LWOBError("Invalid position of the TALP chunk")
         data = self.readNBytes(length)
         n = data.find("\000")
         if n!=-1:
@@ -882,9 +882,9 @@ class LWOBReader:
     def readSURF_TWRP(self, length):
         """TWRP chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TWRP size (%d instead of 4)"%length
+            raise LWOBError("Invalid TWRP size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TWRP chunk"
+            raise LWOBError("Invalid position of the TWRP chunk")
         data = self.readNBytes(4)
         w,h = struct.unpack(">HH", data)
         self._current_tex.widthwrap = w
@@ -893,9 +893,9 @@ class LWOBReader:
     def readSURF_TAAS(self, length):
         """TAAS chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TAAS size (%d instead of 4)"%length
+            raise LWOBError("Invalid TAAS size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TAAS chunk"
+            raise LWOBError("Invalid position of the TAAS chunk")
         data = self.readNBytes(4)
         aa = struct.unpack(">f", data)[0]
         self._current_tex.antialiasingstrength = aa
@@ -903,9 +903,9 @@ class LWOBReader:
     def readSURF_TOPC(self, length):
         """TOPC chunk."""
         if length!=4:
-            raise LWOBError, "Invalid TOPC size (%d instead of 4)"%length
+            raise LWOBError("Invalid TOPC size (%d instead of 4)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the TOPC chunk"
+            raise LWOBError("Invalid position of the TOPC chunk")
         data = self.readNBytes(4)
         op = struct.unpack(">f", data)[0]
         self._current_tex.opacity = op
@@ -913,7 +913,7 @@ class LWOBReader:
     def readSURF_SHDR(self, length):
         """SHDR chunk."""
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the SHDR chunk"
+            raise LWOBError("Invalid position of the SHDR chunk")
         name = self.readNBytes(length)
         n = name.find("\000")
         if n!=-1:
@@ -924,16 +924,16 @@ class LWOBReader:
     def readSURF_SDAT(self, length):
         """SDAT chunk."""
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the SDAT chunk"
+            raise LWOBError("Invalid position of the SDAT chunk")
         data = self.readNBytes(length)
         self._current_tex.shaderdata.append(data)
 
     def readSURF_IMSQ(self, length):
         """IMSQ chunk."""
         if length!=6:
-            raise LWOBError, "Invalid IMSQ size (%d instead of 6)"%length
+            raise LWOBError("Invalid IMSQ size (%d instead of 6)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the IMSQ chunk"
+            raise LWOBError("Invalid position of the IMSQ chunk")
         data = self.readNBytes(6)
         offset,flags,looplen = struct.unpack(">HHH", data)
         self._current_tex.seq_offset = offset
@@ -943,9 +943,9 @@ class LWOBReader:
     def readSURF_FLYR(self, length):
         """FLYR chunk."""
         if length!=8:
-            raise LWOBError, "Invalid FLYR size (%d instead of 8)"%length
+            raise LWOBError("Invalid FLYR size (%d instead of 8)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the FLYR chunk"
+            raise LWOBError("Invalid position of the FLYR chunk")
         data = self.readNBytes(8)
         b,e = struct.unpack(">II", data)
         self._current_tex.flyer_begin = b
@@ -954,9 +954,9 @@ class LWOBReader:
     def readSURF_IMCC(self, length):
         """IMCC chunk."""
         if length!=6:
-            raise LWOBError, "Invalid IMCC size (%d instead of 6)"%length
+            raise LWOBError("Invalid IMCC size (%d instead of 6)"%length)
         if self._current_tex==None:
-            raise LWOBError, "Invalid position of the IMCC chunk"
+            raise LWOBError("Invalid position of the IMCC chunk")
         data = self.readNBytes(6)
         speed,low,high = struct.unpack(">HHH", data)
         self._current_tex.cycle_speed = speed
@@ -1006,7 +1006,7 @@ class LWOBReader:
         s = self._file.read(n)
         self._bytes_left -= len(s)
         if len(s)!=n:
-            raise LWOBError, "premature end of file"
+            raise LWOBError("premature end of file")
         return s
 
     def _eofReached(self):

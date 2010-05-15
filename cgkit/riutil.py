@@ -152,7 +152,7 @@ def RiuGrid(thickness=0.02, cells=6, shader="matte", color=(0.9,0.9,0.9)):
 
 def RiuHeightfield(image):
     if not _PIL_installed:
-        raise ImportError, "the Python Imaging Library (PIL) is not installed"
+        raise ImportError("the Python Imaging Library (PIL) is not installed")
     
     if type(image)==types.StringType or type(image)==types.UnicodeType:
         image = Image.open(image)

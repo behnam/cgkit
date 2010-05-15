@@ -304,7 +304,7 @@ def avpicture_alloc(picture, pix_fmt, width, height):
     """
     ret = _lib().avpicture_alloc(byref(picture), pix_fmt, width, height)
     if ret<0:
-        raise RuntimeError, "Error: %s"%ret
+        raise RuntimeError("Error: %s"%ret)
     
 def avpicture_free(picture):
     """Free a picture previously allocated by avpicture_alloc().

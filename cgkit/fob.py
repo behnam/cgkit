@@ -340,7 +340,7 @@ class FOB:
         \param timeout (\c float) Time out value for RS232 operations
         """
         if not serial_installed:
-            raise RuntimeError, 'Cannot import the serial module (http://pyserial.sourceforge.net).'
+            raise RuntimeError('Cannot import the serial module (http://pyserial.sourceforge.net).')
         
         self.ser = serial.Serial(port=port,
                                  baudrate=baudrate,
@@ -425,7 +425,7 @@ class FOB:
             deps = struct.unpack("<H", v[3:])[0]
             res = (configmode, dev, deps)
         else:
-            raise ValueError, 'Unknown parameter: %s'%param
+            raise ValueError('Unknown parameter: %s'%param)
 
         return res
 
@@ -667,7 +667,7 @@ class FOB:
         """
         v = self.ser.read(size)
         if exc and len(v)!=size:
-            raise DataError, 'Expected %d bytes from the bird, but got %d'%(size, len(v))
+            raise DataError('Expected %d bytes from the bird, but got %d'%(size, len(v)))
         return v
 
 #    def _decode(self, s):

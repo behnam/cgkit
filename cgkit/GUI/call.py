@@ -114,7 +114,7 @@ class Call:
             compilestr = "apply(self._func, self._args, self._keyargs)"
             self.__doc__ = getattr(func, "__doc__", None)
         else:
-            raise TypeError, "The 'func' argument must be a string or a callable object."
+            raise TypeError("The 'func' argument must be a string or a callable object.")
 
         self._code = compile(compilestr, "<command: '%s'>"%str(self), "exec")
         if self.__doc__==None or self.__doc__=="":

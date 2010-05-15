@@ -104,7 +104,7 @@ class FlockOfBirds(component.Component):
         self.bird_mode = map(lambda x: x.upper(), self.bird_mode)
 
         if len(self.bird_mode)!=self.num_birds:
-            raise ValueError, "%d bird modes expected (got %d)"%(self.num_birds, len(self.bird_mode))
+            raise ValueError("%d bird modes expected (got %d)"%(self.num_birds, len(self.bird_mode)))
 
         # Create slots
         self._slots = []
@@ -197,5 +197,5 @@ class FlockOfBirds(component.Component):
         elif mode=="PQ":
             self._fob.position_quaternion(addr)
         else:
-            raise ValueError, "Invalid tracker mode: %s"%mode
+            raise ValueError("Invalid tracker mode: %s"%mode)
         

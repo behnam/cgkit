@@ -90,7 +90,7 @@ class OffImporter:
             z = self.readLine()
             self.ndim = int(z)
             if self.ndim>3:
-                raise ValueError, "A vertex space dimension of %d is not supported"%(self.ndim)
+                raise ValueError("A vertex space dimension of %d is not supported"%(self.ndim))
 
         # Read the number of vertices and faces...
         z = self.readLine().split(" ")
@@ -295,7 +295,7 @@ class OffImporter:
         while 1:
             z = self.fhandle.readline()
             if z=="":
-                raise SyntaxError, "premature end of file"
+                raise SyntaxError("premature end of file")
             z = z.strip()
             if z=="" or z[0]=='#':
                 continue

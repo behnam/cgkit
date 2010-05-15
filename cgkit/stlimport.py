@@ -101,12 +101,12 @@ class STLReader:
                     self.begin(objname)
                     state = 1
                 else:
-                    raise SyntaxError, 'Keyword "solid" expected in line %d'%linenr
+                    raise SyntaxError('Keyword "solid" expected in line %d'%linenr)
             # Begin of a triangle ("facet") or end of file ("endsolid")
             elif state==1:
                 if a[0]=="facet":
                     if len(a)!=5 or a[1]!="normal":
-                        raise SyntaxError, 'Syntax error in line %d'%linenr
+                        raise SyntaxError('Syntax error in line %d'%linenr)
                     normal = vec3(float(a[2]), float(a[3]), float(a[4]))
                     verts = []
                     state = 2
@@ -114,16 +114,16 @@ class STLReader:
                     self.end(objname)
                     state = 0
                 else:
-                    raise SyntaxError, 'Syntax error in line %d. Facet or end of solid expected.'%linenr
+                    raise SyntaxError('Syntax error in line %d. Facet or end of solid expected.'%linenr)
             # "outer loop"
             elif state==2:
                 if len(a)!=2 or a[0]!="outer" or a[1]!="loop":
-                    raise SyntaxError, 'Keyword "outer loop" expected in line %d.'%linenr
+                    raise SyntaxError('Keyword "outer loop" expected in line %d.'%linenr)
                 state = 3
             # A vertex definition
             elif state==3:
                 if len(a)!=4 or a[0]!="vertex":
-                    raise SyntaxError, 'Syntax error in line %d: Vertex expected'%linenr
+                    raise SyntaxError('Syntax error in line %d: Vertex expected'%linenr)
                 v = vec3(float(a[1]), float(a[2]), float(a[3]))
                 verts.append(v)
                 if len(verts)==3:
@@ -131,12 +131,12 @@ class STLReader:
             # "endloop"
             elif state==4:
                 if a[0]!="endloop":
-                    raise SyntaxError, 'Keyword "endloop" expected in line %d.'%linenr
+                    raise SyntaxError('Keyword "endloop" expected in line %d.'%linenr)
                 state = 5
             # "endfacet"
             elif state==5:
                 if a[0]!="endfacet":
-                    raise SyntaxError, 'Keyword "endfacet" expected in line %d.'%linenr
+                    raise SyntaxError('Keyword "endfacet" expected in line %d.'%linenr)
                 self.triangle(normal, verts)
                 state = 1
 

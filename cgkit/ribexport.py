@@ -1095,19 +1095,19 @@ class BakePass(RenderPass):
         # Check texture coordinates...
         info = obj.geom.findVariable(stvarname)
         if info==None:
-            raise RuntimeError, "No variable '%s' found"%stvarname
+            raise RuntimeError("No variable '%s' found"%stvarname)
             
         name, storage, type, mult = info
 
         if type!=FLOAT or mult!=2:
-            raise TypeError, "variable '%s' is of wrong type"%stvarname
+            raise TypeError("variable '%s' is of wrong type"%stvarname)
 
         if storage==FACEVARYING:
             geom = cmds.convFaceVarToVar(obj.geom)
         elif storage==VARYING:
             geom = obj.geom
         else:
-            raise TypeError, "'%s' storage class %s not supported for baking"%(stvarname,storage)
+            raise TypeError("'%s' storage class %s not supported for baking"%(stvarname,storage))
 
         # Convert the model into a trimesh...
         if not isinstance(geom, TriMeshGeom):

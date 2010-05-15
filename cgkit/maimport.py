@@ -580,7 +580,7 @@ class MAImporter(mayaascii.DefaultMAReader):
         else:
             tnode = node.getParent()
             if tnode==None or tnode.nodetype!="transform":
-                raise ValueError, "transform node not found for node %s."%node.getFullName()
+                raise ValueError("transform node not found for node %s."%node.getFullName())
 
         if args==None:
             args = {}

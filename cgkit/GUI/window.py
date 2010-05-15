@@ -117,7 +117,7 @@ class Window(object):
         
         val = getattr(self._wx, name, None)
         if val==None:
-            raise AttributeError, "'Window' object has no attribute '%s'."%name
+            raise AttributeError("'Window' object has no attribute '%s'."%name)
         else:
             return val
 

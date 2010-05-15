@@ -77,24 +77,24 @@ class PLYExporter:
             objs = list(getScene().walkWorld())
             objs = filter(lambda obj: obj.geom!=None, objs)
             if len(objs)==0:
-                raise ValueError, "No object to export."
+                raise ValueError("No object to export.")
             elif len(objs)>1:
-                raise ValueError, "Only a single object can be exported."
+                raise ValueError("Only a single object can be exported.")
             object = objs[0]
             
         object = cmds.worldObject(object)
         if object.geom==None:
-            raise ValueError, "No geometry attached to object %s"%object.name
+            raise ValueError("No geometry attached to object %s"%object.name)
         geom = self.convertObject(object)
         if geom==None:
-            raise ValueError, "Cannot export geometry of type %s as a PLY file"%(object.geom.__class__.__name__)
+            raise ValueError("Cannot export geometry of type %s as a PLY file"%(object.geom.__class__.__name__))
 
         # Open the file...
         ply = _core.PLYWriter()
         try:
             mode = eval ("_core.PlyStorageMode.%s"%mode.upper())
         except:
-            raise ValueError, "Invalid mode: %s"%mode
+            raise ValueError("Invalid mode: %s"%mode)
         ply.create(filename, mode)
 
         # Set comment

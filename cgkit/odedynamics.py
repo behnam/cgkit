@@ -972,7 +972,7 @@ class ODEBody:
         # Plane? This is a special case because ODE planes are not placeable
         if isinstance(obj.geom, PlaneGeom):
             if not obj.static:
-                raise RuntimeError, "Planes can only be used as static bodies"
+                raise RuntimeError("Planes can only be used as static bodies")
             L = obj.localTransform()
             n = L*vec3(0,0,1) - L*vec3(0)
             n = n.normalize()
@@ -1097,7 +1097,7 @@ class ODEBody:
             odegeom = ode.GeomPlane(space, n, d)
         # Unknown geometry
         else:
-            raise ValueError, 'WARNING: ODEDynamics: Cannot determine collision geometry of object "%s".'%geom.name
+            raise ValueError('WARNING: ODEDynamics: Cannot determine collision geometry of object "%s".'%geom.name)
 #            print 'WARNING: ODEDynamics: Cannot determine collision geometry of object "%s". Using bounding box instead.'%obj.name
 #            bmin, bmax = obj.boundingBox().getBounds()
 #            s = bmax-bmin

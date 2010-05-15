@@ -277,7 +277,7 @@ class MenuNode(object):
             s = self.absname
             if s!="":
                 errpath = ".".join([s,errpath])
-            raise MenuNodeNotFound, 'Menu node "%s" not found.'%(errpath)
+            raise MenuNodeNotFound('Menu node "%s" not found.'%(errpath))
         else:
             return None
             
@@ -290,9 +290,9 @@ class MenuNode(object):
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            raise IndexError, "sequence index out of range"
+            raise IndexError("sequence index out of range")
         else:
-            raise TypeError, "sequence indices must be integers"
+            raise TypeError("sequence indices must be integers")
 
     # _create_auto_name
     def _create_auto_name(self, text):
@@ -391,10 +391,10 @@ class MenuNode(object):
         """
         root = self.root
         if not isinstance(root, Menu):
-            raise InvalidMenuRoot, 'The root of a menu has to be a Menu object.'
+            raise InvalidMenuRoot('The root of a menu has to be a Menu object.')
         # The node must not be attached to another menu
         if self.isAttached():
-            raise MenuAlreadyInUse, "The menu node is already in use."
+            raise MenuAlreadyInUse("The menu node is already in use.")
 
         root._IDmanager = IDmanager
         root._window = window
@@ -407,7 +407,7 @@ class MenuNode(object):
         """Detach the menu from a window."""
         
         if self.root!=self:
-            raise NoMenuRoot, "Only root nodes can be detached."
+            raise NoMenuRoot("Only root nodes can be detached.")
 
         self._destroy_wx()
         del self._IDmanager
@@ -903,7 +903,7 @@ class Menu(MenuNode):
 
         # The new node must not be attached to another menu
         if newnode.isAttached() or newnode.parent!=None:
-            raise MenuAlreadyInUse, "The menu node is already in use."
+            raise MenuAlreadyInUse("The menu node is already in use.")
 
         treenode = self.findNode(treenodename)
         # If treenode is not a direct child then delegate the insert
@@ -915,7 +915,7 @@ class Menu(MenuNode):
         # Check if the name of the new node collides with an existing node
         newnodename = newnode.name
         if newnodename!=None and self.findNode(newnodename, False)!=None:
-            raise DuplicateNames, 'Menu node "%s" already exists.'%newnodename
+            raise DuplicateNames('Menu node "%s" already exists.'%newnodename)
 
         # Add the new node into the children list
         idx = self._children.index(treenode)
@@ -935,7 +935,7 @@ class Menu(MenuNode):
         
         # The new node must not be attached to another menu
         if newnode.isAttached() or newnode.parent!=None:
-            raise MenuAlreadyInUse, "The menu node is already in use."
+            raise MenuAlreadyInUse("The menu node is already in use.")
 
         treenode = self.findNode(treenodename)
         # If treenode is not a direct child then delegate the insert
@@ -947,7 +947,7 @@ class Menu(MenuNode):
         # Check if the name of the new node collides with an existing node
         newnodename = newnode.name
         if newnodename!=None and self.findNode(newnodename, False)!=None:
-            raise DuplicateNames, 'Menu node "%s" already exists.'%newnodename
+            raise DuplicateNames('Menu node "%s" already exists.'%newnodename)
 
         # Add the new node into the children list
         idx = self._children.index(treenode)
@@ -1032,7 +1032,7 @@ class Menu(MenuNode):
     def __getattr__(self, name):
         items = filter(lambda x: name==x.name, self._children)
         if items==[]:
-            raise AttributeError, 'Menu node "%s" not found.'%(name)
+            raise AttributeError('Menu node "%s" not found.'%(name))
         return items[0]
 
     def __setattr__(self, name, value):

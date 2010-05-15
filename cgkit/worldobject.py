@@ -147,7 +147,7 @@ class WorldObject(_core.WorldObject):
 #        if self.geom!=None and self.geom.hasSlot(name):
 #            exec "res=self.geom.%s"%name
 #            return res
-        raise AttributeError, 'Object "%s" has no attribute "%s"'%(self.name, name)
+        raise AttributeError('Object "%s" has no attribute "%s"'%(self.name, name))
     
     def __setattr__(self, name, val):
         if self.geom!=None and self.geom.hasSlot(name):

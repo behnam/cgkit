@@ -29,6 +29,12 @@ Bug fixes/enhancements:
 - GLRenderer: OpenGL errors could leak through into Python and produce exceptions
   on unrelated PyOpenGL calls. The error flag is now cleared at the end of
   the C++ rendering code (bug #2974422).
+- sequence: SeqString comparison doesn't convert its argument into fresh
+  SeqStrings anymore. This means comparing a SeqString with a regular string
+  uses regular string comparison semantics. It also means, a SeqString that
+  has a number replaced by a string containing a number will treat this part
+  as a string, not a number. This change considerably increases performance when
+  sorting large string lists. 
 - sequence: Comparison of SeqStrings didn't work properly when the string parts
   did already differ (in that case, numbers were completely ignored)
 - sequence: buildSequences() didn't work properly when assumeFiles was set to

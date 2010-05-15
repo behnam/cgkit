@@ -36,8 +36,8 @@ class TestSeqString(unittest.TestCase):
         
         self.assertEqual("spam004_018", s1)
         self.assertEqual(True, "spam004_018"==s1)
-        self.assertEqual(True, "spam04_18"==s1)
-        self.assertEqual(True, "spam04_19"!=s1)
+        self.assertEqual(True, SeqString("spam04_18")==s1)
+        self.assertEqual(True, SeqString("spam04_19")!=s1)
         
         s = SeqString("spam1_1")
         self.assertEqual(True, s=="spam1_1")

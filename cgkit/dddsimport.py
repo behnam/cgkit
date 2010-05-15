@@ -105,7 +105,7 @@ class DDDSImporter:
         m = self.ddds.meshes()
         while m!=None:
             if m.name in self.meshes:
-                print "Warning: Duplicate mesh names in 3ds file"
+                print("Warning: Duplicate mesh names in 3ds file")
             self.meshes[m.name] = m
             m = m.next()
 

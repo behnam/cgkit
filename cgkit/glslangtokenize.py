@@ -163,7 +163,7 @@ def _tokeater(type, s, start, end, line, filename):
         return
     types = { 0:"WHITESPACE", 1:"NAME", 2:"NUMBER", 3:"STRING", 4:"NEWLINE",
               5:"OPERATOR", 6:"CHARACTER", 7:"TYPE", 8:"QUALIFIER" }
-    print "%s: %-10s: %-20s %s %s"%(filename, types[type], s, start, end)
+    print("%s: %-10s: %-20s %s %s"%(filename, types[type], s, start, end))
 
 ######################################################################
 

@@ -164,7 +164,7 @@ def configPath(appname="gaia"):
 
 if __name__=="__main__":
 
-    print configPath()
+    print(configPath())
             
             
 

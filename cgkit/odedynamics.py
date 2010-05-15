@@ -258,7 +258,7 @@ class ODEDynamics(Component):
         try:
             obj = protocols.adapt(obj, IRigidBody)
         except NotImplementedError:
-            print 'Object "%s" is not a rigid body.'%obj.name
+            print('Object "%s" is not a rigid body.'%obj.name)
             return
 
         # Should the object be ignored?
@@ -308,7 +308,7 @@ class ODEDynamics(Component):
         # If the mass of a rigid body is <= 0, ODE will crash
         # Using a more reasonable default: mass = 1
         if obj.mass <= 0:
-            print "Using default mass=1 for " + str(obj)
+            print("Using default mass=1 for " + str(obj))
             obj.mass = 1
         body = ODEBody(obj, self, categorybits=categorybits, collidebits=collidebits)
         self.bodies.append(body)
@@ -915,7 +915,7 @@ class ODEBody:
         if self.initialization:
             return
         
-        print "Mass changed to",self.obj.mass
+        print("Mass changed to",self.obj.mass)
 
     # reset
     def reset(self):
@@ -941,7 +941,7 @@ class ODEBody:
         M = ode.Mass()
         m = obj.totalmass
         if m==0:
-            print 'WARNING: Object "%s" has a mass of zero.'%obj.name
+            print('WARNING: Object "%s" has a mass of zero.'%obj.name)
         cog = obj.cog
         I = obj.inertiatensor
 #        print '---Rigid body "%s"--------'%obj.name
@@ -993,7 +993,7 @@ class ODEBody:
         Pinv = P.inverse()
         pos,rot,scale = Pinv.decompose()
         if scale!=vec3(1,1,1):
-            print 'WARNING: ODEDynamics: Scaled geometries are not supported'
+            print('WARNING: ODEDynamics: Scaled geometries are not supported')
         res = []
         for g in geoms:
             M = mat4(1).translation(vec3(g.getPosition()))
@@ -1111,7 +1111,7 @@ class ODEBody:
         # Displace the geom by M
         pos,rot,scale = M.decompose()
         if scale!=vec3(1,1,1):
-            print 'WARNING: ODEDynamics: Scaled geometries are not supported'
+            print('WARNING: ODEDynamics: Scaled geometries are not supported')
         odegeom.setPosition(pos)
         # row major or column major?
         odegeom.setRotation(rot.getMat3().toList(rowmajor=True))
@@ -1176,7 +1176,7 @@ class ODEJointBase(WorldObject):
         if odedynamics==self.odedynamics:
             return
         if self.odedynamics!=None:
-            print 'Warning: Joint "%s" is already in use'%self.name
+            print('Warning: Joint "%s" is already in use'%self.name)
         self.odedynamics = odedynamics
         self._createODEjoint()
         self._initODEjoint()
@@ -1247,7 +1247,7 @@ class ODEJointBase(WorldObject):
         self.attach(self.body1, self.body2)
         
         try:
-            print "***",self.odejoint.getParam(ode.ParamStopCFM)
+            print("***",self.odejoint.getParam(ode.ParamStopCFM))
             
             self.odejoint.setParam(ode.ParamFMax, self.motorfmax)
             self.odejoint.setParam(ode.ParamVel, self.motorvel)
@@ -1539,13 +1539,13 @@ class ODEHinge2Joint(ODEJointBase):
         self.odejoint.setParam(ode.ParamVel, self.motorvel)
 
     def onSuspensionERPChanged(self):
-        print "susp. erp has been changed to",self.suspensionerp_slot.getValue()
+        print("susp. erp has been changed to",self.suspensionerp_slot.getValue())
         if self.odejoint!=None:
             self.odejoint.setParam(ode.ParamSuspensionERP,
                                    self.suspensionerp_slot.getValue())
 
     def onSuspensionCFMChanged(self):
-        print "susp. cfm has been changed to",self.suspensioncfm_slot.getValue()
+        print("susp. cfm has been changed to",self.suspensioncfm_slot.getValue())
         if self.odejoint!=None:
             self.odejoint.setParam(ode.ParamSuspensionCFM,
                                    self.suspensioncfm_slot.getValue())

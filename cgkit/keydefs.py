@@ -138,4 +138,4 @@ if __name__=="__main__":
         keys[keycode] = key
 
     for kc in keys:
-        print '  %d : "%s",'%(kc, keys[kc])
+        print('  %d : "%s",'%(kc, keys[kc]))

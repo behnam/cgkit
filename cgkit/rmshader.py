@@ -151,7 +151,7 @@ class RMShader(object):
             if len(slinfo)==0:
                 raise ValueError("no shader found in %s"%shader)
             if len(slinfo)>1:
-                print "WARNING: There is more than one shader in %s"%shader
+                print("WARNING: There is more than one shader in %s"%shader)
 
             # Declare the variables...
             self.shadertype, self.shadername, params = slinfo[0]
@@ -402,7 +402,7 @@ class RMShader(object):
             s, e = match.start(), match.end()
             src = src[:e-len(self.shadername)] + "$SHADERNAME" + src[e:]
         else:
-            print 'Shader name "%s" not found in %s'%(self.shadername, self.filename)
+            print('Shader name "%s" not found in %s'%(self.shadername, self.filename))
 
         return src
         

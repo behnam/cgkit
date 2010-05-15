@@ -634,7 +634,7 @@ if __name__=="__main__":
     import random
     
     if 1:
-        print "---WRITE---"
+        print("---WRITE---")
         ptc = open("test.ptc", "w", "3delight", vars=[("float", "spam"), ("vector", "dir")], world2eye=None, world2ndc=None, format=(320,240,1.333))
         for i in range(100):
             x = random.random()
@@ -643,15 +643,15 @@ if __name__=="__main__":
             ptc.writeDataPoint((x,y,z), (0,1,0), 0.2, {"spam":0.5})
         ptc.close()
     
-    print "----READ----"
+    print("----READ----")
     rd = open("test.ptc", "r", "3delight")
-    print rd.variables
-    print "npoints:",rd.npoints
-    print "datasize",rd.datasize
-    print "bbox",rd.bbox
-    print "format",rd.format
-    print "world2eye",rd.world2eye
-    print "world2ndc",rd.world2ndc
+    print(rd.variables)
+    print("npoints:",rd.npoints)
+    print("datasize",rd.datasize)
+    print("bbox",rd.bbox)
+    print("format",rd.format)
+    print("world2eye",rd.world2eye)
+    print("world2ndc",rd.world2ndc)
     p,n,r,data = rd.readDataPoint()
-    print p,n,r,data
-    print rd.readDataPoint()
+    print(p,n,r,data)
+    print(rd.readDataPoint())

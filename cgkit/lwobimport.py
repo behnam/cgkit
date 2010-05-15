@@ -155,12 +155,12 @@ class _LWOBReader(lwob.LWOBReader):
 
     def handleCRVS(self, curves):
         if not self.crv_msg:
-            print "Curves are not yet supported."
+            print("Curves are not yet supported.")
             self.crv_msg = True
     
     def handlePCHS(self, patches):
         if not self.patch_msg:
-            print "Patches are not yet supported."
+            print("Patches are not yet supported.")
             self.patch_msg = True
     
     def handleSURF(self, surface):

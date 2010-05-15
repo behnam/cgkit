@@ -428,7 +428,7 @@ def preprocess(cpp, file, cpperrstream=sys.stderr, defines=None, includedirs=Non
             cmdtoks.extend(map(lambda dir: "-I%s"%dir, includedirs))
         cmdtoks.append(file)
         cmd = " ".join(cmdtoks)
-        print cmd
+        print(cmd)
         slsrc = None
         # Check if the file exists and can be accessed (by trying to open it)
         # If the file doesn't exist, an exception is thrown.

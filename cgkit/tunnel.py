@@ -251,7 +251,7 @@ class Tunnel(component.Component):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         ipaddr = socket.gethostbyname(self.host)
         if self.verbose:
-            print "Open UDP port %d on %s (%s)"%(self.port, ipaddr, self.host)
+            print("Open UDP port %d on %s (%s)"%(self.port, ipaddr, self.host))
         self.sock.bind((ipaddr, self.port))
 
         # Split thread with the server loop
@@ -271,19 +271,19 @@ class Tunnel(component.Component):
         """
 
         if self.verbose:
-            print "Tunnel server running at port",self.port
+            print("Tunnel server running at port",self.port)
         while 1:
             # Read a packet (blocking)
             rawdata, addr = self.sock.recvfrom(5000)
             if self.verbose:
-                print "---Tunnel messages--"
+                print("---Tunnel messages--")
             # Process all messages...
             while rawdata!="":
                 # Get the id of the first message...
                 try:
                     id = struct.unpack(">H", rawdata[:2])[0]
                 except:
-                    print "Error: Invalid UDP packet (no valid message id)."
+                    print("Error: Invalid UDP packet (no valid message id).")
                     rawdata = ""
                     continue
 
@@ -291,7 +291,7 @@ class Tunnel(component.Component):
                 msgdata = rawdata[2:]
                 if id==0:
                     if self.verbose:
-                        print "Init"
+                        print("Init")
                     f = msgdata.split(";")
                     localslots = map(lambda x: x[1], list(self.iterSlotDefs(self.slots)))
                     remoteslots = map(lambda x: tuple(x.split(":")), f)
@@ -300,38 +300,38 @@ class Tunnel(component.Component):
                     if len(localslots)==len(remoteslots):
                         mismatch = localslots!=remoteslots
                     if mismatch:
-                        print "%s: The types of the remote and local slots don't match."%self.name
+                        print("%s: The types of the remote and local slots don't match."%self.name)
                     rawdata = ""
                 else:
                     # Decode the slot index and the value to set...
                     try:
                         n,idx,v = self.decodeValueMessage(id, msgdata)
                     except struct.error, e:
-                        print e
+                        print(e)
                         rawdata = ""
                         continue
                     except ValueError, e:
-                        print e
+                        print(e)
                         rawdata = ""
                         continue
                     # Prepare the next message...
                     rawdata = msgdata[n:]
                     if self.verbose:
-                        print "Message id: %d - Slot:%d Value:%s"%(id,idx,v)
+                        print("Message id: %d - Slot:%d Value:%s"%(id,idx,v))
                     # Get the slot that will receive the new value...
                     try:
                         slot,id = self.slotobjs[idx]
                     except IndexError,e:
-                        print "Error: Invalid slot index (%d)"%idx
+                        print("Error: Invalid slot index (%d)"%idx)
                     # Set the new value...
                     try:
                         slot.setValue(v)
                     except:
-                        print "Error: Could not assign value",v,"to slot of type",slot.typeName()
+                        print("Error: Could not assign value",v,"to slot of type",slot.typeName())
 
         self.sock.close()
         if self.verbose:
-            print "Tunnel server stopped at port",self.port
+            print("Tunnel server stopped at port",self.port)
 
     # markAsChanged
     def markAsChanged(self, idx):

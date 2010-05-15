@@ -135,12 +135,12 @@ class MotionPath(Component):
             dF = self.curve.deriv(t).length()
             if abs(dF)<1E-12:
                 # TODO: do something
-                print "MotionPath: ************ dF==0 !!!"
+                print("MotionPath: ************ dF==0 !!!")
                 dF = 1 
             t -= F/dF
             maxiter -= 1
 
-        print "MotionPath: Maximum number of iterations reached (s=%f)"%s
+        print("MotionPath: Maximum number of iterations reached (s=%f)"%s)
         return t
         
         

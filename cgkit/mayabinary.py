@@ -329,7 +329,7 @@ class MBReader:
                 if ord(c)<32:
                     c = '.'
                 s += c
-            print s
+            print(s)
             offset += 16
             
             
@@ -339,13 +339,13 @@ if __name__=="__main__":
     
     class MBDumper(MBReader):
         def onBeginGroup(self, chunk):
-            print "GRP BEGIN", chunk
+            print("GRP BEGIN", chunk)
         
         def onEndGroup(self, chunk):
-            print "GRP END  ", chunk
+            print("GRP END  ", chunk)
         
         def onDataChunk(self, chunk):
-            print "CHUNK    ",chunk
+            print("CHUNK    ",chunk)
             
     rd = MBDumper()
     rd.read(open(sys.argv[1], "rb"))

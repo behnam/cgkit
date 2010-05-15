@@ -654,7 +654,7 @@ class OBJReader(WavefrontReaderBase):
         All indices are 1-based. If an index in the file was 0, an exception
         was already thrown.
         """
-        print "POINT",verts
+        print("POINT",verts)
 
     def l(self, *verts):
         """Line.

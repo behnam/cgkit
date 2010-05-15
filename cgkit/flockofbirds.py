@@ -151,7 +151,7 @@ class FlockOfBirds(component.Component):
         for i in range(1, self.num_birds):
             values = self._fob.point(i+1)
             if values==None:
-                print "No values received from bird %d."%(i+1)                
+                print("No values received from bird %d."%(i+1))                
             else:
                 # 1. Convert values into proper types
                 #    (position, angles, matrix, quat)

@@ -552,9 +552,28 @@ class Viewer(Tool):
             elif e.type==VIDEORESIZE:
                 screen = pygame.display.set_mode(e.dict['size'], self.flags)
                 (self.width, self.height) = pygame.display.get_surface().get_size()
-
+                self._postContextReset()
                 
-                
+    def _postContextReset(self):
+        """This is called after a window resize which destroys the OpenGL context (using SDL/pygame).
+         
+        Using SDL, a window resize resets the OpenGL context, so all allocated
+        resources get lost. Currently, this only destroys textures, so this
+        method iterates over all objects and dirties the textures so that
+        their image gets reloaded.
+        """
+        # Iterate over all objects in the scene...
+        for obj in getScene().walkWorld():
+            # Iterate over the materials of the current object...
+            for matIdx in range(obj.getNumMaterials()):
+                mat = obj.getMaterial(matIdx)
+                if isinstance(mat, GLMaterial):
+                    # Iterate over the textures of the current material...
+                    for texIdx in range(mat.getNumTextures()):
+                        tex = mat.getTexture(texIdx)
+                        # Setting the name will mark the texture dirty and the image is reloaded
+                        tex.imagename = tex.imagename
+    
     # handleSpaceEvents
     def handleSpaceEvents(self, e):
         """Handle SpaceMouse/SpaceBall events.

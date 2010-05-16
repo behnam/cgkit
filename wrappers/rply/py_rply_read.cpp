@@ -471,14 +471,14 @@ class PLYReader
 	const char* propname;
 	e_ply_type proptype, len_type, val_type;
 	ply_get_property_info(prop, &propname, &proptype, &len_type, &val_type);
-	props.append(make_tuple(std::string(propname), 
+	props.append(boost::python::make_tuple(std::string(propname), 
 				plyTypeToString(proptype),
 				plyTypeToString(len_type),
 				plyTypeToString(val_type)));
 	prop = ply_get_next_property(el, prop);
       }
 
-      elements.append(make_tuple(std::string(elname), ninstances, props));
+      elements.append(boost::python::make_tuple(std::string(elname), ninstances, props));
       el = ply_get_next_element(handle, el);
     }
 
@@ -500,7 +500,7 @@ class PLYReader
       s = ply_get_next_obj_info(handle, s);
     }
 
-    return make_tuple(elements, 
+    return boost::python::make_tuple(elements, 
 		      boost::python::str("\n").join(comments),
 		      boost::python::str("\n").join(objinfos));
   }

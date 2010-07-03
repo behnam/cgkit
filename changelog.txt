@@ -16,6 +16,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- cgtypes: In the light version of cgkit, the quat.fromMat() method was
+  broken. The regular version was not affected by this.
 - ODEDynamics: Objects can now be removed from the simulation. An object that
   is part of a simulation automatically receives a new attribute "manip" which
   is its body manipulator. The manipulator has a new attribute "odegeoms" to

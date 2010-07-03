@@ -243,6 +243,80 @@ class TestQuat(unittest.TestCase):
         self.failUnless(m==n, "fromMat/toMat invalid")
 
     ######################################################################
+    def testFromMat(self):
+        q = quat().fromMat(mat3(0,-1,0,0,0,1,-1,0,0))
+        self.assertEqual(quat(0.5,-0.5,0.5,0.5), q)
+
+        q = quat().fromMat(mat3(-1,0,0,0,0,1,0,1,0))
+        self.assertEqual(quat(0,0,1,1).normalize(), q)
+
+        q = quat().fromMat(mat3(1,0,0,0,0,1,0,-1,0))
+        self.assertEqual(quat(1,-1,0,0).normalize(), q)
+
+        q = quat().fromMat(mat3(0,1,0,0,0,1,1,0,0))
+        self.assertEqual(quat(0.5,-0.5,-0.5,-0.5), q)
+
+        q = quat().fromMat(mat3(0,1,0,1,0,0,0,0,-1))
+        self.assertEqual(quat(0,1,1,0).normalize(), q)
+
+        q = quat().fromMat(mat3(0,-1,0, -1,0,0, 0,0,-1))
+        self.assertEqual(quat(0,1,-1,0).normalize(), q)
+
+        q = quat().fromMat(mat3(-1,0,0,0,1,0,0,0,-1))
+        self.assertEqual(quat(0,0,1,0), q)
+
+        q = quat().fromMat(mat3(1,0,0,0,-1,0,0,0,-1))
+        self.assertEqual(quat(0,1,0,0), q)
+
+        q = quat().fromMat(mat3(0,1,0,0,0,-1,-1,0,0))
+        self.assertEqual(quat(0.5,0.5,0.5,-0.5), q)
+
+        q = quat().fromMat(mat3(-1,0,0, 0,0,-1, 0,-1,0))
+        self.assertEqual(quat(0,0,1,-1).normalize(), q)
+
+        q = quat().fromMat(mat3(1,0,0,0,0,-1,0,1,0))
+        self.assertEqual(quat(1,1,0,0).normalize(), q)
+
+        q = quat().fromMat(mat3(0,-1,0,0,0,-1,1,0,0))
+        self.assertEqual(quat(0.5,0.5,-0.5,0.5), q)
+
+        q = quat().fromMat(mat3(0,0,-1,1,0,0,0,-1,0))
+        self.assertEqual(quat(0.5,-0.5,-0.5,0.5), q)
+
+        q = quat().fromMat(mat3(0,0,-1, 0,-1,0, -1,0,0))
+        self.assertEqual(quat(0,1,0,-1).normalize(), q)
+
+        q = quat().fromMat(mat3(0,0,-1,-1,0,0,0,1,0))
+        self.assertEqual(quat(0.5,0.5,-0.5,-0.5), q)
+
+        q = quat().fromMat(mat3(0,0,-1,0,1,0,1,0,0))
+        self.assertEqual(quat(1,0,-1,0).normalize(), q)
+
+        q = quat().fromMat(mat3(0,0,1,1,0,0,0,1,0))
+        self.assertEqual(quat(0.5,0.5,0.5,0.5), q)
+
+        q = quat().fromMat(mat3(0,0,1,0,1,0,-1,0,0))
+        self.assertEqual(quat(1,0,1,0).normalize(), q)
+
+        q = quat().fromMat(mat3(0,0,1,-1,0,0,0,-1,0))
+        self.assertEqual(quat(0.5,-0.5,0.5,-0.5), q)
+
+        q = quat().fromMat(mat3(0,0,1,0,-1,0,1,0,0))
+        self.assertEqual(quat(0,1,0,1).normalize(), q)
+
+        q = quat().fromMat(mat3(0,-1,0,1,0,0,0,0,1))
+        self.assertEqual(quat(1,0,0,1).normalize(), q)
+
+        q = quat().fromMat(mat3(0,1,0,-1,0,0,0,0,1))
+        self.assertEqual(quat(1,0,0,-1).normalize(), q)
+
+        q = quat().fromMat(mat3(-1,0,0,0,-1,0,0,0,1))
+        self.assertEqual(quat(0,0,0,1), q)
+
+        q = quat().fromMat(mat3(1,0,0,0,1,0,0,0,1))
+        self.assertEqual(quat(1,0,0,0), q)
+        
+    ######################################################################
     def testDot(self):
         a = quat(1,-2,3,2)
         b = quat(3,0.5,-2,1)

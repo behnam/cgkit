@@ -403,21 +403,21 @@ class quat:
             ad3 = d3
             if ad1>=ad2 and ad1>=ad3:
                 s = math.sqrt(1.0+d1-d2-d3)*2.0
-                self.x = 0.5/s
+                self.x = 0.25*s
                 self.y = (m[0,1]+m[1,0])/s
                 self.z = (m[0,2]+m[2,0])/s
                 self.w = (m[1,2]+m[2,1])/s
             elif ad2>=ad1 and ad2>=ad3:
                 s = math.sqrt(1.0+d2-d1-d3)*2.0
                 self.x = (m[0,1]+m[1,0])/s
-                self.y = 0.5/s
+                self.y = 0.25*s
                 self.z = (m[1,2]+m[2,1])/s
                 self.w = (m[0,2]+m[2,0])/s
             else:
                 s = math.sqrt(1.0+d3-d1-d2)*2.0
                 self.x = (m[0,2]+m[2,0])/s
                 self.y = (m[1,2]+m[2,1])/s
-                self.z = 0.5/s
+                self.z = 0.25*s
                 self.w = (m[0,1]+m[1,0])/s
 
         return self

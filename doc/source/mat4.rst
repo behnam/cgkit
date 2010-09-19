@@ -155,8 +155,8 @@ Additionally, you can compare matrices with ``==`` and ``!=``.
           
              \left( \begin{array}{cccc}
              1 & 0 & 0 & t.x \\
-             0 & 1 & 0 & t.x \\
-             0 & 0 & 1 & t.x \\
+             0 & 1 & 0 & t.y \\
+             0 & 0 & 1 & t.z \\
              0 & 0 & 0 & 1 
              \end{array} \right)
 

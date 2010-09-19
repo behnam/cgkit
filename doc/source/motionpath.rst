@@ -20,5 +20,5 @@
    path.
 
    *bank* determines if the object will roll if the curve makes a turn.
-   *bankamplitude* specifies how much the obect will roll.
+   *bankamplitude* specifies how much the object will roll.
 

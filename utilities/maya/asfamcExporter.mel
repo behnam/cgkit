@@ -58,7 +58,6 @@ global proc asfamcExporter(){
 				intFieldGrp -label "Range (start,end)" -numberOfFields 2 -annotation "Range to export (startframe,endframe)" -v1 `playbackOptions -q -minTime` -v2 `playbackOptions -q -maxTime` "bv_amcRange";
 				setParent..;
 			setParent..;
-		setParent..;
 		separator -height 10 -style "none";
 		rowLayout -numberOfColumns 2 -columnWidth2 180 180  -columnAttach 1 "right" 25 -columnAttach 2 "right" 25;
 			button -label "      ASF Export" -align "center"  -w 100 -annotation "export ASF skeleton definition" -c bv_btn1_klick "bv_btn1";

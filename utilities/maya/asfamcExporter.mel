@@ -12,6 +12,9 @@
 //
 //history
 //
+//version 1.1.1: Removed an unnecessary line that triggered an error in more
+//             recent version of Maya (Maya 2009 and above).
+//
 //version 1.1: fixed convert to vector error to run with maya 5.x
 //
 //version 1.0: initial release, tested with Maya 6.x
@@ -33,7 +36,7 @@ global proc asfamcExporter(){
 	
 	//gui layout
 	if (`window -q -ex asfamcExporter`) deleteUI asfamcExporter;
-	window -menuBar true -rtf 1 -title "ASF/AMC-Exporter 1.1" asfamcExporter;
+	window -menuBar true -rtf 1 -title "ASF/AMC-Exporter 1.1.1" asfamcExporter;
 	
 	menu -label "File" -tearOff true;
  		menuItem -label "Reset Settings" -c "floatFieldGrp -e -v1 1 \"bv_Length\"; intFieldGrp -e -v1 `playbackOptions -q -minTime` -v2 `playbackOptions -q -maxTime` \"bv_amcRange\";";

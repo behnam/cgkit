@@ -7,6 +7,9 @@ import math, os, pickle
 
 class TestQuat(unittest.TestCase):
 
+    def setUp(self):
+        setEpsilon(0.000001)
+
     def testConstructor(self):
         q = quat(1.5,-2,3,2)
         self.failUnless(q.w==1.5 and q.x==-2.0 and q.y==3 and q.z==2,
@@ -315,6 +318,25 @@ class TestQuat(unittest.TestCase):
 
         q = quat().fromMat(mat3(1,0,0,0,1,0,0,0,1))
         self.assertEqual(quat(1,0,0,0), q)
+
+    ######################################################################
+    def testToMat3(self):
+        
+        values = [quat(1,0,0,0),        # identity
+                  quat(0,1,0,0),        # 180deg rotation around X
+                  quat(0,0,1,0),        # 180deg rotation around Y
+                  quat(0,0,0,1),        # 180deg rotation around Z
+                  quat(0.3*math.pi, (2,-1,1)),
+                  quat(-0.3*math.pi, (1,2,3)),
+                  quat(-0.5*math.pi, (-1,0,1))
+                  ]
+        
+        for q in values:
+            qm = q.toMat3()
+            qn = q.normalize()
+            self.assertEqual(qn.rotateVec((1,0,0)), qm*vec3(1,0,0))
+            self.assertEqual(qn.rotateVec((0,1,0)), qm*vec3(0,1,0))
+            self.assertEqual(qn.rotateVec((0,0,1)), qm*vec3(0,0,1))
         
     ######################################################################
     def testDot(self):

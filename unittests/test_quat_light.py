@@ -337,6 +337,27 @@ class TestQuat_light(unittest.TestCase):
         self.assertEqual(slerp(0.5,a,b,shortest=False), c)
 
     ######################################################################
+    def testSlerpAcos(self):
+        """Check numerical robustness of the slerp() function.
+        
+        This is the example from bug #3377718. Strictly speaking, it's not
+        valid because the input quats are not normalized (they are close though).
+        Due to numerical inaccuracies a situation like this could arise though
+        which is why the example is still ok to test the numerical robustness
+        of slerp(). The problem was that the acos() inside slerp() could
+        be called with a value that's slightly larger than 1 in which case
+        it would produce NaNs.
+        """
+
+        weight = 0.14285714285714285
+        a = quat(1, -6.93889e-018, -8.67362e-019, -5e-007)
+        b = quat(1, 2.08167e-017, -3.98986e-017, -5e-007)
+ 
+        c = slerp(weight, a, b)
+        
+        self.assertEqual(quat(1, -6.93889e-18, -8.67362e-19, -5e-07), c)
+
+    ######################################################################
     def testSquad(self):
         a = quat(1,-2,3,2).normalize()
         b = quat(0.2,0.5,2,1).normalize()

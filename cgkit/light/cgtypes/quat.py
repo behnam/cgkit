@@ -517,7 +517,13 @@ def slerp(t, q0, q1, shortest=True):
         neg_q1 = True
     else:
         neg_q1 = False
-    o = math.acos(ca)
+    
+    if ca>=1.0:
+        o = 0.0
+    elif ca<=-1.0:
+        o = math.pi
+    else:
+        o = math.acos(ca)
     so = math.sin(o)
 
     if (abs(so)<=_epsilon):

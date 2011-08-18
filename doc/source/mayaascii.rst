@@ -45,7 +45,7 @@ down the content of the file in commands and their arguments and options
 method that has to execute the command.  These callback methods have to be
 implemented in a derived class.
 
-There are 12 MEL commands that can appear in a Maya ASCII  file [#]_:
+There are 13 MEL commands that can appear in a Maya ASCII  file [#]_:
 
 * file
 
@@ -70,6 +70,8 @@ There are 12 MEL commands that can appear in a Maya ASCII  file [#]_:
 * select
 
 * lockNode
+
+* relationship
 
 Each command has a number of arguments and can also take options. The callback
 methods receive the arguments as regular arguments to the method and the options
@@ -188,6 +190,11 @@ option.
 
    Lock/unlock a node. *objects* is a list of strings containing the node names
    (the list may be empty).
+
+.. method:: MAReader.onRelationship(args, opts)
+
+   *args* is a list of strings containing the command line arguments.
+   *opts* is the options dict.
 
 .. % ----------------------------------------------------------------
 

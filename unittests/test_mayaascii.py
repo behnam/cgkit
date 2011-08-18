@@ -4,21 +4,35 @@ import unittest
 from cgkit import mayaascii
 
 class TestReader(mayaascii.MAReader):
+    def __init__(self):
+        mayaascii.MAReader.__init__(self)
+        self.cmds = []
+    
     def onSetAttr(self, attr, vals, opts):
-#        print attr,vals,opts
-        a = mayaascii.Attribute(attr,vals,opts)
-        #print "  ",a.getValue()
+        self.cmds.append(("setAttr", attr, vals, opts))
+    
+    def onRelationship(self, args, opts):
+        self.cmds.append(("relationship", args, opts))
+
 
 class TestMayaAscii(unittest.TestCase):
 
     def testDefaultMAReader(self):
-        rd = TestReader()
-        rd.read("data/objects.ma")
-        
         rd = mayaascii.DefaultMAReader()
         rd.read("data/objects.ma")
         t = rd.nodelist[0]
 #        print t.getAttrValue("t", "t", "double3")
+
+    def testRelationshipCmd(self):
+        """Check that the 'relationship' command gets processed.
+        """
+        rd = TestReader()
+        rd.read("data/reftest.ma")
+        cmds = [tup for tup in rd.cmds if tup[0]=="relationship"]
+        self.assertEqual(('relationship', ['"link"', '":lightLinker1"', '":initialShadingGroup.message"', '":defaultLightSet.message"'], {}), cmds[0])
+        self.assertEqual(('relationship', ['"link"', '":lightLinker1"', '":initialParticleSE.message"', '":defaultLightSet.message"'], {}), cmds[1])
+        self.assertEqual(('relationship', ['"shadowLink"', '":lightLinker1"', '":initialShadingGroup.message"', '":defaultLightSet.message"'], {}), cmds[2])
+        self.assertEqual(('relationship', ['"shadowLink"', '":lightLinker1"', '":initialParticleSE.message"', '":defaultLightSet.message"'], {}), cmds[3])
 
     def testMELCommands(self):
         rd = mayaascii.DefaultMAReader()

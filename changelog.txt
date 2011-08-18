@@ -16,6 +16,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- mayaascii: Added support for the "relationship" MEL command that can appear
+  in .ma files.
 - cgtypes: Bugfix: slerp() could produce NaNs when the magnitude of the input
   quats were slightly larger than 1 (bug #3377718).
 - cgtypes: In the light version of cgkit, the quat.fromMat() method was

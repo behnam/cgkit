@@ -866,7 +866,7 @@ class MAReader:
     method that has to execute the command. These callback methods
     have to be implemented in a derived class.
 
-    There are 12 MEL commands that can appear in a Maya ASCII file: 
+    There are 13 MEL commands that can appear in a Maya ASCII file: 
 
     - file 
     - requires 
@@ -880,6 +880,7 @@ class MAReader:
     - parent 
     - select
     - lockNode
+    - relationship
 
     Each command has a number of arguments and can also take
     options. The callback methods receive the arguments as regular
@@ -1132,6 +1133,11 @@ class MAReader:
                                     "ic":"ignoreComponents" }
         self.lockNode_opt_def = { "lock" : (1, None),
                                   "ignoreComponents" : (0, None) }
+
+        # relationship options
+        self.relationship_name_dict = { "b":"break" }
+        self.relationship_opt_def = { "break" : (0, None)}
+
         
     # Provide linenr as an alias for cmd_start_linenr
     @property
@@ -1257,6 +1263,14 @@ class MAReader:
         pass
 #        print "lockNode",objects,opts
 
+    def onRelationship(self, args, opts):
+        """Callback for the 'relationship' MEL command.
+        
+        args is a list of the command line arguments. opts is the options dict.
+        """
+        pass
+#        print "relationship",args,opts
+
     # onCommand
     def onCommand(self, cmd, args):
         """Generic command callback.
@@ -1344,6 +1358,12 @@ class MAReader:
                                      self.lockNode_opt_def,
                                      self.lockNode_name_dict)
             self.onLockNode(args, opts)
+        # relationship
+        elif cmd=="relationship":
+            args, opts = self.getOpt(args,
+                                     self.relationship_opt_def,
+                                     self.relationship_name_dict)
+            self.onRelationship(args, opts)
         # unknown
         else:
             print >>sys.stderr, "WARNING: %s, line %d: Unknown MEL command: '%s'"%(self.filename, self.cmd_start_linenr, cmd)

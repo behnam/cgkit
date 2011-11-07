@@ -294,8 +294,8 @@ LIBS += [BOOST_LIB]
 LIBS += ["core"]
 
 # Scripts
-scripts = ["viewer.py",
-           "render.py",
+scripts = ["utilities/viewer.py",
+           "utilities/render.py",
            "utilities/postbake.py",
            "utilities/info3d.py",
            "utilities/convert3d.py",

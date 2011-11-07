@@ -40,7 +40,7 @@
 from cgtypes import vec3
 from Interfaces import ISceneItem
 import timer
-import protocols
+from . import protocols
 from boundingbox import BoundingBox
 import joystick
 import _core
@@ -131,7 +131,7 @@ class Scene(object):
     # insert
     def insert(self, item):
         """Insert an item into the scene."""
-        protocols.adapt(item, ISceneItem)
+#        protocols.adapt(item, ISceneItem)
 #        if isinstance(item, worldobject.WorldObject):
         if isinstance(item, _core.WorldObject):
             self._worldroot.addChild(item)

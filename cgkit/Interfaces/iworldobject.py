@@ -34,7 +34,6 @@
 # ***** END LICENSE BLOCK *****
 # $Id: iworldobject.py,v 1.1.1.1 2004/12/12 14:31:43 mbaas Exp $
 
-from protocols import Interface
 from icomponent import IComponent
 
 class IWorldObject(IComponent):

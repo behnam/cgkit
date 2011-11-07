@@ -35,7 +35,7 @@
 # $Id: ribexport.py,v 1.17 2006/04/27 16:56:46 mbaas Exp $
 
 import sys, os, os.path, shutil, types
-import protocols
+from . import protocols
 import pluginmanager
 import lightsource
 #from cgkit import *
@@ -169,7 +169,7 @@ class RIBExporter:
 
             # Check if the object is a light source
             try:
-                explgt = protocols.adapt(obj, ILightSource)
+                explgt = self.adapt(obj, ILightSource)
                 self.lights.append(obj)
                 # Create the RenderPass objects required for this light
                 lgtpasses = explgt.createPasses()
@@ -191,7 +191,7 @@ class RIBExporter:
                     mat = obj.getMaterial(i)
                     if mat not in self.material_passes:
                         try:
-                            expmat = protocols.adapt(mat, IMaterial)
+                            expmat = self.adapt(mat, IMaterial)
                             # Create the RenderPass objects required for the material
                             ps = expmat.createPasses()
                             ps = self.makePassOutputUnique(ps)
@@ -321,7 +321,7 @@ class RIBExporter:
             return False
         
         try:
-            expgeom = protocols.adapt(geom, IGeometry)
+            expgeom = self.adapt(geom, IGeometry)
             return True
         except NotImplementedError:
             print '"%s" has unknown geometry.'%wobj.name
@@ -353,7 +353,7 @@ class RIBExporter:
         """
 
 #        try:
-        explgt = protocols.adapt(lgt, ILightSource)
+        explgt = self.adapt(lgt, ILightSource)
 #        except NotImplementedError:
 #            return
 
@@ -422,7 +422,7 @@ class RIBExporter:
             return
 
 #        try:
-        expmat = protocols.adapt(mat, IMaterial)
+        expmat = self.adapt(mat, IMaterial)
 #        except NotImplementedError:
 #            return
 
@@ -507,7 +507,7 @@ class RIBExporter:
         # The geom was not exported, so do it now...
 
         try:
-            expgeom = protocols.adapt(geom, IGeometry)
+            expgeom = self.adapt(geom, IGeometry)
         except NotImplementedError:
             print 'Warning: Unknown geometry: "%s" (%s)'%(geom.name, geom.__class__.__name__)
             return
@@ -625,7 +625,51 @@ class RIBExporter:
             num += 1
             
         return name
+
+    def adapt(self, obj, interface):
+        """Dummy adapt method.
         
+        This replaces the adapt function from PyProtocols for now.
+        Eventually, a new mechanism will take over but until then, this
+        function simulates the old behavior.
+        """
+
+        # Material?        
+        if interface is IMaterial:
+            if isinstance(obj, GLMaterial):
+                return GLMaterialAdapter(obj, None)
+        # Geometry?
+        if interface is IGeometry:
+            if isinstance(obj, BoxGeom):
+                return BoxAdapter(obj, None) 
+            if isinstance(obj, SphereGeom):
+                return SphereAdapter(obj, None) 
+            if isinstance(obj, CCylinderGeom):
+                return CCylinderAdapter(obj, None) 
+            if isinstance(obj, PlaneGeom):
+                return PlaneAdapter(obj, None) 
+            if isinstance(obj, TorusGeom):
+                return TorusAdapter(obj, None) 
+            if isinstance(obj, PolyhedronGeom):
+                return PolyhedronAdapter(obj, None) 
+            if isinstance(obj, TriMeshGeom):
+                return TriMeshAdapter(obj, None)
+        # Light?
+        if interface is ILightSource:
+            if isinstance(obj, SpotLight3DS):
+                return SpotLight3DSAdapter(obj, None)
+            if isinstance(obj, GLPointLight):
+                return GLPointLightAdapter(obj, None) 
+            if isinstance(obj, GLTargetSpotLight):
+                return GLSpotLightAdapter(obj, None) 
+            if isinstance(obj, GLFreeSpotLight):
+                return GLSpotLightAdapter(obj, None) 
+            if isinstance(obj, GLTargetDistantLight):
+                return GLDistantLightAdapter(obj, None) 
+            if isinstance(obj, GLFreeDistantLight):
+                return GLDistantLightAdapter(obj, None) 
+        
+        return protocols.adapt(obj, interface)
         
 
 ######################################################################
@@ -1267,7 +1311,7 @@ class TexPass(RenderPass):
 ######################################################################
 
 class BoxAdapter:
-    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[BoxGeom])
+#    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[BoxGeom])
     
     def __init__(self, boxgeom, proto):
         self.geom = boxgeom
@@ -1296,7 +1340,7 @@ class BoxAdapter:
 
 
 class SphereAdapter:
-    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[SphereGeom])
+#    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[SphereGeom])
     
     def __init__(self, spheregeom, proto):
         self.geom = spheregeom
@@ -1308,7 +1352,7 @@ class SphereAdapter:
         
 
 class CCylinderAdapter:
-    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[CCylinderGeom])
+#    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[CCylinderGeom])
     
     def __init__(self, ccylgeom, proto):
         self.geom = ccylgeom
@@ -1336,7 +1380,7 @@ class CCylinderAdapter:
         RiTransformEnd()
 
 class TorusAdapter:
-    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[TorusGeom])
+#    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[TorusGeom])
     
     def __init__(self, torusgeom, proto):
         self.geom = torusgeom
@@ -1346,7 +1390,7 @@ class TorusAdapter:
             RiTorus(self.geom.major, self.geom.minor, 0, 360, 360)
 
 class PlaneAdapter:
-    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[PlaneGeom])
+#    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[PlaneGeom])
     
     def __init__(self, planegeom, proto):
         self.geom = planegeom
@@ -1364,7 +1408,7 @@ class PlaneAdapter:
         RiPatch(RI_BILINEAR, P=[A,B,D,C])
 
 class TriMeshAdapter:
-    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[TriMeshGeom])
+#    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[TriMeshGeom])
     
     def __init__(self, meshgeom, proto):
         self.geom = meshgeom
@@ -1408,7 +1452,7 @@ class TriMeshAdapter:
             RiPointsPolygons(len(tm.faces)*[3], list(tm.faces), params)
 
 class PolyhedronAdapter:
-    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[PolyhedronGeom])
+#    protocols.advise(instancesProvide=[IGeometry], asAdapterForTypes=[PolyhedronGeom])
     
     def __init__(self, polyhedrongeom, proto):
         self.geom = polyhedrongeom
@@ -1462,7 +1506,7 @@ class PolyhedronAdapter:
 
 # SpotLight3DSAdapter
 class SpotLight3DSAdapter:
-    protocols.advise(instancesProvide=[ILightSource], asAdapterForTypes=[SpotLight3DS])
+#    protocols.advise(instancesProvide=[ILightSource], asAdapterForTypes=[SpotLight3DS])
     
     def __init__(self, lgt, proto):
         self.obj = lgt
@@ -1563,7 +1607,7 @@ light $SHADERNAME(float intensity = 1.0;
 
 # GLPointLightAdapter
 class GLPointLightAdapter:
-    protocols.advise(instancesProvide=[ILightSource], asAdapterForTypes=[GLPointLight])
+#    protocols.advise(instancesProvide=[ILightSource], asAdapterForTypes=[GLPointLight])
     
     def __init__(self, lgt, proto):
         self.obj = lgt
@@ -1610,7 +1654,7 @@ light $SHADERNAME(float intensity = 1.0;
 
 # GLSpotLightAdapter
 class GLSpotLightAdapter:
-    protocols.advise(instancesProvide=[ILightSource], asAdapterForTypes=[GLTargetSpotLight, GLFreeSpotLight])
+#    protocols.advise(instancesProvide=[ILightSource], asAdapterForTypes=[GLTargetSpotLight, GLFreeSpotLight])
     
     def __init__(self, lgt, proto):
         self.obj = lgt
@@ -1696,7 +1740,7 @@ light $SHADERNAME(float intensity = 1.0;
 
 # GLDistantLightAdapter
 class GLDistantLightAdapter:
-    protocols.advise(instancesProvide=[ILightSource], asAdapterForTypes=[GLTargetDistantLight, GLFreeDistantLight])
+#    protocols.advise(instancesProvide=[ILightSource], asAdapterForTypes=[GLTargetDistantLight, GLFreeDistantLight])
     
     def __init__(self, lgt, proto):
         self.obj = lgt
@@ -1742,7 +1786,7 @@ class GLMaterialAdapter:
     """
     """
 
-    protocols.advise(instancesProvide=[IMaterial], asAdapterForTypes=[GLMaterial])
+#    protocols.advise(instancesProvide=[IMaterial], asAdapterForTypes=[GLMaterial])
 
     def __init__(self, material, proto):
         self.mat = material

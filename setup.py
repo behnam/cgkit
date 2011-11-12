@@ -168,11 +168,11 @@ def updateInfoModule(cgkit_light):
         sys.exit(1)
 
 def pyx2c(pyxName, cName):
-    """Run pyrex on a pyx file.
+    """Run cython on a pyx file.
     
     pyxName is the input pyx file, cName the output C file.
     """
-    cmd = "pyrexc -o %s %s"%(cName, pyxName)
+    cmd = "cython -o %s %s"%(cName, pyxName)
     print (cmd)
     res = os.system(cmd)
     if res!=0:

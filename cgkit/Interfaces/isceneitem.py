@@ -34,7 +34,7 @@
 # ***** END LICENSE BLOCK *****
 # $Id: isceneitem.py,v 1.1.1.1 2004/12/12 14:31:43 mbaas Exp $
 
-from protocols import Interface
+from ..protocols import Interface
 
 class ISceneItem(Interface):
     """The base scene item protocol that must be supported by all scene items.

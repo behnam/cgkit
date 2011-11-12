@@ -34,7 +34,7 @@
 # ***** END LICENSE BLOCK *****
 # $Id: icomponent.py,v 1.1.1.1 2004/12/12 14:31:41 mbaas Exp $
 
-from protocols import Interface
+from ..protocols import Interface
 
 class IComponent(Interface):
     """The base component protocol.

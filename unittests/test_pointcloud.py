@@ -9,7 +9,7 @@ try:
     import numpy
     numpy_available = True
 except ImportError:
-    print "Warning: numpy not available. pointcloud test incomplete."
+    print("Warning: numpy not available. pointcloud test incomplete.")
     numpy_available = False
 
 class TestPointCloud(unittest.TestCase):

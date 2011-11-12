@@ -32,35 +32,47 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-# $Id: icamera.py,v 1.1.1.1 2004/12/12 14:31:41 mbaas Exp $
 
-from iworldobject import IWorldObject
+"""Dummy module that is used as a replacement for PyProtocols for the time being.
+"""
 
-class ICamera(IWorldObject):
-    """The camera protocol.
+import inspect
 
+# Key:Class name - Value:Dict (key:interface obj, value:None or adapter class)
+_interfaces = {}
+
+def adapt(obj, interface):
+    """Dummy implementation.
     """
+    global _interfaces
+    
+    className = obj.__class__.__name__
+    interfaces = _interfaces.get(className, {})
+    
+#    print "ADAPT",obj.__class__.__name__, interface, interfaces.has_key(interface)
+    if interfaces.has_key(interface):
+        return obj
+    else:
+        raise NotImplementedError("interface not implemented")
 
-    def projection(self, width, height, near, far):
-        """Return the projection matrix for this camera.
+def advise(instancesProvide, asAdapterForTypes=None):
+    """Dummy implementation.
+    """
+    global _interfaces
+    
+    frame = inspect.currentframe()
+    outer = inspect.getouterframes(frame)
+    currentClassName = outer[1][3]
 
-        This method has to return the matrix that should be used to
-        project the scene onto the screen. This matrix can either
-        be an orthographic or perspective matrix.
+#    print "ADVISE",currentClassName, asAdapterForTypes
+    
+    for interface in instancesProvide:
+        if currentClassName not in _interfaces:
+            _interfaces[currentClassName] = {}
+        _interfaces[currentClassName][interface] = 1
+#        print "    %s implements %s"%(currentClassName, interface)
 
-        \param width (\c int) Viewport width
-        \param height (\c int) Viewport height
-        \param near (\c float) Near plane value
-        \param far (\c float) Far plane value
-        \return Projection matrix (\c mat4)
-        """
-
-    def viewTransformation(self):
-        """Return the view transformation matrix of this camera.
-
-        The view transformation transforms from World coordinates
-        into Camera coordinates and is usually the inverse of the
-        \c transform attribute. However, an implementation can
-        choose to cache an inverted matrix.
-        """
-        
+class Interface:
+    """Dummy interface base class.
+    """
+    pass

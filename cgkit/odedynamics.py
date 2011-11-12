@@ -40,7 +40,8 @@
 """This module contains a Dynamics component using the ODE rigid body
 dynamics package."""
 
-import protocols, weakref
+import weakref
+from . import protocols
 from Interfaces import *
 from component import Component
 from scene import getScene

@@ -9,6 +9,7 @@ dev*.sh
 dev*.bat
 config_py25.cfg
 config_py26.cfg
+config_py27.cfg
 config_py31.cfg
 transfer_web.sh
 *.pyc

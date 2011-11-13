@@ -46,7 +46,7 @@ import sys, os, os.path, types, string
 import pluginmanager
 import eventmanager
 import events
-from scene import getScene
+from globalscene import getScene
 import worldobject
 import draw, drawtextgeom
 import trimeshgeom

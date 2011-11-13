@@ -40,7 +40,7 @@ import glob, types
 import component
 from eventmanager import eventManager
 from events import *
-from scene import getScene
+from globalscene import getScene
 from targetcamera import TargetCamera
 from plane import Plane
 from quadrics import Sphere

@@ -41,7 +41,7 @@ import lightsource
 #from cgkit import *
 from cgtypes import *
 from targetcamera import TargetCamera
-from scene import getScene
+from globalscene import getScene
 from geomobject import *
 from boxgeom import BoxGeom
 from spheregeom import SphereGeom

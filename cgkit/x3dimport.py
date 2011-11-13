@@ -37,7 +37,7 @@
 import os.path
 import _core
 from cgtypes import *
-from scene import getScene
+from globalscene import getScene
 from worldobject import WorldObject
 from trimesh import TriMesh
 from trimeshgeom import TriMeshGeom

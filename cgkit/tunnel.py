@@ -42,7 +42,6 @@ import component
 from slots import *
 import _core
 import socket, threading, struct
-import scene
 
 # _ImmediateForwarder
 class _ImmediateForwarder(NotificationForwarder):

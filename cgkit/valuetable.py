@@ -37,7 +37,7 @@
 ## \file valuetable.py
 ## Contains the ValueTable component.
 
-from scene import getScene
+from globalscene import getScene
 import component
 import bisect
 from cgtypes import *

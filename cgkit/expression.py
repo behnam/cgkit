@@ -43,7 +43,7 @@ from Interfaces import *
 import protocols
 import slots
 from eventmanager import eventManager
-from scene import getScene
+from globalscene import getScene
 import events
 from cgtypes import *
 from component import *

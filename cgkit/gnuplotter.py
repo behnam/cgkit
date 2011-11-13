@@ -40,7 +40,7 @@
 import sys
 import component
 import eventmanager, events
-from scene import getScene
+from globalscene import getScene
 from slots import *
 from cgtypes import *
 import _core

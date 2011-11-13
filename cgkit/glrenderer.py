@@ -39,7 +39,7 @@
 
 from _OpenGL.GL import *
 from _OpenGL.GLU import *
-from scene import getScene
+from globalscene import getScene
 import _core
 
 # GLRenderInstance

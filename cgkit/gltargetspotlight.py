@@ -38,7 +38,6 @@
 ## Contains the GLTargetSpotLight class.
 
 import protocols
-import scene
 from Interfaces import *
 from slots import *
 from cgtypes import vec3

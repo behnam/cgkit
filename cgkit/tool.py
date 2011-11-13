@@ -40,7 +40,7 @@
 import os, os.path, sys, optparse, re
 import pluginmanager
 from eventmanager import eventManager
-from scene import getScene
+from globalscene import getScene
 from targetcamera import TargetCamera
 from Interfaces import *
 from cmds import *

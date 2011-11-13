@@ -45,7 +45,7 @@ import slots
 from cgtypes import *
 from math import pi
 from worldobject import WorldObject
-from scene import getScene
+from globalscene import getScene
 import _core
 
 # CameraBase

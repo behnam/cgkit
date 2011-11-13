@@ -42,7 +42,7 @@
 import _core
 from Interfaces import ISceneItem, ISceneItemContainer
 import protocols
-import scene
+import globalscene
 from cgtypes import *
 
 # WorldObject
@@ -162,10 +162,10 @@ class WorldObject(_core.WorldObject):
 _preInitWorldObject = """
 if auto_insert:
     if parent==None:
-        parent = scene.getScene().worldRoot()
+        parent = globalscene.getScene().worldRoot()
     else:
         if type(parent) in [str, unicode]:
-            parent = scene.getScene().worldObject(parent)
+            parent = globalscene.getScene().worldObject(parent)
     name = parent.makeChildNameUnique(name)
 """
     

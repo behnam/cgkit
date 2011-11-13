@@ -44,7 +44,7 @@ import weakref
 from . import protocols
 from Interfaces import *
 from component import Component
-from scene import getScene
+from globalscene import getScene
 from eventmanager import eventManager
 from cgtypes import *
 from worldobject import WorldObject

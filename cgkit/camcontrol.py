@@ -39,7 +39,7 @@
 
 import component
 import eventmanager
-from scene import getScene
+from globalscene import getScene
 from events import *
 from keydefs import *
 from cgtypes import *

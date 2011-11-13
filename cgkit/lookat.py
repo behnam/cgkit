@@ -45,7 +45,6 @@ at pos the z axis points to target."""
 from component import createFunctionComponent
 from cgtypes import *
 from sl import radians
-import scene
 
 def _lookat(pos=vec3(0), target=vec3(0), up=vec3(0,0,1), roll=0.0):
     try:

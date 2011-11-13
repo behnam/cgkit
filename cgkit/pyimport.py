@@ -36,7 +36,8 @@
 
 import sys, os.path, copy
 import pluginmanager
-import cgkit.scene
+import globalscene
+import eventmanager
 
 # PyImporter
 class PyImporter:
@@ -66,11 +67,11 @@ class PyImporter:
         exec "from cgkit.sl import *" in file_globals
         exec "from math import *" in file_globals
         # ...and some special global names...
-        scene = cgkit.scene.getScene()
+        scene = globalscene.getScene()
         file_globals["scene"] = scene
         file_globals["timer"] = scene.timer()
         file_globals["worldroot"] = scene.worldRoot()
-        file_globals["eventmanager"] = cgkit.eventmanager.eventManager()
+        file_globals["eventmanager"] = eventmanager.eventManager()
         
         paths = sys.path
         # Add the directory of the input file to the module search paths

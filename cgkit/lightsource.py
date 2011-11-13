@@ -38,7 +38,6 @@
 ## Contains the LightSource base class.
 
 import protocols
-import scene
 from Interfaces import *
 from worldobject import _initWorldObject, _preInitWorldObject
 import _core

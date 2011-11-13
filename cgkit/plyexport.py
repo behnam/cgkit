@@ -36,7 +36,7 @@
 
 import os.path, sys
 from cgtypes import *
-from scene import getScene
+from globalscene import getScene
 from geomobject import *
 from trimeshgeom import TriMeshGeom
 from polyhedrongeom import PolyhedronGeom

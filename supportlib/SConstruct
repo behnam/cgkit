@@ -8,18 +8,18 @@
 import sys, glob, os.path
 
 # Read the options
-opts = Options("cpp_config.cfg")
-opts.Add("CPPDEFINES", "Preprocessor symbol definitions", [])
-opts.Add("CPPPATH", "The include directories", [])
-#opts.Add("LIBPATH", "The library directories", [])
-#opts.Add("LIBS", "The libraries to link with", [])
-opts.Add("MSVS_VERSION", "The preferred version of MS Visual Studio")
+vars = Variables("cpp_config.cfg")
+vars.Add("CPPDEFINES", "Preprocessor symbol definitions", [])
+vars.Add("CPPPATH", "The include directories", [])
+#vars.Add("LIBPATH", "The library directories", [])
+#vars.Add("LIBS", "The libraries to link with", [])
+vars.Add("MSVS_VERSION", "The preferred version of MS Visual Studio")
 
 # Create the construction environment
-env = Environment(options = opts)
+env = Environment(variables = vars)
 
 # Build the files in "obj"
-env.BuildDir("obj", "src", duplicate=0)
+env.VariantDir("obj", "src", duplicate=0)
 
 # Build all *.cpp files found in the src directory
 srcfiles = glob.glob("src/*.cpp")
@@ -43,7 +43,7 @@ else:
   env.Append(CCFLAGS = ["-fPIC"])
 
 # Setup the help message
-Help(opts.GenerateHelpText(env))
+Help(vars.GenerateHelpText(env))
 
 # Display the Visual C++ version...
 msvs = env.Dictionary().get("MSVS")

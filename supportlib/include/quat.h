@@ -43,11 +43,15 @@
  */
 
 #include <iostream>
+#include <math.h>
 #include "vec3.h"
 #include "mat3.h"
 #include "mat4.h"
 #include "common_exceptions.h"
-#include "math.h"
+
+#ifndef M_PI
+  #define M_PI 3.14159265358979323846
+#endif
 
 namespace support3d {
 

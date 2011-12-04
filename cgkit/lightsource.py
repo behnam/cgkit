@@ -32,14 +32,13 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-# $Id: lightsource.py,v 1.1.1.1 2004/12/12 14:31:06 mbaas Exp $
 
 ## \file lightsource.py
 ## Contains the LightSource base class.
 
 import protocols
 from Interfaces import *
-from worldobject import _initWorldObject, _preInitWorldObject
+from worldobject import _initWorldObject
 import _core
 
 # LightSource
@@ -53,10 +52,7 @@ class LightSource(_core.LightSource):
                  auto_insert = True,
                  **params):
 
-        exec _preInitWorldObject
-        _core.LightSource.__init__(self, name)
-
-        _initWorldObject(self, name=name, auto_insert=auto_insert,
+        _initWorldObject(self, baseClass=_core.LightSource,
+                         name=name, auto_insert=auto_insert,
                          parent=parent, **params)
-    
         

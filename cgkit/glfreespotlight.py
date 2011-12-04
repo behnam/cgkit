@@ -32,7 +32,6 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-# $Id: glfreespotlight.py,v 1.4 2005/07/03 09:43:36 mbaas Exp $
 
 ## \file glfreespotlight.py
 ## Contains the GLFreeSpotLight class.
@@ -41,7 +40,7 @@ import protocols
 from Interfaces import *
 from slots import *
 from cgtypes import vec3
-from worldobject import _initWorldObject, _preInitWorldObject
+from worldobject import _initWorldObject
 import cmds
 import _core
 
@@ -71,10 +70,8 @@ class GLFreeSpotLight(_core.GLSpotLight):
                  auto_insert=True,
                  **params
                  ):
-        exec _preInitWorldObject
-        _core.GLSpotLight.__init__(self, name)
-
-        _initWorldObject(self, name=name, parent=parent,
+        _initWorldObject(self, baseClass=_core.GLSpotLight,
+                         name=name, parent=parent,
                          auto_insert=auto_insert,
                          **params)
 

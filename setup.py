@@ -152,20 +152,32 @@ def updateInfoModule(cgkit_light):
                 v+=rlevel
             if cgkit_light:
                 v += " 'light'"
-            v+=" (%s)"%time.strftime("%b %d %Y, %H:%M")
+            v+=" (%s)"%time.strftime("%b %d %Y")
             lines[i] = 'version = "%s"\n'%v
             print ("Version: %s"%v)
 
-    lines.append("\ncgkit_light = %s"%cgkit_light)
+    lines.append("\n")
+    lines.append("cgkit_light = %s"%cgkit_light)
 
-    # Save the new content to the actual module file...
+    # Read the current contents of the info module (so that we can compare it with the new one)
     try:
-        f = open(infomod, "wt")
-        f.writelines(lines)
+        f = open(infomod, "rt")
+        currentLines = f.readlines()
         f.close()
     except:
-        print ('Could not write file "%s"'%infomod)
-        sys.exit(1)
+        currentLines = []
+    
+    # Save the new content to the actual module file...
+    if lines!=currentLines:
+        try:
+            f = open(infomod, "wt")
+            f.writelines(lines)
+            f.close()
+        except:
+            print ('Could not write file "%s"'%infomod)
+            sys.exit(1)
+    else:
+        print ("Content of cgkitinfo module did not change.")
 
 def pyx2c(pyxName, cName):
     """Run cython on a pyx file.

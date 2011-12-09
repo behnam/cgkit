@@ -31,4 +31,5 @@ Generic Modules
    sequence
    jobqueue
    ffmpeg
+   mediafile
    

@@ -35,30 +35,8 @@
 
 from ctypes import *
 import findlib
-
-# Flags
-SWS_FAST_BILINEAR = 1
-SWS_BILINEAR = 2
-SWS_BICUBIC = 4
-SWS_X = 8
-SWS_POINT = 0x10
-SWS_AREA = 0x20
-SWS_BICUBLIN = 0x40
-SWS_GAUSS = 0x80
-SWS_SINC = 0x100
-SWS_LANCZOS = 0x200
-SWS_SPLINE = 0x400
-
-######################################################################
-# Data Structures
-######################################################################
-
-class SwsContext(Structure):
-    _fields_ = []
-    
-######################################################################
-# Functions
-######################################################################
+import decls
+from decls import SwsContext
 
 def swscale_version():
     """Return the libswscale library version.
@@ -76,6 +54,7 @@ def sws_getContext(srcW, srcH, srcFormat, dstW, dstH, dstFormat, flags):
     """Allocate a SwsContext object.
     
     Must be deallocated using sws_freeContext().
+    Returns a :class:`SwsContext` object.
     """
     func = _lib().sws_getContext
     func.restype = POINTER(SwsContext)
@@ -90,13 +69,41 @@ def sws_freeContext(swsCtx):
     """
     _lib().sws_freeContext(byref(swsCtx))   
     
-def sws_scale(swsCtx, src, srcStride, srcSliceY, srcSliceH, dst, dstStride): 
+def sws_scale(swsCtx, src, srcStride, srcSliceY, srcSliceH, dst, dstStride):
+    """Scale/convert an image.
+    
+    Scales the image slice in srcSlice and puts the resulting scaled
+    slice in the image in dst. A slice is a sequence of consecutive
+    rows in an image.
+
+    Slices have to be provided in sequential order, either in
+    top-bottom or bottom-top order. If slices are provided in
+    non-sequential order the behavior of the function is undefined.
+
+    *swsCtx* is the scaling context as returned by sws_getContext().
+    *src* is the array containing the pointers to the planes of the source slice.
+    *srcStride* is the array containing the strides for each plane of the
+    source image
+    *srcSliceY* is the position in the source image of the slice to process,
+    that is the number (counted starting from zero) in the image of the first
+    row of the slice.
+    *srcSliceH* is the height of the source slice, that is the number
+    of rows in the slice.
+    *dst* is the array containing the pointers to the planes of the destination
+    image.
+    *dstStride* is the array containing the strides for each plane of
+    the destination image
+    Returns the height of the output slice.
+    """
     ret = _lib().sws_scale(byref(swsCtx), src, srcStride, srcSliceY, srcSliceH, dst, dstStride)
     if ret<0:
-        raise RuntimeError("Error: %s"%ret)
+        raise RuntimeError, "Error: %s"%ret
     return ret
 
-_libname = "swscale.1"
+
+# By default, try to load the swscale library that has the same major version
+# than the one that was used for creating the cppdefs and decls module.
+_libname = "swscale.%s"%(decls.LIBSWSCALE_VERSION_MAJOR)
 _libswscale = None
 
 def _lib():

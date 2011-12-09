@@ -38,184 +38,13 @@ from ctypes import *
 import findlib
 import avutil
 import avcodec
+import decls
+from decls import AVOutputFormat, AVFormatContext, AVStream
 
-# This is defined here and in avcodec
-AV_NOPTS_VALUE = 0x8000000000000000
-
-MAX_STREAMS = 20
-
-# av_seek_frame() flags
-AVSEEK_FLAG_BACKWARD = 1   # Seek backwards
-AVSEEK_FLAG_BYTE = 2  # seeking based on position in bytes 
-AVSEEK_FLAG_ANY = 4   # Seek to any frame, even non keyframes
 
 class AVFormatError(Exception):
     pass
 
-######################################################################
-# Data Structures
-######################################################################
-
-class ByteIOContext(Structure):
-    _fields_ = [("buffer", c_char_p),
-                ("buffer_size", c_int),
-                ("buf_ptr", c_char_p),
-                ("buf_end", c_char_p),
-                ("opaque", c_void_p),
-                ("read_packet", c_void_p), # function pointer
-                ("write_packet", c_void_p), # function pointer
-                ("seek", c_void_p), # function pointer
-                ("pos", c_longlong),
-                ("must_flush", c_int),
-                ("eof_reached", c_int),
-                ("write_flag", c_int),
-                ("is_streamed", c_int),
-                ("max_packet_size", c_int),
-                ("checksum", c_ulong),
-                ("checksum_ptr", c_char_p),
-                ("update_checksum", c_void_p), # function pointer
-                ("error", c_int),
-                ("read_pause", c_void_p), # function pointer
-                ("read_seek", c_void_p)] # function pointer
-
-class AVPacket(Structure):
-    pass
-
-AVPacket._fields_ = [("pts", c_longlong),
-                ("dts", c_longlong),
-                ("data", c_void_p),  # uint8*
-                ("size", c_int),
-                ("stream_index", c_int),
-                ("flags", c_int),
-                ("duration", c_int),
-                ("destruct", CFUNCTYPE(None, POINTER(AVPacket))),   # function pointer
-                ("priv", c_void_p),
-                ("pos", c_longlong),
-                ("convergence_duration", c_longlong)]
-
-class AVPacketList(Structure):
-    pass
-
-AVPacketList._fields_ = [("pkt", AVPacket),
-                         ("next", POINTER(AVPacketList))]
-
-class AVProbeData(Structure):
-    pass
-
-AVProbeData._field_ = [("filename", c_char_p),
-                       ("buf", c_char_p),
-                       ("buf_size", c_int)]
-
-MAX_REORDER_DELAY = 16
-
-class AVStream(Structure):
-    _fields_ = [("index", c_int),
-                ("id", c_int),
-                ("codec", POINTER(avcodec.AVCodecContext)),
-                ("r_frame_rate", avutil.AVRational),
-                ("priv_data", c_void_p),
-#                ("codec_info_duration", c_longlong),
-#                ("codec_info_nb_frames", c_int),
-                ("first_dts", c_longlong),
-                ("pts", avutil.AVFrac),
-                ("time_base", avutil.AVRational),
-                ("pts_wrap_bits", c_int),
-                ("stream_copy", c_int),
-                ("discard", c_int),    # enum AVDiscard
-                ("quality", c_float),
-                ("start_time", c_longlong),
-                ("duration", c_longlong),
-                ("language", c_char*4),
-                ("need_parsing", c_int),  # enum AVStreamParseType
-                ("parser", c_void_p),     # AVCodecParserContext*
-                ("cur_dts", c_longlong),
-                ("last_IP_duration", c_int),
-                ("last_IP_pts", c_longlong),
-                ("index_entries", c_void_p),  # AVIndexEntry*
-                ("nb_index_entries", c_int),
-                ("index_entries_allocated_size", c_uint),
-                ("nb_frames", c_longlong),
-                
-                ("unused", c_longlong*5),   # ??? #ifdef'ed ???
-                ("filename", c_char_p),
-                ("disposition", c_int),
-                ("probe_data", AVProbeData),
-                ("pts_buffer", c_longlong*(MAX_REORDER_DELAY+1)),
-                ("sample_aspect_ratio", avutil.AVRational),
-                ("metadata", c_void_p)   # AVMetaData*
-#                ("pts_buffer", c_longlong*(MAX_REORDER_DELAY+1)),
-#                ("filename", c_char_p)
-                ]
-    
-    
-class AVFormatContext(Structure):
-    _fields_ = [("av_class", POINTER(avutil.AVClass)),
-                ("iformat", c_void_p), # AVInputFormat*
-                ("oformat", c_void_p), # AVOutputFormat*
-                ("priv_data", c_void_p),
-                ("pb", POINTER(ByteIOContext)),
-                ("nb_streams", c_uint),
-                ("streams", POINTER(AVStream)*MAX_STREAMS),
-                ("filename", c_char*1024),
-                ("timestamp", c_longlong),
-                ("title", c_char*512),
-                ("author", c_char*512),
-                ("copyright", c_char*512),
-                ("comment", c_char*512),
-                ("album", c_char*512),
-                ("year", c_int),
-                ("track", c_int),
-                ("genre", c_char*32),
-                ("ctx_flags", c_int),
-                ("packet_buffer", POINTER(AVPacketList)),
-                ("start_time", c_longlong),
-                ("duration", c_longlong),
-                ("file_size", c_longlong),
-                ("bit_rate", c_int),
-                ("cur_st", POINTER(AVStream)),
-                ("cur_ptr", c_void_p),
-                ("cur_len", c_int),
-                ("cur_pkt", AVPacket),
-                ("data_offset", c_longlong),
-                ("index_built", c_int),
-                ("mux_rate", c_int),
-                ("packet_size", c_int),
-                ("preload", c_int),
-                ("max_delay", c_int),
-                ("loop_output", c_int),
-                ("flags", c_int),
-                ("loop_input", c_int),
-                ("probesize", c_uint),
-                ("max_analyze_duration", c_int),
-                ("key", c_void_p),
-                ("keylen", c_int),
-                ("nb_programs", c_uint),
-                ("programs", c_void_p),  # AVProgram**
-                ("video_codec_id", c_int),  # enum
-                ("audio_codec_id", c_int),  # enum
-                ("subtitle_codec_id", c_int), # enum
-                ("max_index_size", c_uint),
-                ("max_picture_buffer", c_uint),
-                ("nb_chapters", c_uint),
-                ("chapters", c_void_p),  # AVChapter**
-                ("debug", c_int),
-                ("raw_packet_buffer", c_void_p),  # AVPacketList*
-                ("raw_packet_buffer_end", c_void_p),  # AVPacketList*
-                ("packet_buffer_end", c_void_p),  # AVPacketList*
-                ("metadata", c_void_p)  # AVMetaData*
-                ]
-
-class AVOutputFormat(Structure):
-    _fields_ = [("name", c_char_p),
-                ("long_name", c_char_p)
-                # ...
-               ]
-
-class AVInputFormat(Structure):
-    _fields_ = [("name", c_char_p),
-                ("long_name", c_char_p)
-                # ...
-               ]
 
 ######################################################################
 # Functions
@@ -432,7 +261,6 @@ def av_interleaved_write_frame(formatCtx, pkt):
         raise AVFormatError("Error: %s"%ret)
     return ret
 
-
 def av_free_packet(pkt):
     """Call the packet's destruct() function.
     """
@@ -441,12 +269,121 @@ def av_free_packet(pkt):
     # How to test if pkt.destruct is 0?
     pkt.destruct(byref(pkt))
 
+def avformat_alloc_context():
+    """Allocates and initializes an :class:`AVFormatContext` object.
+
+    Returns an initialized :class:`AVFormatContext` object that can be used to
+    write a new file.
+    
+    The allocated structure must be freed with :func:`avutil.av_free()`
+    (everything that has been explicitly allocated must also be freed explicitly).
+    """
+    func = _lib().avformat_alloc_context
+    func.restype = POINTER(AVFormatContext)
+    ctx = func()
+    if ctx:
+        return ctx.contents
+    else:
+        raise MemoryError("Failed to allocate AVFormatContext struct")
+
+def av_guess_format(shortName=None, fileName=None, mimeType=None):
+    """Search for an output format.
+    
+    Returns the output format in the list of registered output formats
+    which best matches the provided parameters, or returns NULL if
+    there is no match.
+
+    shortName (if not None) checks if shortName matches with the
+    names of the registered formats.
+    fileName (if not None) checks if file name terminates with the
+    extensions of the registered formats.
+    mimeType (if not None) checks if mime type matches with the
+    MIME type of the registered formats.
+    
+    Returns an :class:`AVOutputFormat` object or ``None``. The returned object
+    is owned by ffmpeg and must not be freed.
+    """
+    # in v52 the function is still called guess_format instead of av_guess_format
+    func = _lib().guess_format
+    func.restype = POINTER(AVOutputFormat)
+    fmt = func(shortName, fileName, mimeType)
+    if fmt:
+        return fmt.contents
+    else:
+        return None
+
+def av_guess_codec(outputFormat, codecType, shortName=None, fileName=None, mimeType=None):
+    """Guesses the codec ID based upon muxer and filename.
+    
+    *outputFormat* is an :class:`AVOutputFormat` object.
+    *codecType* determines what kind of codec is required, it can be either
+    ``CODEC_TYPE_VIDEO`` or ``CODEC_TYPE_AUDIO``.
+    Returns a codec id (int) or ``None`` if no codec could be found.
+    """
+    id = _lib().av_guess_codec(byref(outputFormat), shortName, fileName, mimeType, codecType)
+    if id==decls.CODEC_ID_NONE:
+        return None
+    else:
+        return id
+
+def av_new_stream(formatCtx, id):
+    """Adds a new stream to a media file.
+    
+    Allocates a new stream and adds it to formatCtx.
+    *formatCtx* is an :class:`AVFormatContext` object which will receive the
+    new stream. *id* is an integer containing a file-format-dependent stream id.
+    Returns an :class:`AVStream` object (which will also be available in
+    ``formatCtx.streams``).
+    
+    If the stream couldn't be allocated, an :exc:`AVFormatError` exception is
+    thrown.
+    """
+    func = _lib().av_new_stream
+    func.restype = POINTER(AVStream)
+    stream = func(byref(formatCtx), id)
+    if stream:
+        return stream.contents
+    else:
+        raise AVFormatError("Failed to allocate new media stream.")
+
+def av_init_packet(pkt):
+    """Initialize optional fields of a packet with default values.
+    
+    *pkt* must be a :class:`AVPacket` object.
+    """
+    _lib().av_init_packet(byref(pkt));
+
+
+def url_fopen(s, fileName, flags):
+    """
+
+    avio.h: int url_fopen(ByteIOContext **s, const char *filename, int flags);
+    
+    flags:
+    #define URL_RDONLY 0
+    #define URL_WRONLY 1
+    #define URL_RDWR   2
+    """
+    ret = _lib().url_fopen(byref(s), fileName, flags)
+    if ret<0:
+        raise AVFormatError('Error opening file "%s" for writing (error %s)'%(fileName, ret))
+    return ret
+
+def url_fclose(s):
+    """
+    avio.h: int url_fclose(ByteIOContext *s);
+    """
+    ret = _lib().url_fclose(s)
+    return ret
+
 def dump_format(formatCtx, index, url, is_output):
     _lib().dump_format(byref(formatCtx), index, url, is_output) 
 
 #####################################################
 
-_libname = "avformat.52"
+# By default, try to load the avformat library that has the same major version
+# than the one that was used for creating the cppdefs and decls module.
+_libname = "avformat.%s"%(decls.LIBAVFORMAT_VERSION_MAJOR)
 _libavformat = None
 
 def _lib():

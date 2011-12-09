@@ -35,61 +35,8 @@
 
 import ctypes
 import findlib
-
-# Pixel formats (defined as an enum in libavutil/pixfmt.h)
-PIX_FMT_NONE = -1
-PIX_FMT_YUV420P = 0
-PIX_FMT_YUYV422 = 1
-PIX_FMT_RGB24 = 2
-PIX_FMT_BGR24 = 3
-PIX_FMT_YUV422P = 4
-PIX_FMT_YUV444P = 5
-PIX_FMT_RGB32 = 6
-PIX_FMT_YUV410P = 7
-
-######################################################################
-# Data Structures
-######################################################################
-
-# defined in libavutil/rational.h
-class AVRational(ctypes.Structure):
-    _fields_ = [("num", ctypes.c_int),
-                ("den", ctypes.c_int)]
-
-
-class AVFrac(ctypes.Structure):
-    """The exact value of the fractional number is: 'val + num / den'. 
-
-    num is assumed to be such that 0 <= num < den
-
-    Deprecated: Use AVRational instead
-    """
-    _fields_ = [("val", ctypes.c_longlong),
-                ("num", ctypes.c_longlong),
-                ("den", ctypes.c_longlong)]
-
-
-# defined in libavcodec/opt.h
-class AVOption(ctypes.Structure):
-    _fields_ = [("name", ctypes.c_char_p),
-                ("help", ctypes.c_char_p),
-                ("offset", ctypes.c_int),
-                ("type", ctypes.c_int),   # enum AVOptionType
-                ("default_val", ctypes.c_double),
-                ("min", ctypes.c_double),
-                ("max", ctypes.c_double),
-                ("flags", ctypes.c_int),
-                ("unit", ctypes.c_char_p)]
-
-# defined in libavutil/log.h
-class AVClass(ctypes.Structure):
-    _fields_ = [("class_name", ctypes.c_char_p),
-                ("item_name", ctypes.c_void_p),   # Actually a function pointer
-                ("option", ctypes.POINTER(AVOption))]
-
-######################################################################
-# Functions
-######################################################################
+import decls
+from decls import AVRational
 
 def avutil_version():
     """Return the libavutil library version.
@@ -106,14 +53,29 @@ def avutil_version():
 def av_free(obj):
     """Free memory which has been allocated with av_malloc(z)() or av_realloc().
     
-    obj may be a AVFrame object that was allocated using avcodec_alloc_frame().
+    *obj* may be a AVFrame object that was allocated using avcodec_alloc_frame()
+    (note: *obj* must be the object itself, not a pointer to it).
     """
     if obj is None:
         return
     _lib().av_free(ctypes.byref(obj))
 
+def av_d2q(d, max):
+    """Convert a floating point number into a rational.
+    
+    *d* is the floating point number and *max* the maximum allowed numerator
+    and denominator
+    Returns a :class:`AVRational` object representing *d*.
+    """
+    func = _lib().av_d2q
+    func.args = [ctypes.c_double, ctypes.c_int]
+    func.restype = AVRational
+    return func(ctypes.c_double(d), int(max))
 
-_libname = "avutil.49"
+
+# By default, try to load the avutil library that has the same major version
+# than the one that was used for creating the cppdefs and decls module.
+_libname = "avutil.%s"%(decls.LIBAVUTIL_VERSION_MAJOR)
 _libavutil = None
 
 def _lib():

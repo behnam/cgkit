@@ -1626,8 +1626,8 @@ class GLPointLightAdapter:
         """
         return """// GLPointLight shader
 light $SHADERNAME(float intensity = 1.0;
-         color diffuse = color "rgb" (1, 1, 1);
-         color specular = color "rgb" (1, 1, 1);
+         color diffuse_col = color "rgb" (1, 1, 1);
+         color specular_col = color "rgb" (1, 1, 1);
          float constant_attenuation = 1;
          float linear_attenuation = 0;
          float quadratic_attenuation = 0)         
@@ -1645,8 +1645,8 @@ light $SHADERNAME(float intensity = 1.0;
     def shaderParams(self, passes):
         """Return a dictionary with shader parameters and their values."""
         return {"intensity":self.obj.intensity,
-                "uniform color diffuse":self.obj.diffuse,
-                "uniform color specular":self.obj.specular,
+                "uniform color diffuse_col":self.obj.diffuse,
+                "uniform color specular_col":self.obj.specular,
                 "uniform float constant_attenuation":self.obj.constant_attenuation,
                 "uniform float linear_attenuation":self.obj.linear_attenuation,
                 "uniform float quadratic_attenuation":self.obj.quadratic_attenuation}
@@ -1680,8 +1680,8 @@ class GLSpotLightAdapter:
         """
         return """// GLSpotLight shader
 light $SHADERNAME(float intensity = 1.0;
-         uniform color diffuse = color "rgb" (1, 1, 1);
-         uniform color specular = color "rgb" (1, 1, 1);
+         uniform color diffuse_col = color "rgb" (1, 1, 1);
+         uniform color specular_col = color "rgb" (1, 1, 1);
          float constant_attenuation = 1;
          float linear_attenuation = 0;
          float quadratic_attenuation = 0;
@@ -1720,8 +1720,8 @@ light $SHADERNAME(float intensity = 1.0;
     def shaderParams(self, passes):
         """Return a dictionary with shader parameters and their values."""
         params = {"intensity":self.obj.intensity,
-                "uniform color diffuse":self.obj.diffuse,
-                "uniform color specular":self.obj.specular,
+                "uniform color diffuse_col":self.obj.diffuse,
+                "uniform color specular_col":self.obj.specular,
                 "uniform float constant_attenuation":self.obj.constant_attenuation,
                 "uniform float linear_attenuation":self.obj.linear_attenuation,
                 "uniform float quadratic_attenuation":self.obj.quadratic_attenuation,
@@ -1759,8 +1759,8 @@ class GLDistantLightAdapter:
         """
         return """// GLDistantLight shader
 light $SHADERNAME(float intensity = 1.0;
-         uniform color diffuse = color "rgb" (1, 1, 1);
-         uniform color specular = color "rgb" (1, 1, 1))
+         uniform color diffuse_col = color "rgb" (1, 1, 1);
+         uniform color specular_col = color "rgb" (1, 1, 1))
 {
   solar(vector "shader" (0,0,1), PI/2)
   {
@@ -1772,8 +1772,8 @@ light $SHADERNAME(float intensity = 1.0;
     def shaderParams(self, passes):
         """Return a dictionary with shader parameters and their values."""
         return {"intensity":self.obj.intensity,
-                "uniform color diffuse":self.obj.diffuse,
-                "uniform color specular":self.obj.specular}
+                "uniform color diffuse_col":self.obj.diffuse,
+                "uniform color specular_col":self.obj.specular}
 
 
 ######################################################################
@@ -1833,8 +1833,8 @@ class GLMaterialAdapter:
         ambient = self.mat.ambient
         emission = self.mat.emission
         return """// GLMaterial shader
-surface $SHADERNAME(color ambient = color "rgb" (0.2, 0.2, 0.2);
-           color specular = color "rgb" (0, 0, 0);
+surface $SHADERNAME(color ambient_col = color "rgb" (0.2, 0.2, 0.2);
+           color specular_col = color "rgb" (0, 0, 0);
            float shininess = 0.0;
            color emission = color "rgb" (0, 0, 0);
            float diffuse_alpha = 1.0;
@@ -1851,9 +1851,9 @@ surface $SHADERNAME(color ambient = color "rgb" (0.2, 0.2, 0.2);
   BAKE_BEGIN
   normal Nf = BAKE_NORMAL(N);
   vector V = normalize(-I);
-  color diffuse = Cs;
+  color diffuse_col = Cs;
 
-  Ci = emission + 0*ambient;
+  Ci = emission + 0*ambient_col;
   illuminance(P, Nf, PI/2)
   {
     vector L0 = normalize(L);
@@ -1863,11 +1863,11 @@ surface $SHADERNAME(color ambient = color "rgb" (0.2, 0.2, 0.2);
 
     color diffuse_lgt = color "rgb" (1,1,1);
     color specular_lgt = color "rgb" (1,1,1);
-    lightsource("diffuse", diffuse_lgt);
-    lightsource("specular", specular_lgt);
+    lightsource("diffuse_col", diffuse_lgt);
+    lightsource("specular_col", specular_lgt);
     
-    Ci += Cl*(diffuse*diffuse_lgt*NL +
-              fi*specular*specular_lgt*pow(max(Nf.S, 0), shininess) );
+    Ci += Cl*(diffuse_col*diffuse_lgt*NL +
+              fi*specular_col*specular_lgt*pow(max(Nf.S, 0), shininess) );
   }
 
   if (texname!="")
@@ -1947,8 +1947,8 @@ surface $SHADERNAME(color ambient = color "rgb" (0.2, 0.2, 0.2);
         sfactor = blend_dict.get(self.mat.blend_sfactor, -1)
         dfactor = blend_dict.get(self.mat.blend_dfactor, -1)
         res = {"uniform float shininess" : self.mat.shininess,
-               "uniform color specular" : tuple(self.mat.specular)[:3],
-               "uniform color ambient" : tuple(self.mat.ambient)[:3],
+               "uniform color specular_col" : tuple(self.mat.specular)[:3],
+               "uniform color ambient_col" : tuple(self.mat.ambient)[:3],
                "uniform color emission" : tuple(self.mat.emission)[:3],
                "uniform float blend_sfactor" : sfactor,
                "uniform float blend_dfactor" : dfactor,

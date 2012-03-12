@@ -18,6 +18,8 @@ New features:
 
 Bug fixes/enhancements:
 
+- Shaders: Some of the RenderMan shaders were using variable names that are
+  now reserved keywords. Those variables have been renamed.
 - mayaascii: Added support for the "relationship" MEL command that can appear
   in .ma files.
 - cgtypes: Bugfix: slerp() could produce NaNs when the magnitude of the input

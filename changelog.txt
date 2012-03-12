@@ -13,6 +13,8 @@ New features:
   to select whether the ODE quickStep() or the step() method should be
   used for the simulation.
 - The viewer tool window is now resizable (patch 2977469).
+- New module mayaiff: This is almost identical to the previous mayabinary
+  module except that it can read any IFF file. 
 
 Bug fixes/enhancements:
 

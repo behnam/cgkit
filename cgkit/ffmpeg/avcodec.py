@@ -41,7 +41,7 @@ import decls
 from decls import AVCodec, AVFrame
 
 
-class AVCodecError(Exception):
+class AVCodecError(avutil.AVError):
     pass
 
 
@@ -141,7 +141,7 @@ def avcodec_open(avctx, codec):
         # The line is commented out because closing it here seems to cause more harm
         # (sometimes it leads to the lib not being able to open anything at all anymore)
         #avcodec_close(avctx)
-        raise AVCodecError("Error: %s"%ret)
+        raise AVCodecError(ret)
     return ret    
     
 def avcodec_close(codecCtx):
@@ -162,36 +162,99 @@ def avcodec_alloc_frame():
         return res.contents
     else:
         return None
-    
-def avcodec_decode_video(codecCtx, picture, buf, bufsize):
-    """Decodes a video frame from buf into picture. 
 
-    The avcodec_decode_video() function decodes a video frame from the input
-    buffer buf of size buf_size. To decode it, it makes use of the video
-    codec which was coupled with avctx using avcodec_open(). The resulting 
-    decoded frame is stored in picture.    
-    Returns a tuple (got_picture, bytes) where got_picture is a boolean that
-    indicates whether a frame was decoded (True) or not and bytes is the number
-    of bytes used.
+def av_init_packet(pkt):
+    """Initialize optional fields of a packet with default values.
+    
+    *pkt* is a :class:`AVPacket` object.
+    Don't call this function on a packet that already contains data as this
+    would lead to a memory leak.
+    """
+    _lib().av_init_packet(byref(pkt))
+        
+def av_free_packet(pkt):
+    """Free a packet.
+    
+    *pkt* is a :class:`AVPacket` object.
+    Frees the data associated with the packet (if there is any data set).
+    """
+    _lib().av_free_packet(byref(pkt))
+
+#def avcodec_decode_video(codecCtx, picture, buf, bufsize):
+#    """Decodes a video frame from buf into picture. 
+#
+#    The avcodec_decode_video() function decodes a video frame from the input
+#    buffer buf of size buf_size. To decode it, it makes use of the video
+#    codec which was coupled with avctx using avcodec_open(). The resulting 
+#    decoded frame is stored in picture.    
+#    Returns a tuple (got_picture, bytes) where got_picture is a boolean that
+#    indicates whether a frame was decoded (True) or not and bytes is the number
+#    of bytes used.
+#    """
+#    got_picture = c_int()
+#    ret = _lib().avcodec_decode_video(byref(codecCtx), byref(picture), byref(got_picture), buf, bufsize)
+#    if ret<0:
+#        raise AVCodecError("Error: %s"%ret)
+#    return bool(got_picture.value), ret
+
+def avcodec_decode_video2(codecCtx, picture, pkt):
+    """Decodes a video frame from pkt into picture. 
+
+    Some decoders may support multiple frames in a single AVPacket, such
+    decoders would then just decode the first frame.
+    
+    Some codecs have a delay between input and output, these need to be fed
+    with avpkt.data=NULL, avpkt.size=0 at the end to return the remaining frames.
+
+    *codecCtx* is an :class:`AVCodecCtx` object, *picture* is an :class:`AVFrame`
+    object which will receive the decoded video frame. *pkt* is a :class:`AVPacket`
+    object containing the encoded data.
+    
+    Returns a tuple (*got_picture*, *bytes*) where *got_picture* is a boolean that
+    indicates whether a frame was decoded (True) or not and *bytes* is the number
+    of bytes used or 0 if no frame could be decompressed.
     """
     got_picture = c_int()
-    ret = _lib().avcodec_decode_video(byref(codecCtx), byref(picture), byref(got_picture), buf, bufsize)
+    ret = _lib().avcodec_decode_video2(byref(codecCtx), byref(picture), byref(got_picture), byref(pkt))
     if ret<0:
-        raise AVCodecError("Error: %s"%ret)
+        raise AVCodecError(ret)
     return bool(got_picture.value), ret
 
-def avcodec_decode_audio2(codecCtx, sampleBuf, buf, bufsize):
+#def avcodec_decode_audio2(codecCtx, sampleBuf, buf, bufsize):
+#    """Decode an audio frame.
+#    
+#    sampleBuf is a ctypes short array.
+#    buf is the encoded data and bufsize the size of the encoded data.
+#    Returns the frameSize (size in bytes of the decoded frame) and the number
+#    of bytes that have been used from buf.
+#    """
+#    frameSize = c_int(ctypes.sizeof(sampleBuf))
+#    ret = _lib().avcodec_decode_audio2(byref(codecCtx), sampleBuf, byref(frameSize), buf, bufsize)
+#    if ret<0:
+#        raise AVCodecError(ret)
+#    return frameSize.value, ret
+
+def avcodec_decode_audio3(codecCtx, sampleBuf, pkt):
     """Decode an audio frame.
     
-    sampleBuf is a ctypes short array.
-    buf is the encoded data and bufsize the size of the encoded data.
+    Some decoders may support multiple frames in a single AVPacket, such
+    decoders would then just decode the first frame. In this case,
+    avcodec_decode_audio3 has to be called again with an AVPacket that contains
+    the remaining data in order to decode the second frame etc.
+    
+    *codecCtx* is an :class:`AVCodecCtx` object, *sampleBuf* is a ctypes short
+    array that will receive the decoded audio data.
+    *pkt* is a :class:`AVPacket` object containing the encoded data.
+    
     Returns the frameSize (size in bytes of the decoded frame) and the number
-    of bytes that have been used from buf.
+    of bytes that have been used from the input buffer in *pkt*.
+    If there are no more frames, both values are 0.
     """
+    # The size of the output buffer in bytes
     frameSize = c_int(ctypes.sizeof(sampleBuf))
-    ret = _lib().avcodec_decode_audio2(byref(codecCtx), sampleBuf, byref(frameSize), buf, bufsize)
+    ret = _lib().avcodec_decode_audio3(byref(codecCtx), sampleBuf, byref(frameSize), byref(pkt))
     if ret<0:
-        raise AVCodecError("Error: %s"%ret)
+        raise AVCodecError(ret)
     return frameSize.value, ret
 
 def avcodec_encode_video(codecCtx, buf, bufsize, picture):
@@ -207,7 +270,7 @@ def avcodec_encode_video(codecCtx, buf, bufsize, picture):
     """
     ret = _lib().avcodec_encode_video(byref(codecCtx), buf, bufsize, byref(picture))
     if ret<0:
-        raise AVCodecError("Error: %s"%ret)
+        raise AVCodecError(ret)
     return ret
 
 def avpicture_alloc(picture, pix_fmt, width, height):
@@ -243,7 +306,7 @@ def avpicture_get_size(pix_fmt, width, height):
     """
     ret = _lib().avpicture_get_size(pix_fmt, width, height)
     if ret<0:
-        raise AVCodecError("Error: %s"%ret)
+        raise AVCodecError(ret)
     return ret
 
 def avpicture_fill(picture, ptr, pix_fmt, width, height):

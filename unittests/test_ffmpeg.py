@@ -37,7 +37,7 @@ class TestFfmpeg(unittest.TestCase):
         avformat.av_find_stream_info(formatCtx)
 
         self.assertEqual(0.8, float(formatCtx.duration)/decls.AV_TIME_BASE)  # 20 frames with a framerate of 25 -> 0.8s
-        self.assertEqual(4947, formatCtx.file_size)
+        self.assertEqual(4787, formatCtx.file_size)
         
         # Get the video stream (there is only one stream)
         stream = formatCtx.streams[0].contents
@@ -58,7 +58,7 @@ class TestFfmpeg(unittest.TestCase):
         self.assertEqual(320, codec.width)
         self.assertEqual(240, codec.height)
         self.assertEqual(decls.PIX_FMT_YUV420P, codec.pix_fmt)
-        self.assertEqual(39350, codec.bit_rate)  # 39kb/s
+        self.assertEqual(37740, codec.bit_rate)  # 37kb/s
 
         # Close the file again
         avformat.av_close_input_file(formatCtx)

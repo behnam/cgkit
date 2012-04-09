@@ -5,6 +5,15 @@
 .. module:: cgkit.ffmpeg
    :synopsis: FFmpeg wrapper modules
 
+This module is a thin ctypes-based wrapper around the functions provided by the
+`ffmpeg <http://www.ffmpeg.org/>`_ libraries. The libraries themselves
+are not part of cgkit, they must be installed separately as shared libraries.
+
+The module was built against ffmpeg version 0.7.6 (avformat 52.110.0,
+avcodec 52.122.0, avutil 50.43.0, swscale 0.14.1). If the ffmpeg libraries
+on your system are different, you may not be able to use this wrapper module
+because of changes in the ffmpeg API.
+
 avformat
 --------
 
@@ -25,8 +34,6 @@ avformat
 ..  autofunction:: cgkit.ffmpeg.avformat.av_read_frame
 
 ..  autofunction:: cgkit.ffmpeg.avformat.av_seek_frame
-
-..  autofunction:: cgkit.ffmpeg.avformat.av_free_packet
 
 ..  autofunction:: cgkit.ffmpeg.avformat.avformat_alloc_context
 
@@ -56,9 +63,9 @@ avcodec
 
 ..  autofunction:: cgkit.ffmpeg.avcodec.avcodec_alloc_frame
 
-..  autofunction:: cgkit.ffmpeg.avcodec.avcodec_decode_video
+..  autofunction:: cgkit.ffmpeg.avcodec.avcodec_decode_video2
 
-..  autofunction:: cgkit.ffmpeg.avcodec.avcodec_decode_audio2
+..  autofunction:: cgkit.ffmpeg.avcodec.avcodec_decode_audio3
 
 ..  autofunction:: cgkit.ffmpeg.avcodec.avcodec_encode_video
 
@@ -67,6 +74,10 @@ avcodec
 ..  autofunction:: cgkit.ffmpeg.avcodec.avpicture_alloc
 
 ..  autofunction:: cgkit.ffmpeg.avcodec.avpicture_free
+
+..  autofunction:: cgkit.ffmpeg.avcodec.av_init_packet
+
+..  autofunction:: cgkit.ffmpeg.avcodec.av_free_packet
 
 ..  autofunction:: cgkit.ffmpeg.avcodec.avpicture_get_size
 
@@ -107,6 +118,18 @@ There are the following functions in the module:
 ..  autofunction:: cgkit.ffmpeg.avutil.av_free
 
 ..  autofunction:: cgkit.ffmpeg.avutil.av_d2q
+
+..  autofunction:: cgkit.ffmpeg.avutil.av_strerror
+
+..  autofunction:: cgkit.ffmpeg.avutil.av_get_sample_fmt_name
+
+..  autofunction:: cgkit.ffmpeg.avutil.av_get_sample_fmt
+
+..  autofunction:: cgkit.ffmpeg.avutil.av_get_bytes_per_sample
+
+..  autofunction:: cgkit.ffmpeg.avutil.av_get_pix_fmt
+
+..  autofunction:: cgkit.ffmpeg.avutil.av_get_pix_fmt_name
 
 The module defines the following pixel format constants:
 

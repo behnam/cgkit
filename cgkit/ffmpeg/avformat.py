@@ -42,9 +42,8 @@ import decls
 from decls import AVOutputFormat, AVFormatContext, AVStream
 
 
-class AVFormatError(Exception):
+class AVFormatError(avutil.AVError):
     pass
-
 
 ######################################################################
 # Functions
@@ -140,7 +139,7 @@ def av_open_input_file(fileName, format=None, buf_size=0, params=None):
     formatCtxPtr = POINTER(AVFormatContext)()
     ret = _lib().av_open_input_file(byref(formatCtxPtr), fileName, format, buf_size, params)
     if ret!=0:
-        raise AVFormatError("Error %s"%ret)
+        raise AVFormatError(ret)
     return formatCtxPtr.contents
 
 def av_close_input_file(formatCtx):
@@ -168,7 +167,7 @@ def av_find_stream_info(formatCtx):
     """
     ret = _lib().av_find_stream_info(byref(formatCtx))
     if ret<0:
-        raise AVFormatError("Error: %s"%ret)
+        raise AVFormatError(ret)
     return ret
 
 def av_read_frame(formatCtx, pkt):
@@ -192,14 +191,13 @@ def av_read_frame(formatCtx, pkt):
     Returns False when EOF was reached.
     """
     ret = _lib().av_read_frame(byref(formatCtx), byref(pkt))
-    # Is this really EOF?
-#    if ret==-1:
-#        return False
     if ret<0:
+        if ret==decls.AVERROR_EOF:
+            return False
         if formatCtx.pb:
             if formatCtx.pb.contents.eof_reached:
                 return False
-        raise AVFormatError("Error: %s"%ret)
+        raise AVFormatError(ret)
     return True
 
 def av_seek_frame(formatCtx, stream_index, timestamp, flags):
@@ -211,9 +209,12 @@ def av_seek_frame(formatCtx, stream_index, timestamp, flags):
     timestamp     timestamp in AVStream.time_base units or if there is no stream specified then in AV_TIME_BASE units 
     flags     flags which select direction and seeking mode (AVSEEK_FLAG_*)
     """
-    ret = _lib().av_seek_frame(byref(formatCtx), stream_index, int(timestamp), flags)
+    func = _lib().av_seek_frame
+    func.args = [POINTER(AVFormatContext), c_int, c_longlong, c_int]
+    func.restype = c_int
+    ret = func(byref(formatCtx), stream_index, timestamp, flags)
     if ret<0:
-        raise AVFormatError("Error: %s"%ret)
+        raise AVFormatError(ret)
     return ret
 
 def av_write_header(formatCtx):
@@ -221,7 +222,7 @@ def av_write_header(formatCtx):
     """
     ret = _lib().av_write_header(byref(formatCtx))
     if ret!=0:
-        raise AVFormatError("Error: %s"%ret)
+        raise AVFormatError(ret)
 
 def av_write_trailer(formatCtx):
     """Writes the stream trailer to an output media file and frees the file private data.
@@ -230,7 +231,7 @@ def av_write_trailer(formatCtx):
     """
     ret = _lib().av_write_trailer(byref(formatCtx))
     if ret!=0:
-        raise AVFormatError("Error: %s"%ret)
+        raise AVFormatError(ret)
  
 def av_write_frame(formatCtx, pkt):
     """Writes a packet to an output media file.
@@ -242,7 +243,7 @@ def av_write_frame(formatCtx, pkt):
     """
     ret = _lib().av_write_frame(byref(formatCtx), byref(pkt))
     if ret<0:
-        raise AVFormatError("Error: %s"%ret)
+        raise AVFormatError(ret)
     return ret
 
 def av_interleaved_write_frame(formatCtx, pkt):
@@ -258,16 +259,8 @@ def av_interleaved_write_frame(formatCtx, pkt):
     """
     ret = _lib().av_interleaved_write_frame(byref(formatCtx), byref(pkt))
     if ret<0:
-        raise AVFormatError("Error: %s"%ret)
+        raise AVFormatError(ret)
     return ret
-
-def av_free_packet(pkt):
-    """Call the packet's destruct() function.
-    """
-    if pkt is None:
-        return
-    # How to test if pkt.destruct is 0?
-    pkt.destruct(byref(pkt))
 
 def avformat_alloc_context():
     """Allocates and initializes an :class:`AVFormatContext` object.

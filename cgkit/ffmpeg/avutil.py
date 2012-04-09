@@ -38,6 +38,31 @@ import findlib
 import decls
 from decls import AVRational
 
+class AVError(Exception):
+    """Base AV error class.
+    """
+    def __init__(self, msgOrErrnum):
+        """Constructor.
+        
+        msgOrErrnum is either a string containing an error message or an integer
+        containing the ffmpeg error number. If a number is passed, the number
+        is converted into an error message.
+        The error number is stored in the attribute errnum. If a string has
+        been passed, that attribute will be None.
+        """
+        self.errnum = None
+        # If the input argument is an int, then try to convert it into a message
+        if type(msgOrErrnum) is int:
+            self.errnum = msgOrErrnum
+            msg = av_strerror(self.errnum)
+            if msg is None:
+                msg = "Error %s"%(msgOrErrnum)
+        else:
+            msg = msgOrErrnum
+        
+        Exception.__init__(self, msg)
+
+
 def avutil_version():
     """Return the libavutil library version.
     
@@ -71,6 +96,61 @@ def av_d2q(d, max):
     func.args = [ctypes.c_double, ctypes.c_int]
     func.restype = AVRational
     return func(ctypes.c_double(d), int(max))
+
+def av_strerror(errnum):
+    """Return a description of an AVERROR code.
+    
+    Returns ``None`` if no description could be found. 
+    """
+    buf = ctypes.create_string_buffer(200)
+    func = _lib().av_strerror
+    res = func(int(errnum), buf, ctypes.sizeof(buf))
+    if res==0:
+        return buf.value
+    else:
+        return None
+
+def av_get_sample_fmt_name(sampleFmt):
+    """Return the name of the sample format or ``None`` if an unknown value is passed.
+    
+    *sampleFmt* is an ``AV_SAMPLE_FMT_*`` value.
+    """
+    func = _lib().av_get_sample_fmt_name
+    func.restype = ctypes.c_char_p
+    name = func(sampleFmt)
+    return name
+
+def av_get_sample_fmt(name):
+    """Return the sample format corresponding to the given name.
+    
+    Returns ``AV_SAMPLE_FMT_NONE`` if the name is not recognized.
+    """
+    return _lib().av_get_sample_fmt(name)
+
+def av_get_bytes_per_sample(sampleFmt):
+    """Return the number of bytes per sample.
+    
+    *sampleFmt* is an ``AV_SAMPLE_FMT_*`` value. Returns 0 if sampleFmt refers to
+    an unknown sample format.
+    """
+    return _lib().av_get_bytes_per_sample(sampleFmt)
+
+def av_get_pix_fmt_name(pixFmt):
+    """Return the name of the pixel format or ``None`` if an unknown value is passed.
+    
+    *pixFmt* is a ``PIX_FMT_*`` value.
+    """
+    func = _lib().av_get_pix_fmt_name
+    func.restype = ctypes.c_char_p
+    name = func(pixFmt)
+    return name
+    
+def av_get_pix_fmt(name):
+    """Return the pixel format corresponding to the given name.
+    
+    Returns ``PIX_FMT_NONE`` if the name is not recognized.
+    """
+    return _lib().av_get_pix_fmt(name)
 
 
 # By default, try to load the avutil library that has the same major version

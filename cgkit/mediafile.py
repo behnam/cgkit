@@ -34,14 +34,38 @@
 # ***** END LICENSE BLOCK *****
 
 import sys
-from ffmpeg import decls, cppdefs, avutil, swscale, avformat, avcodec
+import fractions
 import ctypes
+from ffmpeg import decls, cppdefs, avutil, swscale, avformat, avcodec
+
 try:
     import Image
     _pilImportException = None
 except ImportError, exc:
     _pilImportException = exc
+    
+try:
+    import numpy
+    _numpyImportException = None
+except ImportError, exc:
+    _numpyImportException = exc
 
+# Pixel formats
+RGB = 0
+BGR = 1
+RGBA = 2
+ARGB = 3
+BGRA = 4
+ABGR = 5
+GRAY = 6
+ 
+# Pixel access
+WIDTH_HEIGHT = 100
+HEIGHT_WIDTH = 101
+
+# Color access
+SEPARATE_CHANNELS = 200
+COMBINED_CHANNELS = 201
 
 class MediaFileError(Exception):
     pass
@@ -52,25 +76,219 @@ class VideoData:
     This class serves as a container for the data that is passed to the
     video callbacks.
     """
-    def __init__(self, pts=None, size=None, frame=None, picture=None, pictureSize=None, swsCtx=None):
+    def __init__(self, stream, size, srcPixFmt, frame=None, pts=None):
+        """Constructor.
+        """
+        # The parent stream object (VideoStream_ffmpeg)
+        self.stream = stream
         # Presentation timestamp (float)
-        self.pts =pts
+        self.pts = pts
         # Image size (width, height)
         self.size = size
         
-        # AVFrame object (containing the decoded frame (but not as RGB))
-        self.frame = frame
-        # AVPicture object (for the RGB frame)
-        self.picture = picture
-        # The size in bytes of a full (RGB) picture
-        self.pictureSize = pictureSize
+        # The source pixel format of the video stream.
+        # This is one of the ffmpeg PIX_FMT_* integer values and it's used to
+        # convert the video frame into the target format.
+        self._srcPixFmt = srcPixFmt
         
-        self._swsCtx = swsCtx
+        # AVFrame object (containing the decoded frame (but not as RGB))
+        # The contents of this object change on every frame iteration, so the
+        # same object is used for every frame.
+        self._frame = frame
+        
+        # If the frame is queried as a numpy array, this will be the array that
+        # is kept between calls.
+        self._numpyArray = None
+        # Stores a tuple (pixelFormat, pixelAccess, colorAccess) that contains
+        # the values that were used to initialize the numpy array. Whenever
+        # one of these values changes, the array needs to be re-initialized.
+        self._numpyBufferParams = None
+        # The sws context that is used to convert the image into a RGB numpy array
+        self._numpySwsCtx = None
+        # The uint*[4] array containing the data pointers into the numpy array
+        # (actually only, the first item is used, the others are NULL). This
+        # is passed into the sws_scale() function to fill the numpy buffer.
+        self._dataPtrs = None
+        # The int[4] array of line sizes (only the first one is used). This
+        # is passed into the sws_scale() function to fill the numpy buffer.
+        self._lineSizes = None
+        
+        # AVPicture object that contains the target buffer for conversion to PIL.
+        # This is just a buffer that can hold the converted image (just like
+        # a numpy array).
+        self._picture = None
+        # The size in bytes of a full (RGB) picture
+        self._pictureSize = None
+        # The sws context for conversion into a PIL image
+        self._pilSwsCtx = None
     
+    def _free(self):
+        """Free any resources that have been allocated by the object.
+        
+        This must be called by the stream after all frames have been processed.
+        """
+        if self._numpySwsCtx is not None:
+            swscale.sws_freeContext(self._numpySwsCtx)
+            self._numpySwsCtx = None
+            
+        if self._pilSwsCtx is not None:
+            swscale.sws_freeContext(self._pilSwsCtx)
+            self._pilSwsCtx = None
+        
+        if self._picture is not None:
+            avcodec.avpicture_free(self._picture)
+            self._picture = None
+
+        
     def isKeyFrame(self):
         """Check whether the current frame is a key frame or not.
         """
-        return self.frame.key_frame==1
+        return self._frame.key_frame==1
+    
+    def numpyArray(self, pixelFormat=RGB, pixelAccess=WIDTH_HEIGHT, colorAccess=SEPARATE_CHANNELS):
+        """Return the current frame as a numpy array.
+
+        pixelFormat specifies the number and order of the channels in the
+        returned buffer. The source video frames are converted into the
+        specified format.
+        
+        pixelAccess defines the order of the x,y indices when accessing
+        a pixel in the returned buffer. The value can either be WIDTH_HEIGHT
+        to specify the pixel position as (x,y) or HEIGHT_WIDTH if (y,x)
+        is required.
+        
+        colorAccess specifies whether the color channels should be accessed
+        as a third index (SEPARATE_CHANNELS) or if the entire pixel should
+        be stored as a single integer value (COMBINED_CHANNELS). The latter
+        is only allowed if the pixel format contains 1 or 4 channels.
+        
+        Note that the pixelAccess and colorAccess parameters do not affect
+        the underlying memory layout of the buffer, they only affect the way
+        that individual pixels are accessed via the numpy array.
+        The memory layout is always so that rows are stored one after another
+        without any gaps and the channel values of an individual pixel are
+        always stored next to each other.  
+        
+        The underlying numpy array is reused for every frame, so if you need
+        to keep the array you have to copy it.
+        The returned array has a shape of (width,height,3) and a dtype of uint8.
+        """
+        # Make sure numpy has been imported successfully
+        global _numpyImportException
+        if _numpyImportException is not None:
+            raise _numpyImportException
+        
+        # Do we need to allocate a new numpy buffer?
+        if self._numpyArray is None or (pixelFormat, pixelAccess, colorAccess)!=self._numpyBufferParams:
+            self._initNumpyProcessing(pixelFormat, pixelAccess, colorAccess)
+
+        # Convert the frame into an rgb image. The result is put directly into
+        # the numpy array.
+        height = self.size[1]
+        swscale.sws_scale(self._numpySwsCtx, self._frame.data, self._frame.linesize, 0, height, self._dataPtrs, self._lineSizes)
+        
+        return self._numpyArray
+    
+    def _initNumpyProcessing(self, pixelFormat, pixelAccess, colorAccess):
+        """Initialize decoding into a numpy array.
+        
+        This has to be called at least once before a frame is converted into
+        a numpy array.
+        If the layout of the numpy array changes, the method has to be called
+        again.
+        
+        The method creates the numpy array, the swscale context to convert
+        the image data and the _lineSizes and _dataPtrs arrays for the sws_scale()
+        call.
+        """
+        # Check the pixelAccess value...
+        if pixelAccess not in [WIDTH_HEIGHT, HEIGHT_WIDTH]:
+            raise ValueError("Invalid pixelAcess value")
+        
+        # Check the colorAccess value...
+        if colorAccess not in [SEPARATE_CHANNELS, COMBINED_CHANNELS]:
+            raise ValueError("Invalid colorAccess value")
+        
+        # Check the pixel format...
+        numChannels = None
+        dstPixFmt = None
+        if pixelFormat==RGB:
+            numChannels = 3
+            dstPixFmt = decls.PIX_FMT_RGB24
+        elif pixelFormat==BGR:
+            numChannels = 3
+            dstPixFmt = decls.PIX_FMT_BGR24
+        elif pixelFormat==RGBA:
+            numChannels = 4
+            dstPixFmt = decls.PIX_FMT_RGBA
+        elif pixelFormat==ARGB:
+            numChannels = 4
+            dstPixFmt = decls.PIX_FMT_ARGB
+        elif pixelFormat==ABGR:
+            numChannels = 4
+            dstPixFmt = decls.PIX_FMT_ABGR
+        elif pixelFormat==BGRA:
+            numChannels = 4
+            dstPixFmt = decls.PIX_FMT_BGRA
+        elif pixelFormat==GRAY:
+            numChannels = 1
+            dstPixFmt = decls.PIX_FMT_GRAY8
+        else:
+            raise ValueError("Invalid pixelFormat value")
+
+        width,height = self.size
+        # Allocate the numpy array that will hold the converted image.
+        # The memory layout of the buffer is always so that the image is stored
+        # in rows and all the channels are stored together with a pixel.
+        # Example: Row 0: RGB-RGB-RGB-RGB...
+        #          Row 1: RGB-RGB-RGB-RGB...
+        #          ...
+        # To get from one channel to the next channel, you always have to add 1 byte
+        # (for int8 channels). To get to the next x position, you have to add
+        # numChannels bytes and to get to the next y position you have to add
+        # width*numChannels bytes.
+        # The pixelAccess and colorAccess parameters don't affect this memory
+        # layout, they only affect how a pixel is accessed via numpy.
+        if colorAccess==SEPARATE_CHANNELS:
+            # Allocate a RGB buffer...
+            if pixelAccess==WIDTH_HEIGHT:
+                self._numpyArray = numpy.empty((width,height,numChannels), dtype=numpy.uint8)
+                # Adjust the strides so that image rows are consecutive
+                self._numpyArray.strides = (numChannels, numChannels*width, 1)
+            else:
+                self._numpyArray = numpy.empty((height,width,numChannels), dtype=numpy.uint8)
+        else:
+            if numChannels not in [1,4]:
+                raise ValueError("COMBINED_CHANNELS pixel access can only be used with 1-channel or 4-channel pixel formats")
+            
+            if numChannels==1:
+                dtype = numpy.uint8
+            else:
+                dtype = numpy.uint32
+            
+            # Allocate a RGBA buffer (where a RGBA value is stored as a uint32)
+            if pixelAccess==WIDTH_HEIGHT:
+                self._numpyArray = numpy.empty((width,height), dtype=dtype, order="F")
+            else:
+                self._numpyArray = numpy.empty((height,width), dtype=dtype)
+
+        # Free any previously allocated context 
+        if self._numpySwsCtx is not None:
+            swscale.sws_freeContext(self._numpySwsCtx)
+            self._numpySwsCtx = None
+
+        # Allocate the swscale context
+        self._numpySwsCtx = swscale.sws_getContext(width, height, self._srcPixFmt, 
+                                                   width, height, dstPixFmt, 1)
+
+        # Initialize the lineSizes and dataPtrs array that are passed into sws_scale().
+        # The first data pointer points to the beginning of the numpy buffer.
+        DataPtrType = ctypes.POINTER(ctypes.c_uint8)
+        self._lineSizes = (4*ctypes.c_int)(numChannels*width,0,0,0)
+        self._dataPtrs = (4*DataPtrType)(self._numpyArray.ctypes.data_as(DataPtrType), None, None, None)
+        
+        # Store the parameters so that we can detect parameter changes
+        self._numpyBufferParams = (pixelFormat, pixelAccess, colorAccess)
     
     def pilImage(self):
         """Return the current frame as a PIL image.
@@ -79,34 +297,58 @@ class VideoData:
         if _pilImportException is not None:
             raise _pilImportException
 
-        # Convert the frame into RGB
-        self.initPicture()
-        # Obtain a Python string containing the RGB image data
-        dataStr = ctypes.string_at(self.picture.data[0], self.pictureSize)
+        # Do we need to initialize the PIL conversion?
+        if self._pilSwsCtx is None:
+            self._initPilProcessing()
+
+        # Convert the image into RGB format (the convered image is stored
+        # in the AVPicture buffer)...
+        height = self.size[1]
+        swscale.sws_scale(self._pilSwsCtx, self._frame.data, self._frame.linesize, 0, height, self._picture.data, self._picture.linesize)
+            
+        # Obtain a Python string containing the RGB image data...
+        dataStr = ctypes.string_at(self._picture.data[0], self._pictureSize)
+        
         # Convert to PIL image
         return Image.fromstring("RGB", self.size, dataStr)
 
-    def initPicture(self):
-        """Convert the raw frame into a RGB picture.
+    def _initPilProcessing(self):
+        """Initialize decoding into a PIL image.
         
-        Initializes self.picture.
+        Initializes an intermediate buffer (AVPicture) that will receive
+        the converted image and a swscale context to do the conversion. 
         """
-        # Convert the image into RGB format
-        height = self.size[1]
-        swscale.sws_scale(self._swsCtx, self.frame.data, self.frame.linesize, 0, height, self.picture.data, self.picture.linesize)
+        width,height = self.size
+        
+        dstPixFmt = decls.PIX_FMT_RGB24
+        
+        # In case, this is called several times, make sure we don't leak memory.
+        self._free()
+        
+        # Allocate a buffer that can hold the converted image
+        self._picture = decls.AVPicture()
+        avcodec.avpicture_alloc(self._picture, dstPixFmt, width, height)
+        # Get the size of the destination image buffer
+        self._pictureSize = avcodec.avpicture_get_size(dstPixFmt, width, height)
+        
+        # Allocate the swscale context
+        self._pilSwsCtx = swscale.sws_getContext(width, height, self._srcPixFmt, 
+                                                 width, height, dstPixFmt, 1)
 
 
 class AudioData:
     """Decoded audio data.
     """
-    def __init__(self, pts=None, channels=None, framerate=None, samples=None, sampleSize=None):
-        # Presentation timestamp (float)
+    def __init__(self, stream, pts=None, channels=None, framerate=None, samples=None, sampleSize=None):
+        # The parent stream
+        self.stream = stream
+        # Presentation timestamp as an integer in stream time base units
         self.pts = pts
         # The number of channels (int)
         self.channels = channels
         # The framerate in Hz
         self.framerate = framerate
-        # The decoded samples
+        # The decoded samples (this is a ctypes array of shorts)
         self.samples = samples
         # The number of bytes in the samples buffer
         self.sampleSize = sampleSize
@@ -118,15 +360,20 @@ class StreamBase_ffmpeg(object):
     def __init__(self, stream):
         """Constructor.
         
-        stream is a AVStream object.
+        stream is an AVStream object.
         """
         object.__init__(self)
+
+        # Data callback
+        self._dataCallback = None
+        
+        # AVStream object
         self._stream = stream
 
-        # Get the codec context of the stream
+        # Get the codec context of the stream (AVCodecContext)
         self._codecCtx = stream.codec.contents
 
-        # Obtain an appropriate decoder...
+        # Obtain an appropriate decoder (AVCodec)...
         self._codec = avcodec.avcodec_find_decoder(self._codecCtx.codec_id)
 
         if self._codec is not None:
@@ -140,6 +387,19 @@ class StreamBase_ffmpeg(object):
             avcodec.avcodec_close(self._codecCtx)
             self._codecCtx = None
             self._codec = None
+    
+    def setDataCallback(self, callback):
+        """Set a callback that gets called with decoded data.
+        
+        *callback* is a callable that must take a data object as input.
+        It may also be ``None`` to remove any previously set callback.
+        """
+        self._dataCallback = callback
+    
+    def getDataCallback(self):
+        """Return the currently set data callback.
+        """
+        return self._dataCallback
     
     def decodeBegin(self):
         """This is called right before decoding begins.
@@ -163,11 +423,19 @@ class StreamBase_ffmpeg(object):
         
         This is only called when decodeBegin() didn't return False or raise
         an error.
+        Yields the decoded data (in case of audio data, a packet may contain
+        more than one frame).
         """
         pass
 
     @property
-    def fourcc(self):
+    def index(self):
+        """Return the stream index.
+        """
+        return self._stream.index
+        
+    @property
+    def fourCC(self):
         v = self._codecCtx.codec_tag
         return "%s%s%s%s"%(chr(v&0xff), chr((v>>8)&0xff), chr((v>>16)&0xff), chr((v>>24)&0xff))
 
@@ -184,6 +452,34 @@ class StreamBase_ffmpeg(object):
             return None
         else:
             return self._codec.long_name
+
+    @property
+    def bitRate(self):
+        """Return the average bit rate as an integer (bits per second).
+        """
+        return self._codecCtx.bit_rate
+
+    @property
+    def timeBase(self):
+        """Return the time base as a Fraction object.
+        
+        This is the fundamental unit of time (in seconds) in terms of which
+        frame timestamps are represented
+        """
+        tb = self._stream.time_base
+        num = tb.num
+        den = tb.den
+        # Make sure we don't divide by 0
+        if den==0:
+            num = 0
+            den = 1
+        return fractions.Fraction(num, den)
+    
+    @property
+    def duration(self):
+        """Return the duration in timeBase units.
+        """
+        return self._stream.duration
     
 
 
@@ -192,23 +488,18 @@ class AudioStream_ffmpeg(StreamBase_ffmpeg):
     """
     def __init__(self, stream):
         StreamBase_ffmpeg.__init__(self, stream)
-        self._frameCallback = None
     
-    def setFrameCallback(self, callback):
-        self._frameCallback = callback
-
     def decodeBegin(self):
-        if self._frameCallback is None:
-            return False
-        
-        tb = self._stream.time_base
-        self._timebase = float(tb.num)/tb.den
+
+        # A dummy packet that is used to pass the output buffer to avcodec_decode_audio3
+        self._dummyPkt = decls.AVPacket()
+        avcodec.av_init_packet(self._dummyPkt)
 
         # Allocate a buffer for the decoded audio frame
         size = 192000
         self._sampleBuf = (size*ctypes.c_short)()
 
-        self._audioData = AudioData(channels=self._codecCtx.channels, framerate=self._codecCtx.sample_rate, samples=self._sampleBuf)
+        self._audioData = AudioData(self, channels=self._codecCtx.channels, framerate=self._codecCtx.sample_rate, samples=self._sampleBuf)
         return True
 
     def decodeEnd(self):
@@ -217,24 +508,44 @@ class AudioStream_ffmpeg(StreamBase_ffmpeg):
     def handlePacket(self, pkt):
         # Decode the frame...
         codecCtx = self._codecCtx
-        frameSize,bytesUsed = avcodec.avcodec_decode_audio2(codecCtx, self._sampleBuf, pkt.data, pkt.size)
         
-        if frameSize>0:
-            self._audioData.pts = pkt.dts*self._timebase
-            self._audioData.sampleSize = frameSize
-            self._frameCallback(self._audioData)
+        # Set the data pointer and size of the dummy packet to that of packet
+        # (the dummy packet is used because there may be more than one frame
+        # and we have to adjust the data pointer and size to decode all of them)
+        dummyPkt = self._dummyPkt
+        dummyPkt.data = pkt.data
+        dummyPkt.size = pkt.size
+        
+        bytesUsed = 1
+        while bytesUsed>0 and bool(dummyPkt.data):
+            # Decode the next frame
+            frameSize,bytesUsed = avcodec.avcodec_decode_audio3(codecCtx, self._sampleBuf, dummyPkt)
+            # frameSize is the number of bytes that have been written into the sample buffer
+            # bytesUsed is the number of bytes that have been used in the input buffer
+
+            # The following two lines are equivalent to dummyPkt.data += bytesUsed
+            # (the first line converts the pointer value to an int, the second
+            # line adds bytesUsed and converts the result back to a ctypes pointer)
+            addr = ctypes.addressof(dummyPkt.data.contents)
+            dummyPkt.data = ctypes.cast(addr+bytesUsed, type(dummyPkt.data))
+            dummyPkt.size -= bytesUsed
+            
+            # Report the frame if we have one
+            if frameSize>0:
+                self._audioData.pts = pkt.pts
+                self._audioData.sampleSize = frameSize
+                
+                yield self._audioData
 
     @property
-    def nchannels(self):
+    def numChannels(self):
         return self._codecCtx.channels
 
     @property
-    def framerate(self):
+    def sampleRate(self):
+        """Return the sample rate as an integer (samples per second).
+        """
         return self._codecCtx.sample_rate
-
-    @property
-    def bitrate(self):
-        return self._codecCtx.bit_rate
 
 
 class VideoStream_ffmpeg(StreamBase_ffmpeg):
@@ -242,42 +553,31 @@ class VideoStream_ffmpeg(StreamBase_ffmpeg):
     """
 
     def __init__(self, stream):
+        """Constructor.
+        
+        stream is an AVStream object containing the video stream.
+        """
         StreamBase_ffmpeg.__init__(self, stream)
-        self._frameCallback = None
-        self._swsCtx = None
-        self._picture = None
         self._frame = None
-    
-    def setFrameCallback(self, callback):
-        self._frameCallback = callback
+        self._videoData = None
     
     def decodeBegin(self):
-        if self._frameCallback is None:
-            return False
         
-        # Allocate a video frame that will store the decoded frames
+        # Allocate a video frame that will store the decoded frames and
+        # create the VideoData object that will be passed to the callers
+        # (the actual conversion to RGB (or whatever) is done by the
+        # VideoData object)
         try:
             self._frame = avcodec.avcodec_alloc_frame()
             if self._frame is None:
                 raise MemoryError("Failed to allocate AVFrame object")
             
-            # Allocate just a picture for the converted image...
-            self._picture = decls.AVPicture()
             width = self._codecCtx.width
             height = self._codecCtx.height
-            avcodec.avpicture_alloc(self._picture, decls.PIX_FMT_RGB24, width, height)
-            # Get the size of the destination image buffer
-            self._pictureSize = avcodec.avpicture_get_size(decls.PIX_FMT_RGB24, width, height)
-    
-            # Allocate a SwsContext structure to convert the image
-            self._swsCtx = swscale.sws_getContext(width, height, self._codecCtx.pix_fmt, 
-                                                  width, height, decls.PIX_FMT_RGB24, 1)
+            self._videoData = VideoData(self, size=(width, height), frame=self._frame, srcPixFmt=self._codecCtx.pix_fmt)
             
             tb = self._stream.time_base
             self._timebase = float(tb.num)/tb.den
-            self._videoData = VideoData(size=(width, height), frame=self._frame,
-                                        picture=self._picture, pictureSize=self._pictureSize,
-                                        swsCtx=self._swsCtx)
         except:
             self.decodeEnd()
             raise
@@ -285,12 +585,9 @@ class VideoStream_ffmpeg(StreamBase_ffmpeg):
         return True
 
     def decodeEnd(self):
-        if self._swsCtx is not None:
-            swscale.sws_freeContext(self._swsCtx)
-            self._swsCtx = None
-        if self._picture is not None:
-            avcodec.avpicture_free(self._picture)
-            self._picture = None
+        if self._videoData is not None:
+            self._videoData._free()
+            self._videoData = None
         if self._frame is not None:
             avutil.av_free(self._frame)
             self._frame = None
@@ -298,7 +595,7 @@ class VideoStream_ffmpeg(StreamBase_ffmpeg):
     def handlePacket(self, pkt):
         # Decode the frame...
         codecCtx = self._codecCtx
-        hasFrame,bytes = avcodec.avcodec_decode_video(codecCtx, self._frame, pkt.data, pkt.size)
+        hasFrame,bytes = avcodec.avcodec_decode_video2(codecCtx, self._frame, pkt)
 
         if hasFrame:
             # Conversion into RGB or creation of a PIL image is done by the
@@ -306,16 +603,64 @@ class VideoStream_ffmpeg(StreamBase_ffmpeg):
             
             #print "PTS:%s  DTS:%s  Duration:%s"%(pkt.pts, pkt.dts, pkt.duration)
             self._videoData.pts = pkt.dts*self._timebase
-            
-            self._frameCallback(self._videoData)
+        
+            yield self._videoData
 
     @property
+    def size(self):
+        """Return the width and height of a video frame in pixels.
+        """
+        return (self._codecCtx.width, self._codecCtx.height)
+        
+    @property
     def width(self):
+        """Return the width of a video frame in pixels.
+        """
         return self._codecCtx.width
 
     @property
     def height(self):
+        """Return the height of a video frame in pixels.
+        """
         return self._codecCtx.height
+    
+    @property
+    def frameRate(self):
+        """Return the frame rate as a Fraction object.
+        """
+        fr = self._stream.r_frame_rate
+        num = fr.num
+        den = fr.den
+        # Make sure we don't divide by 0
+        if den==0:
+            num = 0
+            den = 1
+        return fractions.Fraction(num, den)
+    
+    @property
+    def numFrames(self):
+        """Return the number of frames if known.
+        
+        Returns an integer or None if the number of frames is not known.
+        """
+        n = self._stream.nb_frames
+        if n==0:
+            n = None
+        return n
+        
+    @property
+    def pixelAspect(self):
+        """Return the pixel aspect ratio if the value is known.
+        
+        Returns a Fraction object or None if the aspect ratio is not known.
+        """
+        a = self._stream.sample_aspect_ratio
+        num = a.num
+        den = a.den
+        if den!=0 and num!=0:
+            return fractions.Fraction(num, den)
+        else:
+            return None
 
 
 class Media_Read_ffmpeg(object):
@@ -323,6 +668,10 @@ class Media_Read_ffmpeg(object):
     """
     
     def __init__(self, fileName):
+        """Constructor.
+        
+        fileName is the name of the media file.
+        """
         object.__init__(self)
         
         # Audio streams (AudioStream_ffmpeg objects)
@@ -356,6 +705,13 @@ class Media_Read_ffmpeg(object):
             else:
                 self._streams.append(None)
 
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, errorType, errorValue, traceback):
+        self.close()
+        return False
+    
     def close(self):
         """Close the file.
         """
@@ -381,65 +737,70 @@ class Media_Read_ffmpeg(object):
         """
         return len(self.videoStreams)
 
-    def _frameCallback(self, imgData):
-        self._imgData = imgData
-    
-    def iterFrames(self):
+    def iterData(self, streams=None):
         """Iterate over the frames of the first video stream.
         """
-        if len(self.videoStreams)==0:
-            return
-        
-        videoStream = self.videoStreams[0]
-        videoStream.setFrameCallback(self._frameCallback)
-        if not videoStream.decodeBegin():
-            return
-        
-        ffStream = videoStream._stream
-        try:
-            self._imgData = None
-            for pkt in self.iterPackets():
-                if pkt.stream_index==ffStream.index:
-                    videoStream.handlePacket(pkt)
-                    if self._imgData is not None:
-                        yield self._imgData
-                        self._imgData = None
-        finally:
-            videoStream.decodeEnd()
-    
-    def decode(self, videoCallbacks=None, audioCallbacks=None):
-        """Read the individual packets from the streams and pass them to the callbacks.
-        """
-        if videoCallbacks is None:
-            videoCallbacks = []
-        if audioCallbacks is None:
-            audioCallbacks = []
+        # Use the first video stream by default...
+        if streams is None:
+            if len(self.videoStreams)==0:
+                return
+            videoStream = self.videoStreams[0]
+            streams = [videoStream]
 
-        # Set the callbacks...
-        for stream,callback in zip(self.videoStreams, videoCallbacks):
-            if stream is not None:
-                stream.setFrameCallback(callback)
-        for stream,callback in zip(self.audioStreams, audioCallbacks):
-            if stream is not None:
-                stream.setFrameCallback(callback)
-        
-        streams = self._streams
-        
+        if len(streams)==0:
+            return
+
+        # Initialize the streams...
+        # streamDict: Key:Stream index - Value:Stream object
+        streamDict = {}
         for stream in streams:
-            stream.enabled = stream.decodeBegin()
-        
+            # Check the type of the stream
+            if not isinstance(stream, StreamBase_ffmpeg):
+                raise TypeError("Stream object expected")
+            # Is this a stream from someone else?
+            if stream not in self._streams:
+                raise ValueError("Invalid stream (stream is from a different source)")
+            
+            stream.decodeBegin()
+            streamDict[stream.index] = stream
+
         try:
-            # Iterate over all packets in the file and pass them to the
-            # corresponding stream handler...
+            # Iterate over the packets in the file and decode the frames...
             for pkt in self.iterPackets():
-                idx = pkt.stream_index
-                stream = streams[idx]
-                if stream is not None and stream.enabled:
-                    stream.handlePacket(pkt)
+                stream = streamDict.get(pkt.stream_index, None)
+                if stream is not None:
+                    for data in stream.handlePacket(pkt):
+                        yield data
+            
+            # Some codecs have a delay between input and output, so go on
+            # feeding empty packets until we receive no more frames.            
+            pkt = decls.AVPacket()
+            avcodec.av_init_packet(pkt)
+            for stream in streamDict.values():
+                hasData = True
+                while hasData: 
+                    hasData = False
+                    for data in stream.handlePacket(pkt):
+                        hasData = True
+                        yield data
         finally:
-            for stream in streams:
-                if stream.enabled:
-                    stream.decodeEnd()
+            for stream in streamDict.values():
+                stream.decodeEnd()
+    
+    def decode(self):
+        """Decode stream data and pass it to the callbacks stored in the streams.
+        """
+        # Determine the streams that have a callback
+        streams = []
+        for stream in self._streams:
+            cb = stream.getDataCallback()
+            if cb is not None:
+                streams.append(stream)
+
+        # Iterate over the data...
+        for data in self.iterData(streams):
+            callback = data.stream.getDataCallback()
+            callback(data)
 
     def iterPackets(self):
         """Iterate over all raw packets in the file.
@@ -461,7 +822,7 @@ class Media_Read_ffmpeg(object):
                 if not eof:
                     yield pkt
             finally:
-                avformat.av_free_packet(pkt)
+                avcodec.av_free_packet(pkt)
 
     @property
     def title(self):

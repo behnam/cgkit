@@ -48,10 +48,6 @@ AVPicture._fields_ = [
 ]
 class AVFormatContext(Structure):
     pass
-class SwsContext(Structure):
-    pass
-SwsContext._fields_ = [
-]
 class AVClass(Structure):
     pass
 class AVOption(Structure):
@@ -491,6 +487,10 @@ AVFormatContext._fields_ = [
     ('start_time_realtime', int64_t),
     ('fps_probe_size', c_int),
     ('ts_id', c_int),
+]
+class SwsContext(Structure):
+    pass
+SwsContext._fields_ = [
 ]
 class AVCodecTag(Structure):
     pass

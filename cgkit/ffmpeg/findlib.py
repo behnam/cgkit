@@ -47,27 +47,33 @@ def findFfmpegLib(name):
     handle to the library is returned.
     """
     
+    # A list of library names that are tried to load the lib
     tries = [name]
     
     if not os.path.isabs(name):
         paths = []
         
+        # OSX?
         if sys.platform=="darwin":
             paths = ["/usr/local/lib", "/opt/local/lib", "/sw/lib"]
-            libFmt = "lib%s.dylib"
-        elif sys.platform=="linux":
+            for path in paths:
+                tries.append(os.path.join(path, "lib%s.dylib"%name))
+        # Linux?
+        elif sys.platform=="linux2":
+            f = name.split(".")
+            if len(f)==2:
+                name = "lib%s.so.%s"%(f[0], f[1])
+                tries.append(name)
             paths = ["/usr/local/lib"]
-            libFmt = "lib%s.lib"
-        else:
+            for path in paths:
+                tries.append(os.path.join(path, name))
+        # Windows?
+        elif sys.platform=="win32":
+            winName = name.replace(".", "-")
+            tries.append(winName)
             paths = []
-        
-        winName = name.replace(".", "-")
-        tries.append(winName)
-        for path in paths:
-            tries.append(os.path.join(path, libFmt%name))
-            tries.append(os.path.join(path, libFmt%winName))
-    
-    
+
+    # Try all the alternatives we have...    
     exc = None
     for libName in tries:
         try:

@@ -14,3 +14,4 @@ config_py31.cfg
 transfer_web.sh
 *.pyc
 *~
+cgkitinfo.py

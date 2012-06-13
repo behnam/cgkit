@@ -60,15 +60,33 @@ class SeqString:
     False
     >>> a>b
     True
+
+    *numDelim* can be set to a string representing a character-set designating 
+    where numbers should be considered delimited from strings. This helps to 
+    identify negative numbers from hyphen characters. For example, if ``numDelim=="."``, 
+    then the parsing process can assume ``file.-001.tif`` should produce the number -1.   
+    By default, the ``"-"`` character would be consumed as part of the string name.
+
+    >>> a = SeqString('a_08')
+    >>> b = SeqString('a_-02')
+    >>> a<b
+    True
+    >>> b = SeqString('a_-02', numDelim='_')
+    >>> a<b
+    False
+    >>> a>b
+    True
+
     """
     
-    def __init__(self, s=None):
+    def __init__(self, s=None, numDelim=None):
         """Constructor.
 
         The sequence string is initialized with s which can be a regular 
         string, another SeqString or anything else that can be turned into
         a string using str(s). s can also be None which is equivalent
         to an empty string.
+
         """
         # This is an alternating sequence of text and number values
         # (always beginning and ending with a text (which might both be empty)).
@@ -77,6 +95,12 @@ class SeqString:
         # value was made of. The list can never be empty (it always contains
         # at least one string, even when that one is empty).
         # Example: 'anim1_0001.png' -> ['anim', (1,1), '_', (1,4), '.png']
+
+        self._number_delim = None
+
+        if numDelim is not None:
+            self._number_delim = re.escape(str(numDelim))
+
         self._value = [""]
         self._initSeqString(s)
 
@@ -188,8 +212,13 @@ class SeqString:
             if (z==0):
                 # Is this the beginning of a number?
                 if (c in string.digits):
-                    res.append(textbuf)
                     numtup  = (0,1)
+                    if self._number_delim is not None:
+                        if re.search(r'\s*[%s]-$' % self._number_delim, textbuf):
+                            textbuf = textbuf[:-1]
+                            c = '-%s' % c
+                            numtup  = (0,2)
+                    res.append(textbuf)
                     textbuf = c
                     z = 1
                 # Store text in buffer
@@ -922,7 +951,7 @@ class Range:
         if type(rangeStr) is not str:
             raise TypeError("The rangeStr argument must be a string")
 
-        reRange = re.compile(r"([0-9]+)(?:-([0-9]*)(?:x([0-9]+))?)?$")
+        reRange = re.compile(r"(-?[0-9]+)(?:-(-?[0-9]*)(?:x([0-9]+))?)?$")
 
         ranges = []
         for rs in rangeStr.split(","):
@@ -2086,7 +2115,7 @@ class SymLinkSequence(CopySequence):
         os.symlink(src, dst)
 
 
-def buildSequences(names, numPos=None, assumeFiles=False, nameFunc=None):
+def buildSequences(names, numPos=None, assumeFiles=False, nameFunc=None, numDelim=None):
     """Create sorted sequences from a list of names/objects.
     
     *names* is a list of objects (usually strings) that are grouped into sequences.
@@ -2104,25 +2133,31 @@ def buildSequences(names, numPos=None, assumeFiles=False, nameFunc=None):
     The function has to return the actual name of that object. This can
     be used if the input list contains objects that are not strings but
     some other (compound) objects.
-    
+
+    *numDelim* can be set to a string representing a character-set designating 
+    where numbers should be considered delimited from strings. This helps to 
+    identify negative numbers from hyphen characters. For example, if ``numDelim=="."``, 
+    then the parsing process can assume ``file.-001.tif`` should produce the number -1.   
+    By default, the ``"-"`` character would be consumed as part of the string name.
+
     Returns a list of :class:`Sequence<cgkit.sequence.Sequence>` objects.
     The sequences and the files within the sequences are sorted.
     """
     # Create the objects list which contains 2-tuples (seqString,obj).
     # obj is the original object from the "names" list or None.
     if nameFunc is None:
-        objects = map(lambda name: (SeqString(name),None), names)
+        objects = map(lambda name: (SeqString(name,numDelim),None), names)
     else:
-        objects = map(lambda obj: (SeqString(nameFunc(obj)),obj), names)
+        objects = map(lambda obj: (SeqString(nameFunc(obj),numDelim),obj), names)
     # Sort the objects according to their seqString
     # The order of the result is already so that members of the same
     # sequence are together, we just don't know yet where a sequence ends
     # and the next one begins.
     objects = sorted(objects, key=lambda tup: tup[0])
     
-    return _buildSequences(objects, numPos, assumeFiles)
+    return _buildSequences(objects, numPos, assumeFiles, numDelim)
     
-def _buildSequences(objects, numPos=None, assumeFiles=False):
+def _buildSequences(objects, numPos=None, assumeFiles=False, numDelim=None):
     """Helper function for buildSequences().
     
     objects is a sorted list of (name,obj) tuples.
@@ -2136,7 +2171,7 @@ def _buildSequences(objects, numPos=None, assumeFiles=False):
         # Are we dealing with file names? Then freeze directory numbers...
         if assumeFiles:
             path,n = os.path.split(str(name))
-            pathseq = SeqString(path)
+            pathseq = SeqString(path,numDelim)
             # n: The number count in the path (these numbers have to be frozen)
             n = pathseq.numCount()
             for i in range(n):
@@ -2260,13 +2295,19 @@ def compactRange(values):
                 
     return ",".join(rs)
 
-def glob(name):
+def glob(name, numDelim=None):
     """Create file sequences from a name pattern.
     
     *name* is a file pattern that will get a ``'*'`` appended. The pattern is then
     passed to the regular :func:`glob()` function from the standard :mod:`glob`
     module to obtain a list of files which are then grouped into sequences.
-    
+
+    *numDelim* can be set to a string representing a character-set designating 
+    where numbers should be considered delimited from strings. This helps to 
+    identify negative numbers from hyphen characters. For example, if ``numDelim=="."``, 
+    then the parsing process can assume ``file.-001.tif`` should produce the number -1.   
+    By default, the ``"-"`` character would be consumed as part of the string name.
+
     Returns a list of :class:`Sequence<cgkit.sequence.Sequence>` objects.
     The sequences and the files within the sequences are sorted.
     """
@@ -2298,7 +2339,7 @@ def glob(name):
         if p=="*":
             regexp.append(".*")
         elif p=="#":
-            regexp.append("[0-9][0-9][0-9][0-9]")
+            regexp.append("[0-9-][0-9][0-9][0-9]")
         else:
             r = len(p)*"[0-9]"
             r = "(%s|[1-9][0-9]{%s,})"%(r,len(p))
@@ -2320,7 +2361,7 @@ def glob(name):
     # Remove files that don't have any number in their name (without ext)
     fileNames = filter(lambda n: SeqString(os.path.splitext(n)[0]).numCount()>0, fileNames)
     
-    return buildSequences(fileNames, assumeFiles=True)
+    return buildSequences(fileNames, assumeFiles=True, numDelim=numDelim)
 
 
 # The following function is obsolete and replaced by the SeqTemplate class.
